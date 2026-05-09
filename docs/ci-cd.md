@@ -1,0 +1,193 @@
+# CI/CD — Atreyu Library
+
+> Este documento describe la estrategia de integración y entrega continua del proyecto
+> Atreyu Library, los flujos automatizados, las herramientas utilizadas y las reglas
+> de protección de ramas.
+
+---
+
+## Herramientas
+
+| Herramienta | Rol |
+|-------------|-----|
+| GitHub Actions | Orquestación de pipelines CI y CD |
+| SonarCloud | Análisis estático de calidad y cobertura |
+| Docker | Empaquetado de imágenes para despliegue |
+| Google Cloud Run | Plataforma de despliegue |
+| Claude Code | Agente de codificación — implementación |
+| GitHub Copilot | Agente de codificación + revisión automática de PR |
+| Devin | Revisión automática de PR |
+
+---
+
+## Workflow de desarrollo con AI
+
+El desarrollo integra agentes de IA en roles distintos y complementarios,
+orquestados por el developer como responsable final de todas las decisiones
+técnicas, arquitectura y calidad del producto.
+
+| Rol | Responsable |
+|-----|-------------|
+| 👨‍💻 Orquestador — decisiones técnicas, arquitectura y dirección | Developer |
+| 🤖 Agente de codificación | Claude Code |
+| 🤖 Agente de codificación + revisión de PR | GitHub Copilot |
+| 🤖 Revisión de PR | Devin |
+
+Los agentes de IA son herramientas bajo dirección del developer — ninguna decisión
+técnica o de arquitectura es delegada a un agente sin validación humana. Claude Code
+y GitHub Copilot actúan como agentes de codificación durante el desarrollo; Copilot
+y Devin actúan como revisores en cada PR antes del merge, complementando la calidad
+que garantiza SonarCloud.
+
+---
+
+## Flujo CI — Pull Request
+
+Se ejecuta automáticamente al abrir o actualizar un PR hacia `main`.
+El merge queda **bloqueado** si cualquier check falla.
+
+```
+PR abierto / actualizado
+         │
+         ▼
+┌────────────────────┐
+│   Backend checks   │
+│  ├── Checkstyle    │
+│  ├── Tests JUnit   │
+│  └── Build Maven   │
+└────────┬───────────┘
+         │
+         ▼
+┌────────────────────┐
+│  Frontend checks   │
+│  ├── ESLint        │
+│  ├── Typecheck     │
+│  └── Tests Karma   │
+└────────┬───────────┘
+         │
+         ▼
+┌────────────────────┐
+│    SonarCloud      │
+│  ├── Cobertura     │
+│  ├── Code smells   │
+│  └── Duplicación   │
+└────────┬───────────┘
+         │
+    ¿Todo pasa?
+    ✅ Sí │ ❌ No → merge bloqueado
+         │
+         ▼
+┌────────────────────┐
+│  Review Copilot    │
+│  Review Devin      │
+└────────┬───────────┘
+         │
+         ▼
+    PR listo para merge
+```
+
+---
+
+## Flujo CD — Merge a main
+
+Se ejecuta automáticamente al hacer merge a `main`.
+
+```
+Merge a main
+      │
+      ▼
+┌─────────────────────────┐
+│   Build Docker images   │
+│  ├── backend:latest     │
+│  └── frontend:latest    │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│   Push a registry       │
+│   Google Artifact       │
+│   Registry              │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│   Deploy Cloud Run      │
+│  ├── BE → API           │
+│  └── FE → nginx         │
+│  atreyu-library         │
+│  .pakodiaz.dev          │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│   Cypress smoke test    │
+│   contra producción     │
+└─────────────────────────┘
+```
+
+---
+
+## Flujo QA — Deploy manual por branch
+
+Permite desplegar cualquier branch a un ambiente de pruebas para validar
+antes de abrir el PR a `main`.
+
+```
+Trigger manual
+(branch seleccionado)
+        │
+        ▼
+┌───────────────────────┐
+│  Build Docker images  │
+│  desde el branch      │
+└──────────┬────────────┘
+           │
+           ▼
+┌───────────────────────┐
+│  Deploy Cloud Run QA  │
+│  qa01.atreyu-library  │
+│  .pakodiaz.dev        │
+└───────────────────────┘
+```
+
+---
+
+## Protección de ramas
+
+| Regla | Configuración |
+|-------|--------------|
+| Branch protegido | `main` |
+| Checks requeridos | Lint BE + FE, Tests BE + FE, SonarCloud |
+| Reviews requeridas | Mínimo 1 aprobación |
+| Merge sin checks | ❌ Bloqueado |
+| Push directo a main | ❌ Bloqueado |
+| Historial lineal | ✅ Requerido (squash o rebase) |
+
+> **Nota sobre el flujo de aprobación:** al ser un proyecto unipersonal no es posible
+> auto-aprobar PRs. La protección de rama está configurada y activa — demuestra que el
+> proceso existe y funciona. En un equipo real la aprobación corresponde a un peer
+> reviewer o líder técnico antes del merge.
+
+---
+
+## Workflows de GitHub Actions
+
+```
+.github/workflows/
+├── ci.yml          → checks en PR (lint + tests + SonarCloud)
+├── cd.yml          → deploy automático al mergear a main
+└── deploy-qa.yml   → deploy manual por branch a QA
+```
+
+---
+
+## Calidad — SonarCloud
+
+| Métrica | Umbral mínimo |
+|---------|--------------|
+| Cobertura de tests | ≥ 80% en código nuevo |
+| Code smells | 0 bloqueantes |
+| Duplicación | ≤ 3% |
+| Vulnerabilidades | 0 |
+
+Un PR que no supere estos umbrales no puede mergearse.
