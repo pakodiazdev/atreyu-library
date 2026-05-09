@@ -1,2 +1,154 @@
-# atreyu-library
-Atreyu Library es una plataforma cloud-native para la gestión de bibliotecas, desarrollada con Angular, Spring Boot y PostgreSQL, enfocada en escalabilidad, automatización CI/CD y buenas prácticas de arquitectura de software.
+# Atreyu Library
+
+> **Prueba técnica para el rol de Analista Senior — Flecha Amarilla / Conecta GFA.**
+> Plataforma cloud-native para la gestión de bibliotecas, desarrollada con Angular,
+> Spring Boot y PostgreSQL. Enfocada en escalabilidad, automatización CI/CD y buenas
+> prácticas de arquitectura de software.
+
+![CI](https://github.com/pakodiazdev/atreyu-library/actions/workflows/ci.yml/badge.svg)
+![CD](https://github.com/pakodiazdev/atreyu-library/actions/workflows/cd.yml/badge.svg)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library&metric=alert_status)](https://sonarcloud.io/project/overview?id=atreyu-library)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library&metric=coverage)](https://sonarcloud.io/project/overview?id=atreyu-library)
+
+---
+
+## Ambientes
+
+| Ambiente | URL |
+|----------|-----|
+| Producción | [atreyu-library.pakodiaz.dev](https://atreyu-library.pakodiaz.dev) |
+| QA | [qa01.atreyu-library.pakodiaz.dev](https://qa01.atreyu-library.pakodiaz.dev) |
+
+---
+
+## Stack tecnológico
+
+| Capa | Tecnología |
+|------|-----------|
+| Frontend | Angular + Signals |
+| Backend | Spring Boot |
+| Base de datos | PostgreSQL (Supabase) |
+| Infraestructura | Docker + Docker Compose |
+| Cloud | Google Cloud Run |
+| CI/CD | GitHub Actions + SonarCloud |
+| API Docs | Swagger / OpenAPI |
+| Pruebas E2E | Cypress |
+
+---
+
+## Documentación
+
+| Documento | Descripción |
+|-----------|-------------|
+| [Requerimientos](docs/requirements.md) | Requerimientos funcionales y no funcionales |
+| [Arquitectura](docs/architecture.md) | Arquitectura de solución y componentes |
+| [Decisiones técnicas](docs/technical-decisions.md) | Justificación de decisiones de diseño |
+| [Alcance del MVP](docs/mvp-scope.md) | Qué está dentro y fuera del alcance |
+| [CI/CD](docs/ci-cd.md) | Estrategia de integración y entrega continua |
+| [Despliegue](docs/deployment-strategy.md) | Estrategia y configuración de ambientes |
+| [Escalabilidad](docs/scalability.md) | Estrategia de crecimiento y proyección |
+| [Costos](docs/cost-estimation.md) | Estimación de costos por escenario |
+| [Convenciones Git](docs/conventions/git.md) | Branches, commits y Pull Requests |
+| [API — Componentes (E/S)](docs/api-components.md) | Contrato de endpoints, request y response |
+| [Prototipado](docs/prototyping/wireframes.html) | Wireframes interactivos de la UI |
+| [Convenciones de tareas](docs/conventions/tasks.md) | Template y estructura de issues |
+
+---
+
+## Desarrollo local
+
+### Requisitos previos
+
+- Docker y Docker Compose
+- Cypress (instalado localmente para pruebas E2E)
+- Node.js (para comandos de frontend fuera del contenedor)
+
+### Configuración
+
+1. Clonar el repositorio:
+
+```bash
+git clone https://github.com/pakodiazdev/atreyu-library.git
+cd atreyu-library
+```
+
+2. Crear el archivo de variables de entorno:
+
+```bash
+cp .env.example .env
+```
+
+3. Levantar el ambiente local:
+
+```bash
+docker compose up
+```
+
+### Puertos por defecto
+
+| Servicio | Puerto |
+|----------|--------|
+| Frontend (Angular dev server) | `4200` |
+| Backend (Spring Boot) | `8080` |
+| PostgreSQL | `5432` |
+
+Los puertos son configurables desde `.env` para permitir múltiples instancias
+simultáneas en el mismo equipo.
+
+### API Docs
+
+Con el ambiente local levantado:
+```
+http://localhost:8080/swagger-ui.html
+```
+
+---
+
+## Estructura del repositorio
+
+```
+atreyu-library/
+├── code/
+│   ├── backend/              # Spring Boot API
+│   └── frontend/             # Angular app
+├── docker/                   # Configuración centralizada de Docker
+│   ├── backend/
+│   │   └── Dockerfile
+│   └── frontend/
+│       ├── Dockerfile
+│       └── nginx.conf
+├── docs/                     # Documentación del proyecto
+│   ├── conventions/          # Convenciones de Git y tareas
+│   ├── diagrams/             # Diagramas UML de secuencia
+│   ├── architecture.md
+│   ├── ci-cd.md
+│   ├── cost-estimation.md
+│   ├── deployment-strategy.md
+│   ├── mvp-scope.md
+│   ├── requirements.md
+│   ├── scalability.md
+│   └── technical-decisions.md
+├── .github/
+│   ├── workflows/            # GitHub Actions (CI, CD, QA deploy)
+│   └── ISSUE_TEMPLATE/       # Template de issues
+├── .env.example
+├── docker-compose.yml
+├── AGENTS.md                 # Guía para agentes de IA
+└── README.md
+```
+
+---
+
+## Backlog y progreso
+
+El backlog priorizado y el estado del proyecto están disponibles en el
+[GitHub Projects board](https://github.com/users/pakodiazdev/projects/10).
+
+| Sprint | Entregable |
+|--------|-----------|
+| Sprint 0 | Documentación completa |
+| Sprint 1 | Infraestructura + CI/CD + template en producción |
+| Sprint 2 | Lectura de libros |
+| Sprint 3 | Actualización de libros |
+| Sprint 4 | Creación de libros |
+| Sprint 5 | Eliminación de libros |
