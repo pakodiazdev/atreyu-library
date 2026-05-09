@@ -31,13 +31,54 @@ simple — cada decisión técnica debe estar justificada.
 
 ```
 atreyu-library/
-├── backend/         # Spring Boot API
-├── frontend/        # Angular app
-├── docs/            # Documentación del proyecto
-├── docker-compose.yml
+├── code/
+│   ├── backend/              # Spring Boot API
+│   └── frontend/             # Angular app
+├── docker/
+│   ├── dev_container/        # Imagen de desarrollo (JDK 17 + Node 22)
+│   │   ├── Dockerfile
+│   │   └── start.sh          # Arranca BE + FE en paralelo
+│   ├── backend/
+│   │   └── Dockerfile        # Multi-stage para producción/QA
+│   └── frontend/
+│       ├── Dockerfile        # Multi-stage (build + nginx) para producción/QA
+│       └── nginx.conf        # Config nginx (subcarpetas solo si hay configs por entorno)
+├── .devcontainer/
+│   └── devcontainer.json     # VS Code abre directo en dev_container
+├── docs/                     # Documentación del proyecto
+├── docker-compose.yml        # Entorno de desarrollo local
 └── .github/
-    └── workflows/   # GitHub Actions
+    └── workflows/            # GitHub Actions (CI/CD)
 ```
+
+### Entornos Docker
+
+| Entorno | Composición | Comando |
+|---------|-------------|---------|
+| **Desarrollo** | `dev_container` (BE+FE) + `postgres` | `docker compose up` |
+| **QA / Producción** | Imágenes independientes BE + FE + `postgres` | Gestionado por CI/CD |
+
+El `dev_container` monta el código del host vía volumen — los cambios en `code/` se reflejan sin reconstruir la imagen.
+
+### Múltiples entornos en paralelo
+
+Cada entorno (desarrollador, agente de IA, CI) debe tener su propio `.env` con valores únicos para evitar conflictos de nombres y puertos:
+
+```bash
+# .env del entorno 1
+COMPOSE_PROJECT_NAME=atreyu-dev
+BACKEND_PORT=8080
+FRONTEND_PORT=4200
+POSTGRES_FW_PORT=5432   # puerto del host (el interno siempre es 5432, hardcodeado en la JDBC URL)
+
+# .env del entorno 2 (agente, otro dev, CI)
+COMPOSE_PROJECT_NAME=atreyu-agent1
+BACKEND_PORT=8181
+FRONTEND_PORT=4201
+POSTGRES_FW_PORT=5433   # puerto diferente en el host para evitar conflictos
+```
+
+`COMPOSE_PROJECT_NAME` prefija todos los contenedores, redes y volúmenes — `docker ps` los distingue claramente. Los puertos deben ser únicos por entorno para evitar conflictos en el host.
 
 ---
 
@@ -56,6 +97,33 @@ Controller → Service → Repository → Entity
 - **Repository**: acceso a datos (Spring Data JPA)
 - **Entity**: modelo JPA mapeado a tabla PostgreSQL
 - **DTO**: objetos de transferencia para request/response (nunca exponer la Entity directamente)
+
+### Migraciones de base de datos (Flyway — obligatorio)
+
+`ddl-auto` está fijado en `none`. **Nunca usar `create`, `update` o `create-drop` en desarrollo ni producción.**
+
+> **Excepción — scope de test**: `src/test/resources/application.properties` usa `ddl-auto=create-drop`
+> con H2 en memoria y Flyway deshabilitado, únicamente para que el context load test (`contextLoads`)
+> corra sin PostgreSQL externo. Esta excepción es válida solo en ese archivo; en cualquier otro
+> contexto la regla aplica sin excepciones. La migración a Testcontainers (PostgreSQL real en tests)
+> está prevista en Issue #004.
+
+Todos los cambios al esquema deben hacerse mediante migraciones de Flyway:
+
+```
+code/backend/src/main/resources/db/migration/
+├── V1__baseline.sql           # Punto de partida — esquema vacío
+├── V2__create_books_table.sql # Una migración por entidad o cambio de esquema
+└── V{n}__{descripcion}.sql
+```
+
+Reglas de migraciones:
+
+- El número `V{n}` es secuencial e irrepetible — nunca reutilizar ni reordenar
+- La descripción usa `snake_case` y describe la intención (`create_books_table`, no `books`)
+- Una migración aplicada **nunca se edita** — correcciones van en una nueva migración `V{n+1}`
+- Cada nueva entidad requiere su propia migración (`V{n}__create_{entity}_table.sql`)
+- Los cambios de columna también requieren migración (`V{n}__add_{column}_to_{table}.sql`)
 
 ---
 

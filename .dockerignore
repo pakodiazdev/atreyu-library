@@ -1,0 +1,11 @@
+code/frontend/node_modules
+code/frontend/dist
+code/frontend/.angular
+code/backend/target
+**/*.class
+**/*.log
+.git
+.github
+docs
+.env
+.env.*

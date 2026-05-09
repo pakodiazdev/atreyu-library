@@ -1,0 +1,62 @@
+name: ${COMPOSE_PROJECT_NAME:-atreyu-library}
+
+services:
+  dev_container:
+    build:
+      context: .
+      dockerfile: docker/dev_container/Dockerfile
+    volumes:
+      - .:/workspace
+      - maven_cache:/root/.m2
+      - frontend_node_modules:/workspace/code/frontend/node_modules
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+      - "${FRONTEND_PORT:-4200}:4200"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-atreyu}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-atreyu}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-atreyu}
+      ACTUATOR_SHOW_DETAILS: ${ACTUATOR_SHOW_DETAILS:-always}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: /workspace/docker/dev_container/start.sh
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "${POSTGRES_FW_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-atreyu}
+      POSTGRES_USER: ${POSTGRES_USER:-atreyu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-atreyu}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-atreyu} -d ${POSTGRES_DB:-atreyu}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:9.14.0
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:?PGADMIN_EMAIL is required — set it in your .env file}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?PGADMIN_PASSWORD is required — set it in your .env file}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  maven_cache:
+  frontend_node_modules:
+  pgadmin_data:
