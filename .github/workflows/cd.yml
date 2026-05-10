@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: cd-prod
+  cancel-in-progress: false
+
 env:
   GCP_REGION: us-central1
   REGISTRY: us-central1-docker.pkg.dev

@@ -8,6 +8,10 @@ on:
         required: true
         default: main
 
+concurrency:
+  group: cd-qa
+  cancel-in-progress: false
+
 env:
   GCP_REGION: us-central1
   REGISTRY: us-central1-docker.pkg.dev
