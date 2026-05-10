@@ -53,6 +53,7 @@ jobs:
         with:
           service: atreyu-backend-qa
           region: ${{ env.GCP_REGION }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
           image: ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/backend:qa-${{ steps.sha.outputs.value }}
           flags: --allow-unauthenticated
           env_vars: |
@@ -96,5 +97,6 @@ jobs:
         with:
           service: atreyu-frontend-qa
           region: ${{ env.GCP_REGION }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
           image: ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/frontend:qa-${{ steps.sha.outputs.value }}
           flags: --port=80 --allow-unauthenticated

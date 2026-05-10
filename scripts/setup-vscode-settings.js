@@ -17,7 +17,8 @@ if (fs.existsSync(settingsPath)) {
   try {
     current = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
   } catch {
-    console.warn('[setup-vscode] settings.json could not be parsed (may contain JSONC comments) — treating as empty, dist keys will be added.');
+    console.warn('[setup-vscode] settings.json could not be parsed (may contain JSONC comments) — skipping merge to avoid overwriting existing settings.');
+    process.exit(0);
   }
 }
 
