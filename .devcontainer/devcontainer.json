@@ -12,7 +12,8 @@
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "ms-azuretools.vscode-docker",
-        "ms-vscode.vscode-typescript-next"
+        "ms-vscode.vscode-typescript-next",
+        "cweijan.vscode-database-client2"
       ],
       "settings": {
         "editor.formatOnSave": true,
@@ -23,5 +24,5 @@
       }
     }
   },
-  "postCreateCommand": "cd /workspace/code/frontend && npm ci --legacy-peer-deps"
+  "postCreateCommand": "node /workspace/scripts/setup-vscode-settings.js && cd /workspace/code/frontend && npm ci --legacy-peer-deps"
 }

@@ -13,6 +13,7 @@ services:
       - "${BACKEND_PORT:-8080}:8080"
       - "${FRONTEND_PORT:-4200}:4200"
     environment:
+      SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-atreyu}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-atreyu}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-atreyu}

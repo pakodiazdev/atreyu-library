@@ -26,6 +26,7 @@ dist/
 # IDE
 .idea/
 .vscode/
+!.vscode/settings.dist.json
 *.iml
 *.iws
 *.ipr
