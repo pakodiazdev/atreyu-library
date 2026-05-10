@@ -275,3 +275,137 @@ de la capa de diseño y prototipado.
 - El formato es legible, editable y previsualizable dentro del mismo entorno de
   desarrollo, sin licencias ni acceso a servicios de terceros
 
+---
+
+## TD-09 · Estrategia de CD: deploy automático a prod, manual a QA
+
+### Decisión
+
+El pipeline de entrega continua opera con dos flujos diferenciados:
+
+- **Producción** (`cd.yml`): deploy automático en cada merge a `main`
+- **QA** (`qa-deploy.yml`): deploy manual vía `workflow_dispatch`, seleccionando el branch a promover
+
+### Justificación
+
+La asimetría es intencional y refleja el riesgo diferente de cada ambiente:
+
+**Producción automática** — main ya pasó CI completo (lint + tests + SonarCloud) y review de PR.
+Un merge a main representa código validado en múltiples capas; no hay razón para añadir un paso
+manual que solo introduce fricción sin agregar seguridad real.
+
+**QA manual** — QA es un ambiente de validación funcional donde se prueban branches antes de mergear.
+El deploy manual permite elegir exactamente qué branch se promueve a QA en cualquier momento, sin
+que un push accidental o un branch en progreso sobreescriba una validación en curso.
+
+| Ambiente | Trigger | Razón |
+|----------|---------|-------|
+| Producción | Push a `main` (automático) | Código ya validado por CI + PR review |
+| QA | `workflow_dispatch` (manual) | Control explícito de qué se valida y cuándo |
+
+### Alternativa descartada
+
+Un flujo simétrico (ambos manuales o ambos automáticos) fue descartado:
+- **Ambos automáticos**: QA se sobrescribiría con cada push a cualquier branch, imposibilitando
+  validaciones de larga duración
+- **Ambos manuales**: prod requeriría un paso manual después de un merge ya aprobado — proceso
+  sin valor añadido que ralentiza la entrega
+
+---
+
+## TD-10 · Acceso público a los servicios de Cloud Run (`--allow-unauthenticated`)
+
+### Decisión
+
+Los cuatro servicios desplegados en Cloud Run (backend prod, backend QA, frontend prod, frontend QA)
+se configuran con acceso no autenticado — cualquier cliente puede hacer requests sin un token de
+identidad de Google.
+
+### Justificación
+
+Por defecto, Cloud Run despliega servicios **privados**: solo aceptan requests con un header
+`Authorization: Bearer <google-identity-token>`. Esta protección tiene sentido para servicios
+internos (microservicios que solo se llaman entre sí), pero no para una API pública.
+
+Atreyu Library es una aplicación de catálogo destinada a usuarios finales y a evaluadores técnicos
+que acceden desde sus navegadores o herramientas como Postman. Requerir autenticación de GCP
+haría el sistema imposible de usar sin credenciales de la cuenta de GCP.
+
+**Nota de seguridad**: la autenticación de la *aplicación* (login de usuarios, JWT, roles) es
+responsabilidad de la capa de negocio, no de la infraestructura de red. Esta decisión está
+documentada en la arquitectura como trabajo futuro (Spring Security + JWT). El acceso público
+a nivel de Cloud Run no equivale a una API sin control de acceso — significa que Cloud Run
+no añade una capa adicional de autenticación de infraestructura que no corresponde a este nivel.
+
+### Impacto
+
+| Escenario | Configuración correcta |
+|-----------|----------------------|
+| API pública / frontend web | `--allow-unauthenticated` ✅ |
+| Microservicio interno (solo lo llama otro servicio) | Sin `--allow-unauthenticated` + service account |
+| Admin interno | Sin `--allow-unauthenticated` + IAP (Identity-Aware Proxy) |
+
+---
+
+## TD-11 · Seeder activo solo en `dev` y `qa`, excluido de `prod`
+
+### Decisión
+
+El seeder de datos de demo se implementa como un `CommandLineRunner` anotado con
+`@Profile({"dev", "qa"})`. En producción el bean no existe — Spring no lo instancia,
+independientemente de cualquier configuración.
+
+El seeder es **idempotente**: verifica si ya existen registros antes de insertar.
+Si la tabla tiene datos, no hace nada. Puede ejecutarse múltiples veces sin efectos secundarios.
+
+### Justificación
+
+**Por qué excluir prod:**
+
+Los datos de producción son responsabilidad del usuario final, no del sistema de despliegue.
+Insertar registros automáticamente en prod introduciría datos artificiales que contaminarían
+el catálogo real de la biblioteca. Una vez en prod, eliminar esos registros requeriría
+intervención manual — un proceso frágil y propenso a errores humanos.
+
+`@Profile` es la barrera más robusta disponible en Spring Boot: no es una condición evaluada
+en runtime que podría fallar silenciosamente — es una decisión del contenedor de IoC al momento
+de inicializar el contexto. Si el perfil activo es `prod`, el bean directamente no existe.
+
+**Por qué idempotente:**
+
+Sin idempotencia, un reinicio del contenedor (escalado de Cloud Run, redeploy, crash recovery)
+duplicaría los registros en cada arranque. La verificación `COUNT(*) > 0` garantiza que el
+seeder funciona exactamente una vez por base de datos, sin importar cuántas veces arranque
+el contenedor.
+
+| Perfil | ¿Se ejecuta el seeder? | Razón |
+|--------|----------------------|-------|
+| `dev` | ✅ Sí (si tabla vacía) | Datos de demo para desarrollo local |
+| `qa` | ✅ Sí (si tabla vacía) | Datos de demo para validación funcional |
+| `prod` | ❌ No — bean no existe | Datos reales, responsabilidad del usuario |
+
+---
+
+## TD-12 · Artifact Registry sobre Docker Hub como registro de imágenes
+
+### Decisión
+
+Las imágenes Docker de backend y frontend se almacenan en **Google Artifact Registry**
+(`us-central1-docker.pkg.dev/atreyu-library/atreyu/`) en lugar de Docker Hub u otro registro público.
+
+### Justificación
+
+| Criterio | Artifact Registry | Docker Hub |
+|----------|------------------|------------|
+| Autenticación con Cloud Run | Nativa — misma cuenta GCP, sin secrets adicionales | Requiere configurar credenciales separadas |
+| Latencia de pull | Mínima — mismo datacenter que Cloud Run | Mayor — tráfico externo |
+| Costo de egreso | Sin costo dentro de GCP | Costo de transferencia saliente |
+| Control de acceso | IAM de GCP — mismos roles del proyecto | Cuenta Docker Hub independiente |
+| Límites de rate | Sin límites dentro del proyecto | Rate limiting en tier gratuito |
+| Privacidad | Privado por defecto | Requiere configuración explícita |
+
+Al desplegar en Cloud Run con `google-github-actions/auth`, el Service Account ya tiene
+permisos sobre Artifact Registry (`roles/artifactregistry.writer`). No se requiere ningún
+secret adicional para autenticar el push ni el pull de imágenes — es transparente dentro
+del ecosistema GCP.
+

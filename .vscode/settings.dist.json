@@ -1,0 +1,15 @@
+{
+  "database-client.connections": [
+    {
+      "name": "atreyu-local",
+      "client": "PostgreSQL",
+      "host": "postgres",
+      "port": 5432,
+      "username": "atreyu",
+      "password": "atreyu",
+      "database": "atreyu",
+      "ssh": false,
+      "ssl": false
+    }
+  ]
+}
