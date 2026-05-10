@@ -355,8 +355,9 @@ El seeder de datos de demo se implementa como un `CommandLineRunner` anotado con
 `@Profile({"dev", "qa"})`. En producción el bean no existe — Spring no lo instancia,
 independientemente de cualquier configuración.
 
-El seeder es **idempotente**: verifica si ya existen registros antes de insertar.
-Si la tabla tiene datos, no hace nada. Puede ejecutarse múltiples veces sin efectos secundarios.
+El seeder es **idempotente**: usa `INSERT ... ON CONFLICT (environment) DO NOTHING` respaldado
+por una restricción `UNIQUE` en la columna `environment` (migración V4). La atomicidad la garantiza
+la base de datos — no hay condición de carrera si Cloud Run inicia múltiples instancias en paralelo.
 
 ### Justificación
 
@@ -374,15 +375,15 @@ de inicializar el contexto. Si el perfil activo es `prod`, el bean directamente 
 **Por qué idempotente:**
 
 Sin idempotencia, un reinicio del contenedor (escalado de Cloud Run, redeploy, crash recovery)
-duplicaría los registros en cada arranque. La verificación `COUNT(*) > 0` garantiza que el
-seeder funciona exactamente una vez por base de datos, sin importar cuántas veces arranque
-el contenedor.
+duplicaría los registros en cada arranque. El `INSERT ... ON CONFLICT DO NOTHING` garantiza que el
+seeder funciona exactamente una vez por entorno, sin importar cuántas instancias arranquen en paralelo.
+La atomicidad la provee la restricción `UNIQUE` en base de datos — no hay ventana de carrera (TOCTOU).
 
 | Perfil | ¿Se ejecuta el seeder? | Razón |
 |--------|----------------------|-------|
-| `dev` | ✅ Sí (si tabla vacía) | Datos de demo para desarrollo local |
-| `qa` | ✅ Sí (si tabla vacía) | Datos de demo para validación funcional |
-| `prod` | ❌ No — bean no existe | Datos reales, responsabilidad del usuario |
+| `dev` | ✅ Sí (idempotente) | Verificación de deploy en desarrollo local |
+| `qa` | ✅ Sí (idempotente) | Verificación de deploy en QA |
+| `prod` | ❌ No — bean no existe | Excluido por `@Profile` en el contexto de Spring |
 
 ---
 

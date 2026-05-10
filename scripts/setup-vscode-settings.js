@@ -12,9 +12,14 @@ const distPath = path.join(root, '.vscode', 'settings.dist.json');
 const settingsPath = path.join(root, '.vscode', 'settings.json');
 
 const dist = JSON.parse(fs.readFileSync(distPath, 'utf8'));
-const current = fs.existsSync(settingsPath)
-  ? JSON.parse(fs.readFileSync(settingsPath, 'utf8'))
-  : {};
+let current = {};
+if (fs.existsSync(settingsPath)) {
+  try {
+    current = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+  } catch {
+    console.warn('[setup-vscode] settings.json could not be parsed (may contain JSONC comments) — treating as empty, dist keys will be added.');
+  }
+}
 
 const added = [];
 const merged = { ...dist, ...current };
