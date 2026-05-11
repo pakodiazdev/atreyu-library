@@ -398,6 +398,44 @@ Cuando el developer indique que termina de trabajar (frases como "termino", "fin
 
 ---
 
+## ⏱️ Registro de tiempo por issue (obligatorio)
+
+Cada issue debe llevar un registro de sesiones de trabajo para poder calcular el costo
+real del proyecto y ajustar estimaciones futuras. El objetivo es acumular estadísticas
+de tiempo invertido por área y feature.
+
+### Formato
+
+El bloque JSON en `## 📅 Registro de sesiones` de cada issue debe tener esta estructura:
+
+```json
+{
+    "estimate": {
+        "optimisticMinutes": 120,
+        "pessimisticMinutes": 240
+    },
+    "sessions": [
+        { "date": "YYYY-MM-DD", "start": "HH:MM", "end": "HH:MM" }
+    ]
+}
+```
+
+### Reglas
+
+- **Iniciar sesión**: agregar una entrada a `sessions` al comenzar a trabajar en el issue.
+- **Cerrar sesión**: completar el campo `end` al terminar.
+- **Medianoche**: si una sesión cruza las 00:00 h, registrarla como una única entrada con
+  `end` en formato 24 h del día siguiente (p. ej. `"start": "22:00", "end": "02:30"`).
+- **Desviación**: al cerrar el PR, calcular la desviación y completar `## 📊 Desviación`:
+  - Total real: suma de todas las sesiones
+  - Diferencia vs optimista: total − optimista (con signo `+` si se excedió)
+  - Diferencia vs pesimista: total − pesimista (con signo `+` si se excedió)
+- Los valores de `optimisticMinutes` y `pessimisticMinutes` dentro del JSON **deben
+  coincidir** con los tiempos de `## ⏱️ Estimación` (son la fuente de verdad para
+  cálculos automáticos).
+
+---
+
 ## Flujo de trabajo
 
 1. Crear issue en GitHub antes de empezar cualquier tarea
