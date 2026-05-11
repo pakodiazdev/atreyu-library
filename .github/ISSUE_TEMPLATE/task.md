@@ -36,7 +36,6 @@ Decisiones de implementación relevantes.
 ## ⏱️ Estimación
 - **Optimista:** —
 - **Pesimista:** —
-- **Tiempo real invertido:** —
 
 ## 📅 Registro de sesiones
 ```json
