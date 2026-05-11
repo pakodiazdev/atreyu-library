@@ -1,12 +1,11 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
+import { AppLayoutComponent } from './shared/layout/app-layout/app-layout.component';
 
 @Component({
   standalone: true,
   selector: 'app-root',
-  imports: [],
+  imports: [AppLayoutComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
-  protected readonly title = signal('frontend');
-}
+export class App {}
