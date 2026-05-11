@@ -9,13 +9,18 @@
 /* ─── Atreyu Design Tokens ──────────────────────────────────────────────── */
 @theme {
   /* Paleta — biblioteca cálida con tono fantástico */
-  --color-papel:   #f0eee9;
-  --color-tinte:   #e8e0d0;
-  --color-tinta:   #2d2118;
-  --color-oro:     #d4a350;
-  --color-ambar:   #c8871a;
-  --color-oxido:   #8b3a2a;
-  --color-musgo:   #4a6741;
+  --color-papel:        #f0eee9;   /* parchment body bg */
+  --color-papel-claro:  #faf6ec;   /* parchment-50 — texto sobre fondo oscuro */
+  --color-tinte:        #f4ecd8;   /* parchment-100 — fondo del sidebar */
+  --color-tinta:        #2d2118;   /* ink — texto principal */
+  --color-tinta-suave:  #6a5a48;   /* ink-soft — texto secundario de nav */
+  --color-tinta-muted:  #9a8a72;   /* ink-mute — texto terciario */
+  --color-oro:          #b88a3a;   /* gold — acento dorado */
+  --color-oro-oscuro:   #8a6320;   /* gold-deep — subtítulo de marca */
+  --color-ambar:        #d4a350;   /* amber — highlight cálido */
+  --color-oxido:        #8a3e1f;   /* rust — destructivo */
+  --color-musgo:        #4a6a3e;   /* moss — positivo */
+  --color-rosa:         #b56a5a;   /* rose — variante cálida */
 
   /* Tipografías editoriales */
   --font-editorial: 'IM Fell English', Georgia, serif;
