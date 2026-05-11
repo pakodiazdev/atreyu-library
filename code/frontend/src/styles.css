@@ -1,0 +1,33 @@
+/* ─── Google Fonts (must be first @import per CSS spec) ─────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Patrick+Hand&family=Caveat&family=JetBrains+Mono&display=swap');
+
+@import "tailwindcss";
+
+/* ─── Tell Tailwind where to scan for class names ───────────────────────── */
+@source "./app/**/*.{ts,html}";
+
+/* ─── Atreyu Design Tokens ──────────────────────────────────────────────── */
+@theme {
+  /* Paleta — biblioteca cálida con tono fantástico */
+  --color-papel:   #f0eee9;
+  --color-tinte:   #e8e0d0;
+  --color-tinta:   #2d2118;
+  --color-oro:     #d4a350;
+  --color-ambar:   #c8871a;
+  --color-oxido:   #8b3a2a;
+  --color-musgo:   #4a6741;
+
+  /* Tipografías editoriales */
+  --font-editorial: 'IM Fell English', Georgia, serif;
+  --font-ui:        'Patrick Hand', 'Comic Sans MS', cursive;
+  --font-annotation:'Caveat', cursive;
+  --font-code:      'JetBrains Mono', 'Courier New', monospace;
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────────── */
+body {
+  margin: 0;
+  background-color: var(--color-papel);
+  color: var(--color-tinta);
+  font-family: var(--font-ui);
+}

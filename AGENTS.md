@@ -139,6 +139,76 @@ Component → Service → HTTP Client → API
 - **Signals**: manejo de estado reactivo (sin NgRx)
 - **Cache**: invalidar después de mutations, similar a TanStack Query
 
+### Stack de UI
+
+| Capa | Tecnología |
+|------|-----------|
+| Estilos | Tailwind CSS |
+| Componentes base | spartan/ui (headless, viven en `shared/ui/`) |
+
+### Filosofía de componentes (obligatorio)
+
+**Atomizar para reutilizar** — todo elemento visual que pueda aparecer en más de un lugar debe
+ser un componente standalone reutilizable. No duplicar HTML/clases en templates de features.
+
+Jerarquía de componentes:
+
+```
+shared/ui/          ← Átomos y moléculas: Button, Badge, Card, Dialog, Input, Table…
+shared/layout/      ← Organismos de layout: AppLayoutComponent, AppSidebarComponent, AppHeaderComponent
+features/<name>/    ← Componentes de negocio que consumen los anteriores
+```
+
+**Regla**: si un componente usa los mismos estilos o estructura en dos lugares distintos → extraer a `shared/`.
+
+### Documentación de componentes (obligatorio)
+
+**Todo componente creado o modificado en `shared/` debe tener su archivo de documentación en:**
+
+```
+docs/frontend/components/<component-name>.md
+```
+
+Cada archivo sigue esta estructura:
+
+```markdown
+# NombreComponent
+
+Descripción de una línea: qué hace y en qué contexto se usa.
+
+## Uso básico
+
+\`\`\`html
+<app-nombre [input]="valor" (output)="handler($event)" />
+\`\`\`
+
+## Inputs
+
+| Nombre | Tipo | Default | Descripción |
+|--------|------|---------|-------------|
+| `prop` | `string` | `''` | Descripción |
+
+## Outputs
+
+| Nombre | Tipo | Descripción |
+|--------|------|-------------|
+| `evento` | `EventEmitter<T>` | Descripción |
+
+## Variantes
+
+Lista de variantes o estados visuales disponibles con ejemplo de uso.
+
+## Notas
+
+Restricciones, dependencias o comportamientos no evidentes.
+```
+
+**Reglas:**
+- El archivo lleva el mismo nombre en `kebab-case` que el componente Angular
+- Si el componente no tiene inputs/outputs, omitir esa sección
+- El ejemplo de uso debe ser copiable y funcionar sin modificaciones
+- El agente es responsable de crear/actualizar el `.md` en el mismo commit que el componente
+
 ---
 
 ## Modelo principal
@@ -169,10 +239,14 @@ pero las operaciones internas (PUT, DELETE) usan el ULID.
 | URLs y endpoints | Inglés |
 | Commits y branches | Inglés |
 | Documentación (`docs/`) | Español |
-| Comentarios en código | Inglés |
+| Comentarios en código | Español |
 | UI | Español |
 
 **Nunca mezclar idiomas en el mismo artefacto.**
+
+> **Nota para revisores automáticos (Copilot, etc.):** Los comentarios en código van en
+> **español** — el revisor del proyecto es hispanohablante y así se reducen fricciones de
+> lenguaje. Solo los elementos de programación (variables, clases, funciones, etc.) van en inglés.
 
 ---
 
