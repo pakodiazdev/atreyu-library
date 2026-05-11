@@ -1,33 +1,35 @@
-<aside class="hidden md:flex flex-col h-full w-60 bg-tinta text-papel shrink-0">
+<aside class="hidden md:flex flex-col h-full w-[200px] bg-tinte border-r border-tinta shrink-0">
 
-  <!-- Brand -->
-  <div class="px-6 py-5 border-b border-tinta/20">
-    <span class="font-editorial text-xl text-oro leading-tight">Atreyu</span>
-    <span class="block text-xs text-papel/50 font-ui tracking-widest uppercase mt-0.5">biblioteca</span>
+  <!-- Marca -->
+  <div class="px-4 pt-5 pb-[18px]">
+    <div class="font-editorial text-[22px] text-tinta leading-none">
+      Atreyu
+      <span class="block font-annotation text-[18px] text-oro-oscuro">biblioteca</span>
+    </div>
   </div>
 
-  <!-- Navigation -->
-  <nav class="flex-1 py-4 overflow-y-auto">
-    <ul class="space-y-0.5 px-3">
-      @for (item of navItems; track item.path) {
-        <li>
-          <a
-            [routerLink]="item.path"
-            routerLinkActive="bg-oro/20 text-oro"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-ui text-papel/70
-                   hover:bg-papel/10 hover:text-papel transition-colors duration-150"
-          >
-            <span class="text-base w-5 text-center shrink-0" aria-hidden="true">{{ item.icon }}</span>
-            <span>{{ item.label }}</span>
-          </a>
-        </li>
-      }
-    </ul>
+  <!-- Navegación -->
+  <nav class="flex flex-col gap-1 px-[14px] pb-4 overflow-y-auto">
+    @for (item of navItems; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="!bg-tinta !text-papel-claro"
+        class="flex items-center gap-2 px-[10px] py-[7px] rounded-md font-ui text-[15px] text-tinta-suave
+               hover:bg-tinta/10 transition-colors duration-150"
+      >
+        <span class="text-base w-5 text-center shrink-0" aria-hidden="true">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </a>
+    }
   </nav>
 
   <!-- Footer -->
-  <div class="px-6 py-4 border-t border-papel/10">
-    <span class="text-xs text-papel/30 font-code">v0.1.0-alpha</span>
+  <div class="mt-auto px-[14px] pb-4">
+    <div class="border-t border-dashed border-tinta/40 mb-2"></div>
+    <div class="flex items-center gap-2 px-[10px] py-[7px] rounded-md font-ui text-[15px] text-tinta-suave">
+      <span class="text-base w-5 text-center shrink-0" aria-hidden="true">👤</span>
+      <span>Bibliotecario</span>
+    </div>
   </div>
 
 </aside>
