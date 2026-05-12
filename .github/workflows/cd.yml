@@ -73,7 +73,7 @@ jobs:
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/frontend:${{ github.sha }}
         run: |
-          docker build -t "$IMAGE" -f docker/frontend/Dockerfile .
+          docker build --target prod -t "$IMAGE" -f docker/frontend/Dockerfile .
           docker push "$IMAGE"
 
       - name: Deploy to Cloud Run

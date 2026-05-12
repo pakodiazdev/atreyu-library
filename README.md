@@ -14,10 +14,17 @@
 
 ## Ambientes
 
-| Ambiente | URL |
-|----------|-----|
-| Producción | [atreyu-library.pakodiaz.dev](https://atreyu-library.pakodiaz.dev) |
-| QA | [qa01.atreyu-library.pakodiaz.dev](https://qa01.atreyu-library.pakodiaz.dev) |
+| Ambiente | URL | Acceso |
+|----------|-----|--------|
+| Producción | [atreyu-library.pakodiaz.dev](https://atreyu-library.pakodiaz.dev) | Público |
+| QA | [qa01.atreyu-library.pakodiaz.dev](https://qa01.atreyu-library.pakodiaz.dev) | Usuario: `qa` / Contraseña: `preview` ¹ |
+
+> ¹ **Nota para el revisor del demo:** las credenciales se publican intencionalmente para
+> facilitar la verificación del requisito RNF-15. En un proyecto real se gestionarían a
+> través de un gestor de secretos (p. ej. 1Password, HashiCorp Vault) y nunca se incluirían
+> en el repositorio. El propósito de la autenticación básica en QA es ilustrar que el
+> ambiente de pre-producción puede restringirse a personas autorizadas antes de que los
+> cambios lleguen a producción.
 
 ---
 
