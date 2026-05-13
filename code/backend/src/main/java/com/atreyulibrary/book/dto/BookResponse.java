@@ -4,11 +4,16 @@ import com.atreyulibrary.book.Book;
 
 /**
  * Representación pública de un libro.
- * Usa {@code code} como identificador porque es el concepto de negocio del catálogo;
- * el ULID es un detalle de implementación de la capa de persistencia y no forma parte
- * del contrato de la API.
+ * Expone tres identificadores con roles distintos (TD-17):
+ * <ul>
+ *   <li>{@code code} — identificador de negocio visible en la UI (A00–Z99)</li>
+ *   <li>{@code ulid} — identificador externo para operaciones PUT/DELETE vía API;
+ *       no enumerable y ordenado por tiempo</li>
+ * </ul>
+ * La clave primaria interna ({@code id BIGSERIAL}) no forma parte del contrato de la API.
  *
  * @param code            identificador de negocio visible en la UI (A00–Z99)
+ * @param ulid            identificador externo no enumerable (ULID) para PUT/DELETE
  * @param title           título del libro
  * @param author          autor del libro
  * @param genre           género (opcional)
@@ -16,6 +21,7 @@ import com.atreyulibrary.book.Book;
  */
 public record BookResponse(
         String code,
+        String ulid,
         String title,
         String author,
         String genre,
@@ -31,6 +37,7 @@ public record BookResponse(
     public static BookResponse from(final Book book) {
         return new BookResponse(
                 book.getCode(),
+                book.getUlid(),
                 book.getTitle(),
                 book.getAuthor(),
                 book.getGenre(),

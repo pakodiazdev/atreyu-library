@@ -29,13 +29,14 @@ class BookControllerTest {
     @Test
     void listReturns200WithBooksFromService() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
-                new BookResponse("A01", "Cien años de soledad",
-                        "Gabriel García Márquez", "Realismo mágico", 1967)
+                new BookResponse("A01", "01HWXYZ1234567890ABCDEFGH",
+                        "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967)
         ));
 
         mockMvc.perform(get("/api/v1/books"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].code").value("A01"))
+                .andExpect(jsonPath("$[0].ulid").value("01HWXYZ1234567890ABCDEFGH"))
                 .andExpect(jsonPath("$[0].title").value("Cien años de soledad"))
                 .andExpect(jsonPath("$[0].author").value("Gabriel García Márquez"))
                 .andExpect(jsonPath("$[0].genre").value("Realismo mágico"))
@@ -95,20 +96,21 @@ class BookControllerTest {
     }
 
     @Test
-    void listResponseDoesNotContainIdField() throws Exception {
+    void listResponseDoesNotContainInternalIdField() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
-                new BookResponse("A01", "Título", "Autor", "Género", 2000)
+                new BookResponse("A01", "01HWXYZ1234567890ABCDEFGH", "Título", "Autor", "Género", 2000)
         ));
 
         mockMvc.perform(get("/api/v1/books"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").doesNotExist());
+                .andExpect(jsonPath("$[0].id").doesNotExist())
+                .andExpect(jsonPath("$[0].ulid").value("01HWXYZ1234567890ABCDEFGH"));
     }
 
     @Test
     void listWithNullPublicationYearSerializesAsNull() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
-                new BookResponse("B01", "La odisea", "Homero", "Épica", null)
+                new BookResponse("B01", "01HWXYZ0000000000ABCDEFGH", "La odisea", "Homero", "Épica", null)
         ));
 
         mockMvc.perform(get("/api/v1/books"))
