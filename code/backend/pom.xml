@@ -28,6 +28,9 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<!-- Sonar — estas propiedades las lee el Maven plugin; sonar-project.properties es solo para el scanner CLI -->
+		<sonar.exclusions>**/AtreyuLibraryApplication.java,**/seeder/BookSeeder.java</sonar.exclusions>
+		<sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -37,6 +40,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.f4b6a3</groupId>
+			<artifactId>ulid-creator</artifactId>
+			<version>5.2.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -94,6 +102,12 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.12</version>
+				<configuration>
+					<excludes>
+						<!-- Seeders are dev/qa-only infrastructure; not testable without a live DB profile -->
+						<exclude>**/seeder/BookSeeder.class</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
 						<goals><goal>prepare-agent</goal></goals>
@@ -104,6 +118,11 @@
 						<goals><goal>report</goal></goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>5.1.0.4751</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
