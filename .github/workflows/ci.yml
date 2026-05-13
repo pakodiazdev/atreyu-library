@@ -30,19 +30,17 @@ jobs:
         working-directory: code/backend
         run: ./mvnw checkstyle:check -q
 
-      - name: Unit tests + coverage
+      - name: Unit tests + coverage + SonarCloud
         working-directory: code/backend
-        run: ./mvnw verify -q
-        # Tests run against H2 in-memory via src/test/resources/application.properties
-        # No external PostgreSQL needed at this stage (Testcontainers → Issue #017)
-
-      - name: SonarCloud analysis
-        uses: SonarSource/sonarqube-scan-action@v6
-        with:
-          projectBaseDir: code/backend
+        run: |
+          ./mvnw verify sonar:sonar \
+            -Dsonar.organization=pakodiazdev-1 \
+            -Dsonar.projectKey=atreyu-library-backend \
+            -Dsonar.qualitygate.wait=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
           SONAR_HOST_URL: https://sonarcloud.io
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ── Frontend ───────────────────────────────────────────────────────────────
   frontend:
