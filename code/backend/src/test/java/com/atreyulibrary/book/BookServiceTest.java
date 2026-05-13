@@ -28,7 +28,7 @@ class BookServiceTest {
     @BeforeEach
     void setUp() {
         sampleBook = Book.builder()
-                .id("01HWXYZ1234567890ABCDEFGH")
+                .ulid("01HWXYZ1234567890ABCDEFGH")
                 .code("A01")
                 .title("Cien años de soledad")
                 .author("Gabriel García Márquez")
@@ -67,6 +67,7 @@ class BookServiceTest {
         final BookResponse response = service.findAll(null, null, null).get(0);
 
         assertEquals("A01", response.code());
+        assertEquals("01HWXYZ1234567890ABCDEFGH", response.ulid());
         assertEquals("Cien años de soledad", response.title());
         assertEquals("Gabriel García Márquez", response.author());
         assertEquals("Realismo mágico", response.genre());
@@ -74,19 +75,20 @@ class BookServiceTest {
     }
 
     @Test
-    void findAllDoesNotExposeInternalId() {
+    void findAllDoesNotExposeInternalBigserialId() {
         when(repository.findByFilters(null, null, null)).thenReturn(List.of(sampleBook));
 
         final BookResponse response = service.findAll(null, null, null).get(0);
 
-        // BookResponse no tiene campo id — solo se expone el código de negocio
+        // BookResponse no expone la PK BIGSERIAL interna; solo code y ulid son identificadores públicos
         assertEquals("A01", response.code());
+        assertEquals("01HWXYZ1234567890ABCDEFGH", response.ulid());
     }
 
     @Test
     void findAllWithNullPublicationYearMapsToNull() {
         final Book bookWithoutYear = Book.builder()
-                .id("01HWXYZ0000000000ABCDEFGH")
+                .ulid("01HWXYZ0000000000ABCDEFGH")
                 .code("B01")
                 .title("La odisea")
                 .author("Homero")

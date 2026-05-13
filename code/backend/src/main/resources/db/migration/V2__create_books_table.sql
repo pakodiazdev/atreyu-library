@@ -1,9 +1,12 @@
 -- V2: Create books table
--- Stores the library catalogue. id is a ULID stored as VARCHAR(26).
--- code is the human-visible business identifier (A00–Z99, 2 600 combinations).
+-- Identificadores de tres niveles (TD-17):
+--   id   → BIGSERIAL, clave interna, nunca expuesta al cliente
+--   ulid → VARCHAR(26), identificador externo para PUT/DELETE vía API
+--   code → VARCHAR(3), identificador de negocio visible en la UI (A00–Z99)
 
 CREATE TABLE books (
-    id               VARCHAR(26)  NOT NULL,
+    id               BIGSERIAL    NOT NULL,
+    ulid             VARCHAR(26)  NOT NULL,
     code             VARCHAR(3)   NOT NULL,
     title            VARCHAR(255) NOT NULL,
     author           VARCHAR(255) NOT NULL,
@@ -11,7 +14,8 @@ CREATE TABLE books (
     publication_year SMALLINT,
     created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    CONSTRAINT pk_books  PRIMARY KEY (id),
+    CONSTRAINT pk_books      PRIMARY KEY (id),
+    CONSTRAINT uq_books_ulid UNIQUE (ulid),
     CONSTRAINT uq_books_code UNIQUE (code)
 );
 

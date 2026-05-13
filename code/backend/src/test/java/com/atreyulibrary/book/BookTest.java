@@ -1,5 +1,6 @@
 package com.atreyulibrary.book;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -8,6 +9,27 @@ import org.junit.jupiter.api.Test;
 class BookTest {
 
     // ── @PrePersist ───────────────────────────────────────────────────────────
+
+    @Test
+    void prePersistGeneratesUlid() {
+        final Book book = new Book();
+        assertNull(book.getUlid());
+
+        book.prePersist();
+
+        assertNotNull(book.getUlid());
+        assertEquals(26, book.getUlid().length());
+    }
+
+    @Test
+    void prePersistDoesNotOverwriteExistingUlid() {
+        final Book book = new Book();
+        book.setUlid("01HWXYZ1234567890ABCDEFGH");
+
+        book.prePersist();
+
+        assertEquals("01HWXYZ1234567890ABCDEFGH", book.getUlid());
+    }
 
     @Test
     void prePersistSetsCreatedAt() {

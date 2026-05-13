@@ -1,7 +1,10 @@
 package com.atreyulibrary.book;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -23,9 +26,15 @@ import lombok.Setter;
 @Builder
 public class Book {
 
+    /** Clave primaria interna, asignada por la BD. Nunca se expone en la API. */
     @Id
-    @Column(length = 26, nullable = false, updatable = false)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, updatable = false)
+    private Long id;
+
+    /** Identificador externo: se usa en las rutas PUT/DELETE de la API. */
+    @Column(length = 26, nullable = false, unique = true, updatable = false)
+    private String ulid;
 
     @Column(length = 3, nullable = false, unique = true, updatable = false)
     private String code;
@@ -47,9 +56,12 @@ public class Book {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    /** Establece createdAt y updatedAt al momento de la inserción. */
+    /** Genera el ULID y establece createdAt/updatedAt al momento de la inserción. */
     @PrePersist
     public void prePersist() {
+        if (this.ulid == null) {
+            this.ulid = UlidCreator.getUlid().toString();
+        }
         final OffsetDateTime now = OffsetDateTime.now();
         this.createdAt = now;
         this.updatedAt = now;

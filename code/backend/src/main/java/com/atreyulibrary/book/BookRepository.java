@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 /** Repositorio JPA para {@link Book}. */
 @Repository
-public interface BookRepository extends JpaRepository<Book, String> {
+public interface BookRepository extends JpaRepository<Book, Long> {
 
     /**
      * Retorna los libros que coincidan con los filtros no nulos.

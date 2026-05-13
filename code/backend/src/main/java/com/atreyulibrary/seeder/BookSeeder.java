@@ -2,7 +2,6 @@ package com.atreyulibrary.seeder;
 
 import com.atreyulibrary.book.Book;
 import com.atreyulibrary.book.BookRepository;
-import com.github.f4b6a3.ulid.UlidCreator;
 import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -64,7 +63,6 @@ public class BookSeeder implements CommandLineRunner {
             final Integer year
     ) {
         return Book.builder()
-                .id(UlidCreator.getUlid().toString())
                 .code(code)
                 .title(title)
                 .author(author)
