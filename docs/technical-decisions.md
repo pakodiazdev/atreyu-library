@@ -668,15 +668,33 @@ El ULID es ordenable por tiempo de inserción, lo que permite paginación eficie
 **¿Por qué no entero autoincremental como identificador externo?**
 Un `id` secuencial expuesto en la API revela el volumen del catálogo (`/books/1`, `/books/2`... `/books/847`) y permite enumerar todos los recursos con un bucle. El ULID no es predecible ni revela información sobre el número total de registros.
 
-### Flujo de referencia en el frontend
+### Flujo de referencia
 
 ```
-GET /books → [{ ulid, code, title, ... }, ...]
-                                    ↓
-               usuario selecciona "A01 — Cien años de soledad"
-                                    ↓
-             front usa el ulid recibido → DELETE /books/{ulid}
+API REST                              Frontend (Angular)
+────────────────────────────────      ─────────────────────────────────────
+GET /api/v1/books                 →   lista: [{ ulid, code, title, ... }]
+                                                ↓
+                                      usuario ve "A04 — Don Quijote..."
+                                                ↓
+                                      navega a /libros/A04-don-quijote-de-la-mancha
+                                                ↓
+                                      Angular extrae code del slug → "A04"
+                                      busca ulid en el store local
+                                                ↓
+GET /api/v1/books/{ulid}          ←   llama con el ulid del libro seleccionado
+DELETE /api/v1/books/{ulid}       ←   ídem para operaciones mutantes
 ```
+
+### Ruta de frontend: `/libros/{code}-{titulo-en-slug}`
+
+Las rutas del frontend siguen el patrón `/{code}-{titulo-slugificado}` (p.ej. `/libros/A04-don-quijote-de-la-mancha`). Este esquema:
+
+- **No es enumerable por sí solo** en la práctica — el `code` tiene 2 600 combinaciones pero el slug incluye el título, y una URL sin título válido no resuelve nada útil.
+- **Es compatible con SEO y marcadores** — la URL es legible y estable; si el título cambia, la URL "vieja" sigue funcionando porque `code` no varía.
+- **Desacopla la URL de la API** — el `code` en la URL es solo para que Angular recupere el `ulid` del store; la API nunca recibe el `code` como parámetro de ruta.
+
+El router de Angular define el parámetro como `:slug`; el componente extrae el `code` con `slug.split('-')[0]`.
 
 ### Alternativa descartada
 

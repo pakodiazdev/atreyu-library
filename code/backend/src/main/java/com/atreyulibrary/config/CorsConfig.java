@@ -11,13 +11,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig {
 
-    @Value("${app.cors.allowed-origins:http://localhost:4200}")
+    /**
+     * Patrones de origen permitidos, separados por coma.
+     * El valor por defecto {@code http://localhost:*} acepta cualquier puerto de localhost,
+     * lo que facilita el desarrollo con múltiples instancias o puertos configurables.
+     * En prod/qa se sobreescribe con el dominio real vía variable de entorno.
+     */
+    @Value("${app.cors.allowed-origins:http://localhost:*}")
     private String allowedOrigins;
 
     /**
      * Registra las reglas de CORS para todos los endpoints de {@code /api/**}.
-     * Los orígenes se leen de {@code app.cors.allowed-origins} separados por coma;
-     * cada valor se recorta para tolerar espacios alrededor del separador.
+     * Usa {@code allowedOriginPatterns} para soportar el comodín {@code *} en el puerto
+     * (p.ej. {@code http://localhost:*}).
      *
      * @return {@link WebMvcConfigurer} configurado
      */
@@ -26,12 +32,12 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(final CorsRegistry registry) {
-                final String[] origins = Arrays.stream(allowedOrigins.split(","))
+                final String[] patterns = Arrays.stream(allowedOrigins.split(","))
                         .map(String::trim)
                         .filter(s -> !s.isEmpty())
                         .toArray(String[]::new);
                 registry.addMapping("/api/**")
-                        .allowedOrigins(origins)
+                        .allowedOriginPatterns(patterns)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .maxAge(3600);
