@@ -28,15 +28,15 @@ class BookControllerTest {
 
     @Test
     void getByUlidReturns200WithBookFields() throws Exception {
-        when(service.getByUlid("01HWXYZ1234567890ABCDEFGH")).thenReturn(
-                new BookResponse("A01", "01HWXYZ1234567890ABCDEFGH",
+        when(service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(
+                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK",
                         "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967)
         );
 
-        mockMvc.perform(get("/api/v1/books/01HWXYZ1234567890ABCDEFGH"))
+        mockMvc.perform(get("/api/v1/books/01HW5XMTSC9AZAZ5YR0DR7B7GK"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("A01"))
-                .andExpect(jsonPath("$.ulid").value("01HWXYZ1234567890ABCDEFGH"))
+                .andExpect(jsonPath("$.ulid").value("01HW5XMTSC9AZAZ5YR0DR7B7GK"))
                 .andExpect(jsonPath("$.title").value("Cien años de soledad"))
                 .andExpect(jsonPath("$.author").value("Gabriel García Márquez"))
                 .andExpect(jsonPath("$.genre").value("Realismo mágico"))
@@ -45,35 +45,35 @@ class BookControllerTest {
 
     @Test
     void getByUlidReturns404WhenBookNotFound() throws Exception {
-        when(service.getByUlid("ULID_INEXISTENTE_00000000"))
-                .thenThrow(new BookNotFoundException("ULID_INEXISTENTE_00000000"));
+        when(service.getByUlid("01HW00000000000000000000ZZ"))
+                .thenThrow(new BookNotFoundException("01HW00000000000000000000ZZ"));
 
-        mockMvc.perform(get("/api/v1/books/ULID_INEXISTENTE_00000000"))
+        mockMvc.perform(get("/api/v1/books/01HW00000000000000000000ZZ"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void getByUlidResponseDoesNotContainInternalIdField() throws Exception {
-        when(service.getByUlid("01HWXYZ1234567890ABCDEFGH")).thenReturn(
-                new BookResponse("A01", "01HWXYZ1234567890ABCDEFGH", "Título", "Autor", "Género", 2000)
+        when(service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(
+                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000)
         );
 
-        mockMvc.perform(get("/api/v1/books/01HWXYZ1234567890ABCDEFGH"))
+        mockMvc.perform(get("/api/v1/books/01HW5XMTSC9AZAZ5YR0DR7B7GK"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").doesNotExist())
-                .andExpect(jsonPath("$.ulid").value("01HWXYZ1234567890ABCDEFGH"));
+                .andExpect(jsonPath("$.ulid").value("01HW5XMTSC9AZAZ5YR0DR7B7GK"));
     }
 
     @Test
     void getByUlidDelegatesUlidToService() throws Exception {
-        when(service.getByUlid("01HWXYZ1234567890ABCDEFGH")).thenReturn(
-                new BookResponse("A01", "01HWXYZ1234567890ABCDEFGH", "Título", "Autor", "Género", 2000)
+        when(service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(
+                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000)
         );
 
-        mockMvc.perform(get("/api/v1/books/01HWXYZ1234567890ABCDEFGH"))
+        mockMvc.perform(get("/api/v1/books/01HW5XMTSC9AZAZ5YR0DR7B7GK"))
                 .andExpect(status().isOk());
 
-        verify(service).getByUlid("01HWXYZ1234567890ABCDEFGH");
+        verify(service).getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
     }
 
     // ── GET /api/v1/books — happy paths ──────────────────────────────────────
@@ -81,14 +81,14 @@ class BookControllerTest {
     @Test
     void listReturns200WithBooksFromService() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
-                new BookResponse("A01", "01HWXYZ1234567890ABCDEFGH",
+                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK",
                         "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967)
         ));
 
         mockMvc.perform(get("/api/v1/books"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].code").value("A01"))
-                .andExpect(jsonPath("$[0].ulid").value("01HWXYZ1234567890ABCDEFGH"))
+                .andExpect(jsonPath("$[0].ulid").value("01HW5XMTSC9AZAZ5YR0DR7B7GK"))
                 .andExpect(jsonPath("$[0].title").value("Cien años de soledad"))
                 .andExpect(jsonPath("$[0].author").value("Gabriel García Márquez"))
                 .andExpect(jsonPath("$[0].genre").value("Realismo mágico"))
@@ -150,19 +150,19 @@ class BookControllerTest {
     @Test
     void listResponseDoesNotContainInternalIdField() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
-                new BookResponse("A01", "01HWXYZ1234567890ABCDEFGH", "Título", "Autor", "Género", 2000)
+                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000)
         ));
 
         mockMvc.perform(get("/api/v1/books"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").doesNotExist())
-                .andExpect(jsonPath("$[0].ulid").value("01HWXYZ1234567890ABCDEFGH"));
+                .andExpect(jsonPath("$[0].ulid").value("01HW5XMTSC9AZAZ5YR0DR7B7GK"));
     }
 
     @Test
     void listWithNullPublicationYearSerializesAsNull() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
-                new BookResponse("B01", "01HWXYZ0000000000ABCDEFGH", "La odisea", "Homero", "Épica", null)
+                new BookResponse("B01", "01HW5XMTSC0000000000000000", "La odisea", "Homero", "Épica", null)
         ));
 
         mockMvc.perform(get("/api/v1/books"))
