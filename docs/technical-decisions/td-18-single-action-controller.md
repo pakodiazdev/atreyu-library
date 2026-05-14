@@ -41,7 +41,11 @@ Cuando varios desarrolladores trabajan en paralelo sobre el mismo recurso, los c
 
 ## Implementación
 
-El método de acción se nombra `invoke` para mantener consistencia entre todos los controladores del proyecto, independientemente del verbo HTTP. Esto convierte cada clase en algo conceptualmente cercano a un *command handler*: recibe una entrada, ejecuta una acción, retorna una respuesta.
+El método de acción se nombra `handle` para mantener consistencia entre todos los controladores del proyecto, independientemente del verbo HTTP. El nombre es idiomático en el ecosistema Spring — el propio framework lo usa en `HttpRequestHandler`, `HandlerMethod` y `HandlerAdapter` — y describe con precisión el rol del método: este objeto *maneja* esta petición.
+
+> **¿Por qué no `invoke`?** En Java, `invoke` pertenece semánticamente a la Reflection API (`Method.invoke()`, `InvocationHandler.invoke()`). Usarlo en un controlador generaría confusión sobre si el método es reflectivo o de negocio.
+>
+> **¿Por qué no el nombre del verbo HTTP (`get`, `post`)?** Mezcla el protocolo con el dominio y puede colisionar con nombres de métodos heredados de `Object`.
 
 ```java
 @RestController
@@ -56,7 +60,7 @@ public class GetBookByUlidController {
     }
 
     @GetMapping("/{ulid}")
-    public ResponseEntity<BookResponse> invoke(@PathVariable final String ulid) {
+    public ResponseEntity<BookResponse> handle(@PathVariable final String ulid) {
         return ResponseEntity.ok(service.getByUlid(ulid));
     }
 }

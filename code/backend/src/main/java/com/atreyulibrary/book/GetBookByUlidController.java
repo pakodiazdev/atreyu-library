@@ -38,7 +38,7 @@ public class GetBookByUlidController {
     )
     @ApiResponse(responseCode = "200", description = "Libro encontrado")
     @ApiResponse(responseCode = "404", description = "Libro no encontrado")
-    public ResponseEntity<BookResponse> invoke(
+    public ResponseEntity<BookResponse> handle(
             @Parameter(description = "ULID del libro")
             @PathVariable final String ulid
     ) {
