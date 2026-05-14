@@ -19,10 +19,12 @@ public interface BookRepository extends JpaRepository<Book, Long> {
      * @param genre  subcadena opcional a buscar en el género
      * @return libros coincidentes ordenados por código
      */
+    // CAST(:x AS string) fuerza VARCHAR en Hibernate 6 — sin él, PostgreSQL
+    // infiere bytea para parámetros nulos y falla en lower().
     @Query("SELECT b FROM Book b WHERE "
-        + "(:title IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND "
-        + "(:author IS NULL OR LOWER(b.author) LIKE LOWER(CONCAT('%', :author, '%'))) AND "
-        + "(:genre IS NULL OR LOWER(b.genre) LIKE LOWER(CONCAT('%', :genre, '%'))) "
+        + "(CAST(:title AS string) IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', CAST(:title AS string), '%'))) AND "
+        + "(CAST(:author AS string) IS NULL OR LOWER(b.author) LIKE LOWER(CONCAT('%', CAST(:author AS string), '%'))) AND "
+        + "(CAST(:genre AS string) IS NULL OR LOWER(b.genre) LIKE LOWER(CONCAT('%', CAST(:genre AS string), '%'))) "
         + "ORDER BY b.code ASC")
     List<Book> findByFilters(
         @Param("title") String title,
