@@ -2,7 +2,7 @@
 
 ## Decisión
 
-Cada endpoint REST tiene su propia clase controladora con un único método público (`invoke` o `handle`). En lugar de un `BookController` con múltiples métodos, el paquete expone clases especializadas:
+Cada endpoint REST tiene su propia clase controladora con un único método público `handle()`. En lugar de un `BookController` con múltiples métodos, el paquete expone clases especializadas:
 
 | Clase | Endpoint |
 |-------|----------|
@@ -30,6 +30,13 @@ Cada controlador se testea en su propio archivo con su propio `@WebMvcTest`. No 
 
 **Escalabilidad del equipo.**
 Cuando varios desarrolladores trabajan en paralelo sobre el mismo recurso, los conflictos de merge en un archivo de controlador monolítico son frecuentes. Con SAC, cada desarrollador trabaja en su propio archivo.
+
+**Economía de contexto en desarrollo asistido por IA.**
+Un controlador monolítico que agrupa cinco endpoints ocupa cinco veces más tokens de contexto cada vez que un agente lo carga. Si la tarea es modificar solo el endpoint de detalle, el agente igualmente ingiere el código de listado, creación, actualización y eliminación — pagando un costo de contexto innecesario en cada interacción.
+
+Con SAC, el agente carga únicamente el archivo relevante para la tarea. El resto de los controladores nunca forman parte del contexto activo si no son necesarios. En un proyecto con decenas de endpoints, la diferencia acumulada en tokens — y por tanto en latencia y costo — es significativa.
+
+Este argumento invierte el peso histórico de la decisión: la verbosidad que antes era el principal contra del patrón es ahora irrelevante (generación IA), mientras que la granularidad que antes era un lujo se convierte en una ventaja operativa directa en flujos de trabajo asistidos por IA.
 
 ## Contras asumidos
 
