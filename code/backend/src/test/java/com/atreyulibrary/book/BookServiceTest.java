@@ -30,7 +30,7 @@ class BookServiceTest {
     @BeforeEach
     void setUp() {
         sampleBook = Book.builder()
-                .ulid("01HWXYZ1234567890ABCDEFGH")
+                .ulid("01HW5XMTSC9AZAZ5YR0DR7B7GK")
                 .code("A01")
                 .title("Cien años de soledad")
                 .author("Gabriel García Márquez")
@@ -43,23 +43,23 @@ class BookServiceTest {
 
     @Test
     void getByUlidReturnsBookWhenFound() {
-        when(repository.findByUlid("01HWXYZ1234567890ABCDEFGH")).thenReturn(Optional.of(sampleBook));
+        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
 
-        final BookResponse response = service.getByUlid("01HWXYZ1234567890ABCDEFGH");
+        final BookResponse response = service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
 
-        assertEquals("01HWXYZ1234567890ABCDEFGH", response.ulid());
+        assertEquals("01HW5XMTSC9AZAZ5YR0DR7B7GK", response.ulid());
         assertEquals("A01", response.code());
         assertEquals("Cien años de soledad", response.title());
     }
 
     @Test
     void getByUlidMapsAllFieldsCorrectly() {
-        when(repository.findByUlid("01HWXYZ1234567890ABCDEFGH")).thenReturn(Optional.of(sampleBook));
+        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
 
-        final BookResponse response = service.getByUlid("01HWXYZ1234567890ABCDEFGH");
+        final BookResponse response = service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
 
         assertEquals("A01", response.code());
-        assertEquals("01HWXYZ1234567890ABCDEFGH", response.ulid());
+        assertEquals("01HW5XMTSC9AZAZ5YR0DR7B7GK", response.ulid());
         assertEquals("Cien años de soledad", response.title());
         assertEquals("Gabriel García Márquez", response.author());
         assertEquals("Realismo mágico", response.genre());
@@ -68,10 +68,10 @@ class BookServiceTest {
 
     @Test
     void getByUlidThrowsBookNotFoundExceptionWhenNotFound() {
-        when(repository.findByUlid("ULID_INEXISTENTE_00000000")).thenReturn(Optional.empty());
+        when(repository.findByUlid("01HW00000000000000000000ZZ")).thenReturn(Optional.empty());
 
         assertThrows(BookNotFoundException.class,
-                () -> service.getByUlid("ULID_INEXISTENTE_00000000"));
+                () -> service.getByUlid("01HW00000000000000000000ZZ"));
     }
 
     // ── findAll — sin filtros ────────────────────────────────────────────────
@@ -104,7 +104,7 @@ class BookServiceTest {
         final BookResponse response = service.findAll(null, null, null).get(0);
 
         assertEquals("A01", response.code());
-        assertEquals("01HWXYZ1234567890ABCDEFGH", response.ulid());
+        assertEquals("01HW5XMTSC9AZAZ5YR0DR7B7GK", response.ulid());
         assertEquals("Cien años de soledad", response.title());
         assertEquals("Gabriel García Márquez", response.author());
         assertEquals("Realismo mágico", response.genre());
@@ -119,13 +119,13 @@ class BookServiceTest {
 
         // BookResponse no expone la PK BIGSERIAL interna; solo code y ulid son identificadores públicos
         assertEquals("A01", response.code());
-        assertEquals("01HWXYZ1234567890ABCDEFGH", response.ulid());
+        assertEquals("01HW5XMTSC9AZAZ5YR0DR7B7GK", response.ulid());
     }
 
     @Test
     void findAllWithNullPublicationYearMapsToNull() {
         final Book bookWithoutYear = Book.builder()
-                .ulid("01HWXYZ0000000000ABCDEFGH")
+                .ulid("01HW5XMTSC0000000000000000")
                 .code("B01")
                 .title("La odisea")
                 .author("Homero")

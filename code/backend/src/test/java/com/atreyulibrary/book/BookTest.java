@@ -24,11 +24,11 @@ class BookTest {
     @Test
     void prePersistDoesNotOverwriteExistingUlid() {
         final Book book = new Book();
-        book.setUlid("01HWXYZ1234567890ABCDEFGH");
+        book.setUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
 
         book.prePersist();
 
-        assertEquals("01HWXYZ1234567890ABCDEFGH", book.getUlid());
+        assertEquals("01HW5XMTSC9AZAZ5YR0DR7B7GK", book.getUlid());
     }
 
     @Test

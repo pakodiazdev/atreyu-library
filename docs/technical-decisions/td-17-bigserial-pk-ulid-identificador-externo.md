@@ -9,10 +9,10 @@ La tabla `books` usa dos identificadores con responsabilidades distintas:
 | Campo | Tipo | Rol |
 |-------|------|-----|
 | `id` | `BIGSERIAL` | PK interna — nunca sale de la base de datos |
-| `ulid` | `VARCHAR(26)` | Identificador externo — expuesto en la API para operaciones mutantes |
+| `ulid` | `VARCHAR(26)` | Identificador externo — expuesto en la API para todas las operaciones sobre un recurso (lectura y escritura) |
 | `code` | `VARCHAR(3)` | Identificador de negocio — visible en la UI para búsqueda y selección |
 
-Los endpoints de escritura (`PUT /books/{ulid}`, `DELETE /books/{ulid}`) usan el ULID como parámetro de ruta. El `code` se usa exclusivamente en la interfaz de usuario para que el usuario identifique y seleccione un libro; internamente el frontend trabaja con el ULID que recibe en el `GET /books`.
+Todos los endpoints que operan sobre un recurso concreto (`GET /books/{ulid}`, `PUT /books/{ulid}`, `DELETE /books/{ulid}`) usan el ULID como parámetro de ruta. El `code` se usa exclusivamente en la interfaz de usuario para que el usuario identifique y seleccione un libro; internamente el frontend trabaja con el ULID que recibe en el `GET /books`.
 
 ## Justificación
 
