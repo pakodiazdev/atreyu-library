@@ -38,13 +38,24 @@ Con SAC, el agente carga únicamente el archivo relevante para la tarea. El rest
 
 Este argumento invierte el peso histórico de la decisión: la verbosidad que antes era el principal contra del patrón es ahora irrelevante (generación IA), mientras que la granularidad que antes era un lujo se convierte en una ventaja operativa directa en flujos de trabajo asistidos por IA.
 
-## Contras asumidos
+## Contras asumidos y descartados
 
 | Contra | Impacto real |
 |--------|-------------|
 | Más archivos en el paquete | Bajo — los IDEs y la búsqueda por nombre compensan completamente |
 | Swagger no agrupa automáticamente | Mitigado con `@Tag(name = "Books")` en cada clase |
 | Más boilerplate por clase | Irrelevante en el contexto de desarrollo asistido por IA |
+| Más beans en el contexto de Spring | Ver análisis debajo — no es un problema real |
+
+### ¿Más beans de Spring es un problema?
+
+Es el contra que más se menciona contra SAC en el mundo Java. La respuesta corta es **no**, y aquí está el por qué:
+
+Cada `@RestController` registra un bean en el `ApplicationContext`. Pasar de 1 `BookController` a 5 SACs agrega 4 beans. El problema es que ese argumento ignora la escala real: una aplicación Spring Boot arranca con **300–500 beans de autoconfiguración** antes de que el desarrollador escriba una sola línea. 4 beans adicionales representan menos del 1% del total — el impacto en tiempo de arranque es literalmente inmeasurable.
+
+El único escenario donde el número de clases tiene impacto real es **GraalVM Native Image**, donde la compilación AOT analiza el grafo de clases y más clases sí aumentan el tiempo de compilación y el tamaño del binario. Pero ese es un cambio de runtime completo que se decide por razones de latencia de cold start — no es una consecuencia de tener 4 controllers extra, y en Cloud Run con instancias mínimas activas el cold start no es el problema a resolver.
+
+**Conclusión:** el argumento de beans es válido en teoría y falso en la práctica para cualquier proyecto Spring Boot de tamaño real. No es una razón para agrupar controllers.
 
 ## Implementación
 
