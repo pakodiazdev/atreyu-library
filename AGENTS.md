@@ -475,4 +475,7 @@ El bloque JSON en `## 📅 Registro de sesiones` de cada issue debe tener esta e
 3. Desarrollar, correr linters antes de cada commit
 4. Abrir PR siguiendo el template de `docs/conventions/git.md`
 5. Esperar review de Copilot y Devin
-6. Mergear a `main` — el CD despliega automáticamente a Cloud Run
+6. Mergear a `main` usando **Rebase and merge** — nunca "Create a merge commit" ni "Squash and merge"
+7. El CD despliega automáticamente a Cloud Run tras el merge
+
+Ver justificación completa en [TD-19](docs/technical-decisions/td-19-rebase-and-merge-como-estrategia-de-merge.md).
