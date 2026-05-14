@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,6 +34,25 @@ public class BookController {
      * @param genre  filtro parcial de género (opcional)
      * @return 200 OK con lista de libros
      */
+    /**
+     * Retorna el detalle de un libro por su ULID.
+     *
+     * @param ulid identificador externo del libro
+     * @return 200 OK con el libro, o 404 si no existe
+     */
+    @GetMapping("/{ulid}")
+    @Operation(
+        summary = "Obtener detalle de un libro",
+        description = "Retorna el detalle completo de un libro por su ULID. "
+            + "Retorna 404 si no existe ningún libro con ese identificador."
+    )
+    public ResponseEntity<BookResponse> getByUlid(
+            @Parameter(description = "ULID del libro")
+            @PathVariable final String ulid
+    ) {
+        return ResponseEntity.ok(service.getByUlid(ulid));
+    }
+
     @GetMapping
     @Operation(
         summary = "Listar libros",

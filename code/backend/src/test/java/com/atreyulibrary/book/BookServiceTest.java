@@ -2,11 +2,13 @@ package com.atreyulibrary.book;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.atreyulibrary.book.dto.BookResponse;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +37,52 @@ class BookServiceTest {
                 .genre("Realismo mágico")
                 .publicationYear(1967)
                 .build();
+    }
+
+    // ── getByUlid ────────────────────────────────────────────────────────────
+
+    @Test
+    void getByUlidReturnsBookWhenFound() {
+        when(repository.findByUlid("01HWXYZ1234567890ABCDEFGH")).thenReturn(Optional.of(sampleBook));
+
+        final BookResponse response = service.getByUlid("01HWXYZ1234567890ABCDEFGH");
+
+        assertEquals("01HWXYZ1234567890ABCDEFGH", response.ulid());
+        assertEquals("A01", response.code());
+        assertEquals("Cien años de soledad", response.title());
+    }
+
+    @Test
+    void getByUlidMapsAllFieldsCorrectly() {
+        when(repository.findByUlid("01HWXYZ1234567890ABCDEFGH")).thenReturn(Optional.of(sampleBook));
+
+        final BookResponse response = service.getByUlid("01HWXYZ1234567890ABCDEFGH");
+
+        assertEquals("A01", response.code());
+        assertEquals("01HWXYZ1234567890ABCDEFGH", response.ulid());
+        assertEquals("Cien años de soledad", response.title());
+        assertEquals("Gabriel García Márquez", response.author());
+        assertEquals("Realismo mágico", response.genre());
+        assertEquals(1967, response.publicationYear());
+    }
+
+    @Test
+    void getByUlidThrowsBookNotFoundExceptionWhenNotFound() {
+        when(repository.findByUlid("ULID_INEXISTENTE_00000000")).thenReturn(Optional.empty());
+
+        assertThrows(BookNotFoundException.class,
+                () -> service.getByUlid("ULID_INEXISTENTE_00000000"));
+    }
+
+    @Test
+    void getByUlidDoesNotExposeInternalId() {
+        when(repository.findByUlid("01HWXYZ1234567890ABCDEFGH")).thenReturn(Optional.of(sampleBook));
+
+        final BookResponse response = service.getByUlid("01HWXYZ1234567890ABCDEFGH");
+
+        // BookResponse no expone la PK BIGSERIAL interna
+        assertEquals("01HWXYZ1234567890ABCDEFGH", response.ulid());
+        assertEquals("A01", response.code());
     }
 
     // ── findAll — sin filtros ────────────────────────────────────────────────

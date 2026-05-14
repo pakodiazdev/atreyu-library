@@ -30,6 +30,9 @@ public interface BookRepository extends JpaRepository<Book, Long> {
         @Param("genre") String genre
     );
 
+    /** Retorna el libro con el ULID dado, o vacío si no existe. */
+    java.util.Optional<Book> findByUlid(String ulid);
+
     /** Retorna true si el código de negocio ya está en uso. */
     boolean existsByCode(String code);
 }
