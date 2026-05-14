@@ -98,6 +98,33 @@ Controller → Service → Repository → Entity
 - **Entity**: modelo JPA mapeado a tabla PostgreSQL
 - **DTO**: objetos de transferencia para request/response (nunca exponer la Entity directamente)
 
+### Patrón de controllers — Single Action Controller (obligatorio)
+
+Cada endpoint REST tiene su propia clase controladora con un único método público `handle()`.
+**No crear controllers multi-acción.** Un archivo = un endpoint.
+
+```
+GET  /api/v1/books         → ListBooksController.handle()
+GET  /api/v1/books/{ulid}  → GetBookByUlidController.handle()
+POST /api/v1/books         → CreateBookController.handle()
+PUT  /api/v1/books/{ulid}  → UpdateBookController.handle()
+DELETE /api/v1/books/{ulid}→ DeleteBookController.handle()
+```
+
+**Reglas:**
+- El nombre del método de acción es siempre `handle` — no `invoke`, no el verbo HTTP, no el nombre del recurso
+- El nombre de la clase sigue el patrón `{Verbo}{Recurso}[{Calificador}]Controller` en PascalCase
+- Todas las clases del mismo recurso comparten el mismo `@Tag(name = "Books")` para que Swagger las agrupe
+- Cada controller tiene su propio archivo de test `{NombreController}Test.java`
+
+**Por qué `handle` y no otro nombre:**
+`handle` es el vocabulario del propio Spring (`HttpRequestHandler`, `HandlerMethod`, `HandlerAdapter`).
+`invoke` pertenece a la Reflection API de Java y genera confusión semántica. El verbo HTTP mezcla protocolo con dominio.
+
+Ver justificación completa en [TD-18](docs/technical-decisions/td-18-single-action-controller.md).
+
+---
+
 ### Migraciones de base de datos (Flyway — obligatorio)
 
 `ddl-auto` está fijado en `none`. **Nunca usar `create`, `update` o `create-drop` en desarrollo ni producción.**
@@ -215,8 +242,9 @@ Restricciones, dependencias o comportamientos no evidentes.
 
 ```
 Book
-├── id           (ULID — identificador técnico interno, usado en operaciones DELETE/PUT)
-├── code         (A-Z + 00-99, generado aleatoriamente — identificador visible en UI)
+├── id              (BIGSERIAL — PK interna, nunca sale de la base de datos)
+├── ulid            (VARCHAR(26) — identificador externo de la API, Base32 Crockford)
+├── code            (VARCHAR(3), A00–Z99 — identificador de negocio visible en UI)
 ├── title
 ├── author
 ├── genre
@@ -225,8 +253,12 @@ Book
 └── updatedAt
 ```
 
-**Regla importante:** el `code` NO es la PK. El ULID es la PK real. El `code` se muestra en UI
-pero las operaciones internas (PUT, DELETE) usan el ULID.
+**Tres identificadores con roles distintos (TD-17):**
+- `id` (BIGSERIAL): PK interna de PostgreSQL. Nunca se expone en ningún endpoint ni DTO.
+- `ulid`: identificador externo. Todos los endpoints REST que operan sobre un recurso concreto lo usan como parámetro de ruta (`GET /books/{ulid}`, `PUT /books/{ulid}`, `DELETE /books/{ulid}`).
+- `code`: identificador de negocio legible. Solo se usa en la UI para que el usuario identifique y seleccione un libro. El frontend extrae el `code` de la URL y lo mapea al `ulid` del store local para llamar a la API.
+
+Ver [TD-17](docs/technical-decisions/td-17-bigserial-pk-ulid-identificador-externo.md).
 
 ---
 
