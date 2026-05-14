@@ -39,7 +39,7 @@ public class ListBooksController {
         description = "Retorna todos los libros. Soporta filtros opcionales parciales "
             + "e insensibles a mayúsculas por título, autor y género."
     )
-    public ResponseEntity<List<BookResponse>> invoke(
+    public ResponseEntity<List<BookResponse>> handle(
             @Parameter(description = "Filtro parcial de título")
             @RequestParam(required = false) final String title,
             @Parameter(description = "Filtro parcial de autor")
