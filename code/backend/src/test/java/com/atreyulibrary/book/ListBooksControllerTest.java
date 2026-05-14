@@ -15,8 +15,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(BookController.class)
-class BookControllerTest {
+@WebMvcTest(ListBooksController.class)
+class ListBooksControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -24,62 +24,10 @@ class BookControllerTest {
     @MockitoBean
     private BookService service;
 
-    // ── GET /api/v1/books/{ulid} ─────────────────────────────────────────────
+    // ── happy paths ──────────────────────────────────────────────────────────
 
     @Test
-    void getByUlidReturns200WithBookFields() throws Exception {
-        when(service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(
-                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK",
-                        "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967)
-        );
-
-        mockMvc.perform(get("/api/v1/books/01HW5XMTSC9AZAZ5YR0DR7B7GK"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value("A01"))
-                .andExpect(jsonPath("$.ulid").value("01HW5XMTSC9AZAZ5YR0DR7B7GK"))
-                .andExpect(jsonPath("$.title").value("Cien años de soledad"))
-                .andExpect(jsonPath("$.author").value("Gabriel García Márquez"))
-                .andExpect(jsonPath("$.genre").value("Realismo mágico"))
-                .andExpect(jsonPath("$.publicationYear").value(1967));
-    }
-
-    @Test
-    void getByUlidReturns404WhenBookNotFound() throws Exception {
-        when(service.getByUlid("01HW00000000000000000000ZZ"))
-                .thenThrow(new BookNotFoundException("01HW00000000000000000000ZZ"));
-
-        mockMvc.perform(get("/api/v1/books/01HW00000000000000000000ZZ"))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void getByUlidResponseDoesNotContainInternalIdField() throws Exception {
-        when(service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(
-                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000)
-        );
-
-        mockMvc.perform(get("/api/v1/books/01HW5XMTSC9AZAZ5YR0DR7B7GK"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").doesNotExist())
-                .andExpect(jsonPath("$.ulid").value("01HW5XMTSC9AZAZ5YR0DR7B7GK"));
-    }
-
-    @Test
-    void getByUlidDelegatesUlidToService() throws Exception {
-        when(service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(
-                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000)
-        );
-
-        mockMvc.perform(get("/api/v1/books/01HW5XMTSC9AZAZ5YR0DR7B7GK"))
-                .andExpect(status().isOk());
-
-        verify(service).getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
-    }
-
-    // ── GET /api/v1/books — happy paths ──────────────────────────────────────
-
-    @Test
-    void listReturns200WithBooksFromService() throws Exception {
+    void returns200WithBooksFromService() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
                 new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK",
                         "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967)
@@ -96,7 +44,7 @@ class BookControllerTest {
     }
 
     @Test
-    void listWithNoResultsReturnsEmptyArray() throws Exception {
+    void withNoResultsReturnsEmptyArray() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/books"))
@@ -104,8 +52,10 @@ class BookControllerTest {
                 .andExpect(content().json("[]"));
     }
 
+    // ── filtros ──────────────────────────────────────────────────────────────
+
     @Test
-    void listPassesTitleFilterToService() throws Exception {
+    void passesTitleFilterToService() throws Exception {
         when(service.findAll("quijote", null, null)).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/books").param("title", "quijote"))
@@ -115,7 +65,7 @@ class BookControllerTest {
     }
 
     @Test
-    void listPassesAuthorFilterToService() throws Exception {
+    void passesAuthorFilterToService() throws Exception {
         when(service.findAll(null, "orwell", null)).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/books").param("author", "orwell"))
@@ -125,7 +75,7 @@ class BookControllerTest {
     }
 
     @Test
-    void listPassesGenreFilterToService() throws Exception {
+    void passesGenreFilterToService() throws Exception {
         when(service.findAll(null, null, "terror")).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/books").param("genre", "terror"))
@@ -135,7 +85,7 @@ class BookControllerTest {
     }
 
     @Test
-    void listPassesAllFiltersToService() throws Exception {
+    void passesAllFiltersToService() throws Exception {
         when(service.findAll("1984", "orwell", "distop")).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/books")
@@ -147,8 +97,10 @@ class BookControllerTest {
         verify(service).findAll("1984", "orwell", "distop");
     }
 
+    // ── serialización ────────────────────────────────────────────────────────
+
     @Test
-    void listResponseDoesNotContainInternalIdField() throws Exception {
+    void responseDoesNotContainInternalIdField() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
                 new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000)
         ));
@@ -160,7 +112,7 @@ class BookControllerTest {
     }
 
     @Test
-    void listWithNullPublicationYearSerializesAsNull() throws Exception {
+    void withNullPublicationYearSerializesAsNull() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
                 new BookResponse("B01", "01HW5XMTSC0000000000000000", "La odisea", "Homero", "Épica", null)
         ));
