@@ -4,7 +4,6 @@ import com.atreyulibrary.book.dto.BookResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -39,10 +38,8 @@ public class BookController {
         description = "Retorna el detalle completo de un libro por su ULID. "
             + "Retorna 404 si no existe ningún libro con ese identificador."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Libro encontrado"),
-        @ApiResponse(responseCode = "404", description = "Libro no encontrado")
-    })
+    @ApiResponse(responseCode = "200", description = "Libro encontrado")
+    @ApiResponse(responseCode = "404", description = "Libro no encontrado")
     public ResponseEntity<BookResponse> getByUlid(
             @Parameter(description = "ULID del libro")
             @PathVariable final String ulid
