@@ -1,0 +1,67 @@
+# TD-18 · Single Action Controller como patrón para los endpoints REST
+
+## Decisión
+
+Cada endpoint REST tiene su propia clase controladora con un único método público (`invoke` o `handle`). En lugar de un `BookController` con múltiples métodos, el paquete expone clases especializadas:
+
+| Clase | Endpoint |
+|-------|----------|
+| `GetBookByUlidController` | `GET /api/v1/books/{ulid}` |
+| `ListBooksController` | `GET /api/v1/books` |
+| `CreateBookController` *(futuro)* | `POST /api/v1/books` |
+| `UpdateBookController` *(futuro)* | `PUT /api/v1/books/{ulid}` |
+| `DeleteBookController` *(futuro)* | `DELETE /api/v1/books/{ulid}` |
+
+Todas las clases comparten el mismo `@Tag(name = "Books")` de Swagger para mantener la agrupación en la UI de la documentación.
+
+## Justificación
+
+**SRP estricto — una clase, una razón para cambiar.**
+Un controlador tradicional que agrupa todos los endpoints de un recurso cambia cada vez que cambia cualquiera de ellos: nueva validación en el listado, nueva cabecera en el detalle, nuevo parámetro en la creación. Con SAC, cada clase solo cambia cuando cambia su propio contrato HTTP. En proyectos con vida larga, esto reduce drásticamente los conflictos de merge y el riesgo de regresión.
+
+**Dependencias explícitas por acción.**
+Un controlador clásico inyecta todos los servicios que cualquiera de sus métodos pueda necesitar. Con SAC, el constructor declara exactamente lo que esa acción necesita — ni más, ni menos. Leer el constructor es leer el grafo de dependencias del endpoint.
+
+**La verbosidad dejó de ser un argumento relevante.**
+Pre-IA, escribir boilerplate era costoso en tiempo y era el principal contra del patrón. Con asistencia de IA, generar una clase SAC completa con tests es cuestión de segundos. El costo de creación se aproxima a cero, pero el beneficio de mantenimiento a largo plazo se mantiene intacto.
+
+**Facilita el testing aislado.**
+Cada controlador se testea en su propio archivo con su propio `@WebMvcTest`. No hay riesgo de que el setup de un test interfiera con otro endpoint del mismo controlador.
+
+**Escalabilidad del equipo.**
+Cuando varios desarrolladores trabajan en paralelo sobre el mismo recurso, los conflictos de merge en un archivo de controlador monolítico son frecuentes. Con SAC, cada desarrollador trabaja en su propio archivo.
+
+## Contras asumidos
+
+| Contra | Impacto real |
+|--------|-------------|
+| Más archivos en el paquete | Bajo — los IDEs y la búsqueda por nombre compensan completamente |
+| Swagger no agrupa automáticamente | Mitigado con `@Tag(name = "Books")` en cada clase |
+| Más boilerplate por clase | Irrelevante en el contexto de desarrollo asistido por IA |
+
+## Implementación
+
+El método de acción se nombra `invoke` para mantener consistencia entre todos los controladores del proyecto, independientemente del verbo HTTP. Esto convierte cada clase en algo conceptualmente cercano a un *command handler*: recibe una entrada, ejecuta una acción, retorna una respuesta.
+
+```java
+@RestController
+@RequestMapping("/api/v1/books")
+@Tag(name = "Books")
+public class GetBookByUlidController {
+
+    private final BookService service;
+
+    public GetBookByUlidController(final BookService service) {
+        this.service = service;
+    }
+
+    @GetMapping("/{ulid}")
+    public ResponseEntity<BookResponse> invoke(@PathVariable final String ulid) {
+        return ResponseEntity.ok(service.getByUlid(ulid));
+    }
+}
+```
+
+## Cuándo revisar
+
+Si el proyecto adopta un framework que penaliza la cantidad de beans de Spring (p.ej. por tiempo de arranque en entornos muy limitados), se puede evaluar agrupar controladores relacionados. En Cloud Run con JVM estándar, el impacto es despreciable.

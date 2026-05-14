@@ -26,3 +26,4 @@
 | [TD-15](technical-decisions/td-15-servicios-separados-en-cloud-run.md) | Servicios de frontend y backend separados en Cloud Run | Infraestructura |
 | [TD-16](technical-decisions/td-16-noindex-en-todas-las-superficies.md) | Ninguna superficie del proyecto se expone a indexación por buscadores | Seguridad |
 | [TD-17](technical-decisions/td-17-bigserial-pk-ulid-identificador-externo.md) | BIGSERIAL como PK interna + ULID como identificador externo de la API | Base de datos |
+| [TD-18](technical-decisions/td-18-single-action-controller.md) | Single Action Controller como patrón para los endpoints REST | Backend |

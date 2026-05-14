@@ -3,58 +3,35 @@ package com.atreyulibrary.book;
 import com.atreyulibrary.book.dto.BookResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Endpoints REST para el catálogo de libros. */
+/** GET /api/v1/books — listado de libros con filtros opcionales. */
 @RestController
 @RequestMapping("/api/v1/books")
 @Tag(name = "Books", description = "Catálogo de libros de la biblioteca")
-public class BookController {
+public class ListBooksController {
 
     private final BookService service;
 
     /** Inyección por constructor. */
-    public BookController(final BookService service) {
+    public ListBooksController(final BookService service) {
         this.service = service;
     }
 
     /**
-     * Retorna el detalle de un libro por su ULID.
+     * Retorna 200 OK con la lista de libros que coincidan con los filtros.
+     * Los filtros son parciales y case-insensitive. Sin filtros, retorna todos.
      *
-     * @param ulid identificador externo del libro
-     * @return 200 OK con el libro, o 404 si no existe
-     */
-    @GetMapping("/{ulid}")
-    @Operation(
-        summary = "Obtener detalle de un libro",
-        description = "Retorna el detalle completo de un libro por su ULID. "
-            + "Retorna 404 si no existe ningún libro con ese identificador."
-    )
-    @ApiResponse(responseCode = "200", description = "Libro encontrado")
-    @ApiResponse(responseCode = "404", description = "Libro no encontrado")
-    public ResponseEntity<BookResponse> getByUlid(
-            @Parameter(description = "ULID del libro")
-            @PathVariable final String ulid
-    ) {
-        return ResponseEntity.ok(service.getByUlid(ulid));
-    }
-
-    /**
-     * Retorna todos los libros, opcionalmente filtrados por título, autor y/o género.
-     * Los filtros son parciales y case-insensitive.
-     *
-     * @param title  filtro parcial de título (opcional)
-     * @param author filtro parcial de autor (opcional)
-     * @param genre  filtro parcial de género (opcional)
-     * @return 200 OK con lista de libros
+     * @param title  subcadena opcional de título
+     * @param author subcadena opcional de autor
+     * @param genre  subcadena opcional de género
+     * @return lista de libros como {@link BookResponse}
      */
     @GetMapping
     @Operation(
@@ -62,7 +39,7 @@ public class BookController {
         description = "Retorna todos los libros. Soporta filtros opcionales parciales "
             + "e insensibles a mayúsculas por título, autor y género."
     )
-    public ResponseEntity<List<BookResponse>> list(
+    public ResponseEntity<List<BookResponse>> invoke(
             @Parameter(description = "Filtro parcial de título")
             @RequestParam(required = false) final String title,
             @Parameter(description = "Filtro parcial de autor")
