@@ -18,6 +18,19 @@ public class BookService {
     }
 
     /**
+     * Retorna el libro con el ULID dado.
+     *
+     * @param ulid identificador externo del libro
+     * @return libro como {@link BookResponse}
+     * @throws BookNotFoundException si no existe un libro con ese ULID
+     */
+    public BookResponse getByUlid(final String ulid) {
+        return repository.findByUlid(ulid)
+                .map(BookResponse::from)
+                .orElseThrow(() -> new BookNotFoundException(ulid));
+    }
+
+    /**
      * Retorna todos los libros que coincidan con los filtros opcionales.
      * Los parámetros nulos o en blanco se tratan como "sin filtro".
      *
