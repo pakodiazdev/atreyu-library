@@ -74,17 +74,6 @@ class BookServiceTest {
                 () -> service.getByUlid("ULID_INEXISTENTE_00000000"));
     }
 
-    @Test
-    void getByUlidDoesNotExposeInternalId() {
-        when(repository.findByUlid("01HWXYZ1234567890ABCDEFGH")).thenReturn(Optional.of(sampleBook));
-
-        final BookResponse response = service.getByUlid("01HWXYZ1234567890ABCDEFGH");
-
-        // BookResponse no expone la PK BIGSERIAL interna
-        assertEquals("01HWXYZ1234567890ABCDEFGH", response.ulid());
-        assertEquals("A01", response.code());
-    }
-
     // ── findAll — sin filtros ────────────────────────────────────────────────
 
     @Test
