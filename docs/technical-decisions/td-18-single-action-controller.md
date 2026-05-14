@@ -73,6 +73,3 @@ public class GetBookByUlidController {
 }
 ```
 
-## Cuándo revisar
-
-Si el proyecto adopta un framework que penaliza la cantidad de beans de Spring (p.ej. por tiempo de arranque en entornos muy limitados), se puede evaluar agrupar controladores relacionados. En Cloud Run con JVM estándar, el impacto es despreciable.
