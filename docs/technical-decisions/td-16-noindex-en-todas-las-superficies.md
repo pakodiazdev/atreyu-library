@@ -1,4 +1,4 @@
-# TD-16 · Ninguna superficie del proyecto se expone a indexación por buscadores
+# TD-16 · Ningún servicio del proyecto se expone a indexación por buscadores
 
 ## Decisión
 
@@ -7,9 +7,9 @@ Tanto el frontend (producción y QA) como el backend API responden con la cabece
 sirve un `robots.txt` con `Disallow: /`. El entorno QA añade una capa de
 **HTTP Basic Auth** sobre nginx para restringir el acceso a personas autorizadas.
 
-## Implementación por superficie
+## Implementación por servicio
 
-| Superficie | Mecanismo | Alcance |
+| Servicio | Mecanismo | Alcance |
 |---|---|---|
 | Frontend QA | `nginx-qa.conf`: `X-Robots-Tag` + `robots.txt` + `auth_basic` | Todas las rutas |
 | Frontend producción | `nginx.conf`: `X-Robots-Tag` + `robots.txt` | Todas las rutas |
@@ -17,7 +17,7 @@ sirve un `robots.txt` con `Disallow: /`. El entorno QA añade una capa de
 
 ## Justificación
 
-**Por qué no indexar ninguna superficie:**
+**Por qué no indexar ningún servicio:**
 
 Atreyu Library es una **prueba técnica**, no un producto destinado al público general.
 Que las URLs aparezcan en resultados de búsqueda no aporta valor al proyecto y

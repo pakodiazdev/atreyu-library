@@ -9,7 +9,7 @@
 
 | ID | Decisión | Área |
 |----|----------|------|
-| [TD-01](technical-decisions/td-01-ulid-como-llave-primaria.md) | ULID como llave primaria, código de negocio como identificador secundario *(revisado por TD-17)* | Base de datos |
+| [TD-01](technical-decisions/td-01-ulid-como-llave-primaria.md) | ~~ULID como llave primaria~~ *(deprecated — reemplazada por TD-17, conservada como historia)* | Base de datos |
 | [TD-02](technical-decisions/td-02-despliegue-google-cloud-run.md) | Google Cloud Run como plataforma de despliegue | Infraestructura |
 | [TD-03](technical-decisions/td-03-postgresql-supabase.md) | PostgreSQL como motor de base de datos — Supabase como proveedor del demo | Base de datos |
 | [TD-04](technical-decisions/td-04-monorepo.md) | Monorepo | Arquitectura |
