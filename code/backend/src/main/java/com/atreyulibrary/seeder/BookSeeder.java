@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * se captura y se ignora sin interrumpir el arranque.
  */
 @Component
-@Profile({"dev", "qa"})
+@Profile({"dev", "qa", "e2e"})
 @Order(2)
 public class BookSeeder implements CommandLineRunner {
 
