@@ -7,6 +7,11 @@ export interface Book {
   publicationYear: number | null;
 }
 
+export interface BookDetail extends Book {
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface BookFilters {
   title?: string;
   author?: string;
