@@ -1,0 +1,73 @@
+name: atreyu-e2e
+
+# E2E environment — isolated from dev.
+# Postgres has no named volume: data is ephemeral and wiped on every `docker compose down`.
+#
+# Configuración vía .env.e2e (copia de .env.e2e.example):
+#   Start:  docker compose --env-file .env.e2e -f docker-compose.e2e.yml up -d --build
+#   Stop:   docker compose --env-file .env.e2e -f docker-compose.e2e.yml down -v
+
+services:
+  postgres_e2e:
+    image: postgres:16-alpine
+    ports:
+      - "${E2E_POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_DB: ${E2E_DB_NAME:-atreyu_e2e}
+      POSTGRES_USER: ${E2E_DB_USER:-atreyu_e2e}
+      POSTGRES_PASSWORD: ${E2E_DB_PASSWORD:-atreyu_e2e}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${E2E_DB_USER:-atreyu_e2e} -d ${E2E_DB_NAME:-atreyu_e2e}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    # No named volume — container data is discarded on `docker compose down`
+
+  backend_e2e:
+    build:
+      context: code/backend
+      dockerfile: ../../docker/backend/Dockerfile
+    ports:
+      # E2E_BACKEND_PORT configura tanto el puerto del host como el puerto interno
+      # de Spring Boot — un solo valor, consistente en toda la cadena.
+      - "${E2E_BACKEND_PORT:-8081}:${E2E_BACKEND_PORT:-8081}"
+    environment:
+      SPRING_PROFILES_ACTIVE: e2e
+      SERVER_PORT: ${E2E_BACKEND_PORT:-8081}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_e2e:5432/${E2E_DB_NAME:-atreyu_e2e}
+      SPRING_DATASOURCE_USERNAME: ${E2E_DB_USER:-atreyu_e2e}
+      SPRING_DATASOURCE_PASSWORD: ${E2E_DB_PASSWORD:-atreyu_e2e}
+    depends_on:
+      postgres_e2e:
+        condition: service_healthy
+    healthcheck:
+      # $SERVER_PORT está disponible dentro del contenedor via environment
+      test: ["CMD-SHELL", "wget -qO- http://localhost:$$SERVER_PORT/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  frontend_e2e:
+    image: node:22-alpine
+    working_dir: /app
+    ports:
+      - "${E2E_FRONTEND_PORT:-4200}:${E2E_FRONTEND_PORT:-4200}"
+    volumes:
+      - ./code/frontend:/app
+      - frontend_e2e_node_modules:/app/node_modules
+    environment:
+      # El proxy apunta a backend_e2e por red interna con el mismo puerto
+      E2E_BACKEND_HOST: backend_e2e
+      E2E_BACKEND_PORT: ${E2E_BACKEND_PORT:-8081}
+      E2E_FRONTEND_PORT: ${E2E_FRONTEND_PORT:-4200}
+    command: >
+      sh -c "npm ci --legacy-peer-deps &&
+             npx ng serve --configuration=e2e --host 0.0.0.0 --port ${E2E_FRONTEND_PORT:-4200}"
+    depends_on:
+      backend_e2e:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  frontend_e2e_node_modules:
