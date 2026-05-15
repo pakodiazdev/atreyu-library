@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: '/api/v1', // ng serve --proxy-config proxy.e2e.conf.js redirige al backend E2E
+  apiUrl: 'http://localhost:8081/api/v1', // directo al backend E2E, sin pasar por el proxy de ng serve
 };

@@ -93,9 +93,15 @@
         },
         "test": {
           "builder": "@angular/build:unit-test",
+          "options": {
+            "coverage": false,
+            "coverageReporters": ["lcov", "text-summary"],
+            "coverageExclude": ["**/*.spec.ts", "src/environments/**"]
+          },
           "configurations": {
             "ci": {
               "coverage": true,
+              "watch": false,
               "coverageReporters": ["lcov", "text-summary"]
             }
           }
