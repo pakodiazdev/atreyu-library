@@ -112,21 +112,38 @@ jobs:
       - name: Levantar stack E2E completo (postgres + backend + frontend)
         run: docker compose --env-file .env.e2e -f docker-compose.e2e.yml up -d --build
 
-      - name: Esperar frontend
+      - name: Esperar stack E2E listo
         run: |
-          PORT=${E2E_FRONTEND_PORT:-4200}
-          MAX=40
+          BPORT=${E2E_BACKEND_PORT:-8081}
+          FPORT=${E2E_FRONTEND_PORT:-4200}
+          MAX=60
           i=0
-          until curl -sf http://localhost:$PORT | grep -q "Atreyu"; do
+          # Espera al backend (books con datos reales) y al frontend (ng serve en 4200).
+          # El frontend usa apiUrl directo al backend (sin proxy), así que basta con
+          # verificar ambos puertos por separado.
+          until curl -sf http://localhost:$BPORT/api/v1/books | grep -q '\['; do
             i=$((i+1))
             if [ $i -ge $MAX ]; then
-              echo "❌ Frontend no respondió en $((MAX*3))s — logs del contenedor:"
+              echo "❌ Backend no listo tras $((MAX*3))s — logs:"
+              docker compose --env-file .env.e2e -f docker-compose.e2e.yml logs backend_e2e
+              exit 1
+            fi
+            sleep 3
+          done
+          COUNT=$(curl -sf http://localhost:$BPORT/api/v1/books | python3 -c "import sys,json; print(len(json.load(sys.stdin)))")
+          echo "✅ Backend listo — $COUNT libros en localhost:$BPORT"
+          # Espera al frontend (ng serve compilado y sirviendo)
+          i=0
+          until curl -sf http://localhost:$FPORT | grep -qi 'atreyu\|html'; do
+            i=$((i+1))
+            if [ $i -ge $MAX ]; then
+              echo "❌ Frontend no listo tras $((MAX*3))s — logs:"
               docker compose --env-file .env.e2e -f docker-compose.e2e.yml logs frontend_e2e
               exit 1
             fi
             sleep 3
           done
-          echo "✅ Frontend listo en localhost:$PORT"
+          echo "✅ Frontend listo — ng serve respondiendo en localhost:$FPORT"
 
       - name: Run Cypress
         uses: cypress-io/github-action@v6
@@ -135,6 +152,14 @@ jobs:
           browser: chrome
         env:
           CYPRESS_BASE_URL: http://localhost:${{ env.E2E_FRONTEND_PORT }}
+
+      - name: Subir screenshots de Cypress
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: code/frontend/cypress/screenshots
+          retention-days: 7
 
       - name: Bajar stack E2E
         if: always()
