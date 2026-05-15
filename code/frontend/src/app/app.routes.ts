@@ -14,12 +14,9 @@ export const routes: Routes = [
   {
     path: 'catalogo',
     loadComponent: () =>
-      import('./features/catalogo/catalogo.component').then((m) => m.CatalogoComponent),
-  },
-  {
-    path: 'buscar',
-    loadComponent: () =>
-      import('./features/buscar/buscar.component').then((m) => m.BuscarComponent),
+      import('./features/libros/libro-list/libro-list.component').then(
+        (m) => m.LibroListComponent
+      ),
   },
   {
     path: 'libros/nuevo',
@@ -29,11 +26,23 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'libros/:id/editar',
+    path: 'libros/:ulid/editar',
     loadComponent: () =>
       import('./features/libros/libro-form/libro-form.component').then(
         (m) => m.LibroFormComponent
       ),
+  },
+  {
+    path: 'libros/:ulid',
+    loadComponent: () =>
+      import('./features/libros/libro-detail/libro-detail.component').then(
+        (m) => m.LibroDetailComponent
+      ),
+  },
+  {
+    path: 'buscar',
+    loadComponent: () =>
+      import('./features/buscar/buscar.component').then((m) => m.BuscarComponent),
   },
   {
     path: 'generos',

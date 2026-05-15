@@ -1,0 +1,151 @@
+<!-- Encabezado -->
+<div class="flex items-baseline justify-between">
+  <div>
+    <h1 class="font-editorial text-4xl text-tinta leading-none">Catálogo</h1>
+    <p class="font-ui text-sm text-tinta-suave mt-1">
+      @if (store.isLoading()) {
+        Cargando…
+      } @else {
+        {{ store.books().length }} títulos
+      }
+    </p>
+  </div>
+  <a uiBtn variant="primary" routerLink="/libros/nuevo">+ Añadir libro</a>
+</div>
+
+<!-- Filtros -->
+<div class="flex flex-wrap gap-2 mt-5">
+  <ui-input
+    placeholder="Título…"
+    [(value)]="store.filterTitle"
+    testId="filter-title"
+    class="flex-1 min-w-[160px]"
+  />
+  <ui-input
+    placeholder="Autor…"
+    [(value)]="store.filterAuthor"
+    testId="filter-author"
+    class="flex-1 min-w-[160px]"
+  />
+  <ui-input
+    placeholder="Género…"
+    [(value)]="store.filterGenre"
+    testId="filter-genre"
+    class="flex-1 min-w-[160px]"
+  />
+  @if (store.hasActiveFilters()) {
+    <button
+      uiBtn
+      variant="outline"
+      size="md"
+      (click)="store.clearFilters()"
+      data-cy="clear-filters"
+    >
+      ✕ Limpiar
+    </button>
+  }
+</div>
+
+<!-- Tabla -->
+<div class="mt-4 border-[1.6px] border-tinta rounded-lg overflow-hidden">
+
+  @if (store.isLoading()) {
+    <!-- Skeleton de carga -->
+    <table uiTable>
+      <thead>
+        <tr>
+          <th uiTableHeader class="w-14">Código</th>
+          <th uiTableHeader>Título</th>
+          <th uiTableHeader>Autor</th>
+          <th uiTableHeader>Género</th>
+          <th uiTableHeader class="w-16">Año</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (_ of [1,2,3,4,5]; track $index) {
+          <tr uiTableRow>
+            <td uiTableCell><div class="h-5 w-10 bg-tinta/8 rounded animate-pulse"></div></td>
+            <td uiTableCell><div class="h-5 w-40 bg-tinta/8 rounded animate-pulse"></div></td>
+            <td uiTableCell><div class="h-5 w-28 bg-tinta/8 rounded animate-pulse"></div></td>
+            <td uiTableCell><div class="h-5 w-20 bg-tinta/8 rounded animate-pulse"></div></td>
+            <td uiTableCell><div class="h-5 w-10 bg-tinta/8 rounded animate-pulse"></div></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+  } @else if (store.error()) {
+    <!-- Error -->
+    <div class="flex flex-col items-center justify-center py-16 px-4 text-center" data-cy="error-state">
+      <span class="font-annotation text-4xl text-oxido">✗</span>
+      <p class="font-ui text-[15px] text-tinta mt-3">No se pudo cargar el catálogo.</p>
+      <p class="font-ui text-sm text-tinta-suave mt-1">Verifica que el servidor esté en línea e intenta de nuevo.</p>
+    </div>
+
+  } @else if (!store.books().length) {
+    <!-- Estado vacío -->
+    <div class="flex flex-col items-center justify-center py-16 px-4 text-center" data-cy="empty-state">
+      <span class="font-annotation text-5xl text-tinta-muted">◫</span>
+      <p class="font-editorial text-xl text-tinta mt-3">No se encontraron libros</p>
+      @if (store.hasActiveFilters()) {
+        <p class="font-ui text-sm text-tinta-suave mt-1">Ningún título coincide con los filtros aplicados.</p>
+        <button uiBtn variant="outline" size="sm" (click)="store.clearFilters()" class="mt-4">
+          Limpiar filtros
+        </button>
+      } @else {
+        <p class="font-ui text-sm text-tinta-suave mt-1">El catálogo está vacío. Añade el primer libro.</p>
+      }
+    </div>
+
+  } @else {
+    <!-- Tabla de libros -->
+    <table uiTable data-cy="books-table">
+      <thead>
+        <tr>
+          <th uiTableHeader class="w-14">Código</th>
+          <th uiTableHeader>Título</th>
+          <th uiTableHeader>Autor</th>
+          <th uiTableHeader>Género</th>
+          <th uiTableHeader class="w-16">Año</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (book of store.books(); track book.ulid) {
+          <tr
+            uiTableRow
+            [routerLink]="['/libros', book.ulid]"
+            class="cursor-pointer"
+            role="link"
+            tabindex="0"
+            (keydown.enter)="navigateTo(book.ulid)"
+            (keydown.space)="$event.preventDefault(); navigateTo(book.ulid)"
+            data-cy="book-row"
+          >
+            <td uiTableCell>
+              <span class="font-code text-xs px-[7px] py-[2px] border border-tinta/60 rounded-[3px] bg-papel-claro text-tinta tracking-[0.05em]">
+                {{ book.code }}
+              </span>
+            </td>
+            <td uiTableCell class="font-editorial text-[15px] text-tinta">
+              {{ book.title }}
+            </td>
+            <td uiTableCell class="font-ui text-[14px] text-tinta-suave">
+              {{ book.author }}
+            </td>
+            <td uiTableCell>
+              @if (book.genre) {
+                <ui-badge [variant]="genreVariant(book.genre)">{{ book.genre }}</ui-badge>
+              } @else {
+                <span class="font-ui text-xs text-tinta-muted">—</span>
+              }
+            </td>
+            <td uiTableCell class="font-code text-[13px] text-tinta-muted">
+              {{ book.publicationYear ?? '—' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+</div>
