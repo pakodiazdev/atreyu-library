@@ -30,7 +30,7 @@ class ListBooksControllerTest {
     void returns200WithBooksFromService() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
                 new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK",
-                        "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967)
+                        "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967, null, null, null)
         ));
 
         mockMvc.perform(get("/api/v1/books"))
@@ -102,7 +102,7 @@ class ListBooksControllerTest {
     @Test
     void responseDoesNotContainInternalIdField() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
-                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000)
+                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000, null, null, null)
         ));
 
         mockMvc.perform(get("/api/v1/books"))
@@ -114,7 +114,7 @@ class ListBooksControllerTest {
     @Test
     void withNullPublicationYearSerializesAsNull() throws Exception {
         when(service.findAll(null, null, null)).thenReturn(List.of(
-                new BookResponse("B01", "01HW5XMTSC0000000000000000", "La odisea", "Homero", "Épica", null)
+                new BookResponse("B01", "01HW5XMTSC0000000000000000", "La odisea", "Homero", "Épica", null, null, null, null)
         ));
 
         mockMvc.perform(get("/api/v1/books"))

@@ -26,7 +26,7 @@ class GetBookByUlidControllerTest {
     void returns200WithBookFields() throws Exception {
         when(service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(
                 new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK",
-                        "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967)
+                        "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967, null, null, null)
         );
 
         mockMvc.perform(get("/api/v1/books/01HW5XMTSC9AZAZ5YR0DR7B7GK"))
@@ -51,7 +51,7 @@ class GetBookByUlidControllerTest {
     @Test
     void responseDoesNotContainInternalIdField() throws Exception {
         when(service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(
-                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000)
+                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000, null, null, null)
         );
 
         mockMvc.perform(get("/api/v1/books/01HW5XMTSC9AZAZ5YR0DR7B7GK"))
@@ -63,7 +63,7 @@ class GetBookByUlidControllerTest {
     @Test
     void delegatesUlidToService() throws Exception {
         when(service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(
-                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000)
+                new BookResponse("A01", "01HW5XMTSC9AZAZ5YR0DR7B7GK", "Título", "Autor", "Género", 2000, null, null, null)
         );
 
         mockMvc.perform(get("/api/v1/books/01HW5XMTSC9AZAZ5YR0DR7B7GK"))
