@@ -107,9 +107,29 @@ backend/
 
 frontend/
 └── Dockerfile          → multi-stage build
-    ├── Stage 1: build  → Node compila el bundle de Angular
-    └── Stage 2: serve  → nginx sirve los estáticos con cache headers
+    ├── Stage 1a: deps       → npm ci (base compartida)
+    ├── Stage 1b: builder-prod → ng build --configuration=production
+    ├── Stage 1c: builder-qa   → ng build --configuration=qa
+    ├── Stage 2: prod   → nginx sirve los estáticos de builder-prod
+    └── Stage 3: qa     → nginx sirve los estáticos de builder-qa + HTTP Basic Auth (demo)
 ```
+
+**URL de la API — baked en el build de Angular:**
+
+El frontend usa URLs absolutas configuradas en los archivos de entorno de Angular:
+
+| Entorno | Archivo | `apiUrl` |
+|---------|---------|----------|
+| Local | `environment.ts` | `http://localhost:8080/api/v1` |
+| QA | `environment.qa.ts` | `https://api-qa01.atreyu-library.pakodiaz.dev/api/v1` |
+| Producción | `environment.prod.ts` | `https://api.atreyu-library.pakodiaz.dev/api/v1` |
+
+El build de Angular selecciona el archivo correcto mediante `fileReplacements` en `angular.json`
+según la configuración (`--configuration=production` / `--configuration=qa`).
+
+Las llamadas son **cross-origin** (frontend y backend en dominios distintos). El backend
+gestiona CORS en `application-prod.properties` y `application-qa.properties` permitiendo
+explícitamente el origen del frontend correspondiente.
 
 ---
 
@@ -159,6 +179,10 @@ en el repositorio.
 | `GCP_PROJECT_ID` | ID del proyecto en Google Cloud |
 | `GCP_SA_KEY` | Service account key para autenticación con GCP |
 | `CLOUD_RUN_REGION` | Región de despliegue (ej. `us-central1`) |
+
+> La URL de la API del backend **no se gestiona como secret** — está baked en el build
+> de Angular a través de los archivos de entorno (`environment.prod.ts`, `environment.qa.ts`).
+> Los dominios son estables y están documentados en la sección de cada ambiente.
 
 ---
 

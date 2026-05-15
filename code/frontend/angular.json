@@ -61,6 +61,27 @@
               "extractLicenses": false,
               "sourceMap": true
             },
+            "qa": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.qa.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
             "e2e": {
               "fileReplacements": [
                 {
@@ -83,6 +104,9 @@
             },
             "development": {
               "buildTarget": "frontend:build:development"
+            },
+            "qa": {
+              "buildTarget": "frontend:build:qa"
             },
             "e2e": {
               "buildTarget": "frontend:build:e2e",

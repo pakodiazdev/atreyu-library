@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: '/api/v1',
+  apiUrl: 'https://api.atreyu-library.pakodiaz.dev/api/v1',
 };
