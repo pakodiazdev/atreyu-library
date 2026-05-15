@@ -67,6 +67,25 @@ class BookServiceTest {
     }
 
     @Test
+    void getByUlidMapsSynopsisCorrectly() {
+        sampleBook.setSynopsis("Una saga familiar a lo largo de cien años en Macondo.");
+        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+
+        final BookResponse response = service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
+
+        assertEquals("Una saga familiar a lo largo de cien años en Macondo.", response.synopsis());
+    }
+
+    @Test
+    void getByUlidMapsSynopsisAsNullWhenNotSet() {
+        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+
+        final BookResponse response = service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
+
+        assertNull(response.synopsis());
+    }
+
+    @Test
     void getByUlidThrowsBookNotFoundExceptionWhenNotFound() {
         when(repository.findByUlid("01HW00000000000000000000ZZ")).thenReturn(Optional.empty());
 
@@ -178,6 +197,25 @@ class BookServiceTest {
     }
 
     // ── findAll — sin resultados ─────────────────────────────────────────────
+
+    @Test
+    void findAllMapsSynopsisToResponse() {
+        sampleBook.setSynopsis("Un texto de sinopsis de prueba.");
+        when(repository.findByFilters(null, null, null)).thenReturn(List.of(sampleBook));
+
+        final BookResponse response = service.findAll(null, null, null).get(0);
+
+        assertEquals("Un texto de sinopsis de prueba.", response.synopsis());
+    }
+
+    @Test
+    void findAllMapsSynopsisAsNullWhenNotSet() {
+        when(repository.findByFilters(null, null, null)).thenReturn(List.of(sampleBook));
+
+        final BookResponse response = service.findAll(null, null, null).get(0);
+
+        assertNull(response.synopsis());
+    }
 
     @Test
     void findAllWithNoMatchingBooksReturnsEmptyList() {

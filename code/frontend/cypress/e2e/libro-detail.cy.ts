@@ -81,6 +81,15 @@ describe('Detalle de libro (#13)', () => {
       cy.get('[data-cy="book-author"]').should('contain', 'Gabriel García Márquez');
       cy.get('[data-cy="book-code"]').should('contain', 'A01');
     });
+
+    it('muestra la sinopsis del libro A01 al navegar desde el catálogo', () => {
+      cy.visit('/catalogo');
+      cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('be.visible');
+      cy.contains('[data-cy="book-row"]', 'Cien años de soledad').click();
+
+      cy.get('[data-cy="book-detail"]', { timeout: 10000 }).should('be.visible');
+      cy.get('[data-cy="book-synopsis"]').should('be.visible').and('not.be.empty');
+    });
   });
 
   describe('Libro no encontrado (404)', () => {
