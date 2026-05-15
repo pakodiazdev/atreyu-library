@@ -6,6 +6,7 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+.env.e2e
 
 # Java / Spring Boot
 target/
