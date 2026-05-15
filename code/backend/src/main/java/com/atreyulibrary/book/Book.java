@@ -50,6 +50,9 @@ public class Book {
     @Column(name = "publication_year")
     private Integer publicationYear;
 
+    @Column(columnDefinition = "TEXT")
+    private String synopsis;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

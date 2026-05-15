@@ -8,6 +8,7 @@ export interface Book {
 }
 
 export interface BookDetail extends Book {
+  synopsis?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

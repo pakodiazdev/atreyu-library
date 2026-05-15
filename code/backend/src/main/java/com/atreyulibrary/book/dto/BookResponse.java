@@ -18,6 +18,9 @@ import com.atreyulibrary.book.Book;
  * @param author          autor del libro
  * @param genre           género (opcional)
  * @param publicationYear año de publicación (opcional)
+ * @param synopsis        sinopsis del libro (opcional)
+ * @param createdAt       fecha de creación
+ * @param updatedAt       fecha de última actualización
  */
 public record BookResponse(
         String code,
@@ -25,7 +28,10 @@ public record BookResponse(
         String title,
         String author,
         String genre,
-        Integer publicationYear
+        Integer publicationYear,
+        String synopsis,
+        String createdAt,
+        String updatedAt
 ) {
 
     /**
@@ -41,7 +47,10 @@ public record BookResponse(
                 book.getTitle(),
                 book.getAuthor(),
                 book.getGenre(),
-                book.getPublicationYear()
+                book.getPublicationYear(),
+                book.getSynopsis(),
+                book.getCreatedAt() != null ? book.getCreatedAt().toString() : null,
+                book.getUpdatedAt() != null ? book.getUpdatedAt().toString() : null
         );
     }
 }

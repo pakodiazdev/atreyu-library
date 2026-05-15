@@ -116,8 +116,17 @@
           }
         </div>
 
-        <!-- Separador ondulado -->
+        <!-- Separador -->
         <div class="mt-6 border-t border-oro-oscuro/30"></div>
+
+        <!-- Sinopsis -->
+        @if (book.synopsis) {
+          <div class="mt-5" data-cy="book-synopsis">
+            <h2 class="font-ui text-xs tracking-widest uppercase text-tinta-suave">Sinopsis</h2>
+            <p class="font-ui text-[15px] text-tinta leading-relaxed mt-2">{{ book.synopsis }}</p>
+          </div>
+          <div class="mt-5 border-t border-oro-oscuro/30"></div>
+        }
 
         <!-- Fechas (cuando el API las devuelva) -->
         @if (book.createdAt || book.updatedAt) {
