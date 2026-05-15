@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 
 /**
  * Inserts one deploy_check row on startup to verify migrations and seeder run per environment.
- * Active only in dev and qa profiles.
+ * Active only in dev, qa and e2e profiles.
  * Race-safe: relies on the unique constraint on environment + ON CONFLICT DO NOTHING.
  */
 @Component
-@Profile({"dev", "qa"})
+@Profile({"dev", "qa", "e2e"})
 public class DeployCheckSeeder implements CommandLineRunner {
 
     private final JdbcTemplate jdbc;
