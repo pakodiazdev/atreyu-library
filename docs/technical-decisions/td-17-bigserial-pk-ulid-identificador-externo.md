@@ -37,24 +37,32 @@ GET /api/v1/books                 →   lista: [{ ulid, code, title, ... }]
                                                 ↓
                                       usuario ve "A04 — Don Quijote..."
                                                 ↓
-                                      navega a /libros/A04-don-quijote-de-la-mancha
+                                      navega a /libros/{ulid}
                                                 ↓
-                                      Angular extrae code del slug → "A04"
-                                      busca ulid en el store local
-                                                ↓
-GET /api/v1/books/{ulid}          ←   llama con el ulid del libro seleccionado
+GET /api/v1/books/{ulid}          ←   llama directamente con el ulid de la fila
 DELETE /api/v1/books/{ulid}       ←   ídem para operaciones mutantes
 ```
 
-## Ruta de frontend: `/libros/{code}-{titulo-en-slug}`
+## Ruta de frontend: `/libros/:ulid`
 
-Las rutas del frontend siguen el patrón `/{code}-{titulo-slugificado}` (p.ej. `/libros/A04-don-quijote-de-la-mancha`). Este esquema:
+Las rutas del frontend usan el ULID directamente como parámetro (p.ej. `/libros/01HVZQR3K...`). Este esquema:
 
-- **No es enumerable por sí solo** en la práctica — el `code` tiene 2 600 combinaciones pero el slug incluye el título, y una URL sin título válido no resuelve nada útil.
-- **Es compatible con SEO y marcadores** — la URL es legible y estable; si el título cambia, la URL "vieja" sigue funcionando porque `code` no varía.
-- **Desacopla la URL de la API** — el `code` en la URL es solo para que Angular recupere el `ulid` del store; la API nunca recibe el `code` como parámetro de ruta.
+- **Simple y sin ambigüedad** — el ULID obtenido del listado se pasa directamente al router y al API; no hay extracción de `code` ni resolución en el store.
+- **Sin dependencia del título** — los slugs basados en texto requieren normalización (tildes, caracteres especiales, longitud variable), lo que añade complejidad sin beneficio en una herramienta interna.
+- **No enumerable** — el ULID tiene entropía de 80 bits en su componente aleatorio; no es predecible aunque se conozca el patrón.
 
-El router de Angular define el parámetro como `:slug`; el componente extrae el `code` con `slug.split('-')[0]`.
+El router de Angular define el parámetro como `:ulid`. El `code` sigue visible como badge en la UI para que el usuario identifique el libro; no se usa en la URL.
+
+### Internacionalización (i18n) — decisión de no implementar
+
+Las rutas no incluyen prefijo de locale (`/libros` en lugar de `/es/libros`) de forma intencional. El alcance del proyecto no requiere múltiples idiomas, y agregar el prefijo sin una estrategia completa introduciría complejidad sin valor real.
+
+Si en el futuro se requiere i18n, Angular ofrece dos rutas de migración compatibles con la estructura actual:
+
+- **`@angular/localize` con builds separados por locale** — cada idioma genera su propio bundle y se sirve desde una ruta base distinta (`/es/`, `/en/`). Es el enfoque oficial de Angular, óptimo para rendimiento.
+- **Locale guard dinámico en el router** — un guard detecta el idioma del usuario y redirige al prefijo correspondiente en tiempo de ejecución, sin builds separados. Más flexible pero con bundle único.
+
+Ambas estrategias son compatibles con las rutas actuales sin reescribirlas — solo se añade el segmento de locale como prefijo en la configuración del router.
 
 ## Alternativa descartada
 
