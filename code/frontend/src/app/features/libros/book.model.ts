@@ -8,8 +8,8 @@ export interface Book {
 }
 
 export interface BookDetail extends Book {
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BookFilters {
