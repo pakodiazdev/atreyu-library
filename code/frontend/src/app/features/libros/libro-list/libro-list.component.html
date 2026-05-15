@@ -113,12 +113,12 @@
         @for (book of store.books(); track book.ulid) {
           <tr
             uiTableRow
-            [routerLink]="['/libros', book.ulid]"
+            [routerLink]="bookUrl(book)"
             class="cursor-pointer"
             role="link"
             tabindex="0"
-            (keydown.enter)="navigateTo(book.ulid)"
-            (keydown.space)="$event.preventDefault(); navigateTo(book.ulid)"
+            (keydown.enter)="navigateTo(book)"
+            (keydown.space)="$event.preventDefault(); navigateTo(book)"
             data-cy="book-row"
           >
             <td uiTableCell>

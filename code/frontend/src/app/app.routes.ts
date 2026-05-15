@@ -26,14 +26,14 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'libros/:ulid/editar',
+    path: 'libros/:authorSlug/:bookSlug/editar',
     loadComponent: () =>
       import('./features/libros/libro-form/libro-form.component').then(
         (m) => m.LibroFormComponent
       ),
   },
   {
-    path: 'libros/:ulid',
+    path: 'libros/:authorSlug/:bookSlug',
     loadComponent: () =>
       import('./features/libros/libro-detail/libro-detail.component').then(
         (m) => m.LibroDetailComponent

@@ -7,12 +7,12 @@ import { LibroDetailStore } from './libro-detail.store';
 
 function makeStore(): LibroDetailStore {
   return {
-    ulid:      signal(''),
+    code:      signal(''),
     book:      signal(null),
     isLoading: signal(false),
     error:     signal(null),
     notFound:  signal(false),
-    setUlid:   vi.fn(),
+    setCode:   vi.fn(),
     goBack:    vi.fn(),
   } as unknown as LibroDetailStore;
 }
@@ -102,15 +102,20 @@ describe('LibroDetailComponent', () => {
   // ── ngOnInit ───────────────────────────────────────────────────────────────
 
   describe('ngOnInit()', () => {
-    it('reads ulid from route params and calls store.setUlid()', () => {
-      const component = configureAndCreate('01JTEST00000000000000001');
-      expect(mockRoute.snapshot.paramMap.get).toHaveBeenCalledWith('ulid');
-      expect(store.setUlid).toHaveBeenCalledWith('01JTEST00000000000000001');
+    it('extracts code from bookSlug param and calls store.setCode()', () => {
+      const component = configureAndCreate('A01-cien-anos-de-soledad-1967');
+      expect(mockRoute.snapshot.paramMap.get).toHaveBeenCalledWith('bookSlug');
+      expect(store.setCode).toHaveBeenCalledWith('A01');
     });
 
-    it('calls store.setUlid with empty string when route param is null', () => {
+    it('calls store.setCode with empty string when bookSlug has no valid code', () => {
+      configureAndCreate('invalid-slug');
+      expect(store.setCode).toHaveBeenCalledWith('');
+    });
+
+    it('calls store.setCode with empty string when route param is null', () => {
       configureAndCreate(null);
-      expect(store.setUlid).toHaveBeenCalledWith('');
+      expect(store.setCode).toHaveBeenCalledWith('');
     });
   });
 });

@@ -16,7 +16,7 @@ export class BookRepository {
     return this.http.get<Book[]>('/books', { params });
   }
 
-  getById(ulid: string): Observable<BookDetail> {
-    return this.http.get<BookDetail>(`/books/${ulid}`);
+  getByCode(code: string): Observable<BookDetail> {
+    return this.http.get<BookDetail>(`/books/${code}`);
   }
 }

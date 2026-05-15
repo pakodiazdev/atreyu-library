@@ -7,22 +7,20 @@ describe('Detalle de libro (#13)', () => {
   let firstBookUlid: string;
 
   before(() => {
-    // Obtiene el ULID del primer libro del catálogo para usarlo en las pruebas de detalle
     cy.visit('/catalogo');
-    cy.get('[data-cy="book-row"]', { timeout: 10000 })
-      .first()
-      .invoke('attr', 'routerLink')
-      .then((link) => {
-        // El routerLink es ['/libros', ulid] — extraemos la última parte de la URL
-        firstBookUlid = (link ?? '').toString().replace('/libros/', '');
-      });
+    cy.get('[data-cy="book-row"]', { timeout: 10000 }).first().click();
+    cy.url().then((url) => {
+      // URL: /libros/:authorSlug/:bookSlug — guardamos el bookSlug
+      firstBookUlid = url.split('/').pop() ?? '';
+    });
+    cy.go('back');
   });
 
   describe('Navegación desde el catálogo', () => {
     it('navega al detalle al hacer clic en una fila', () => {
       cy.visit('/catalogo');
       cy.get('[data-cy="book-row"]', { timeout: 10000 }).first().click();
-      cy.url().should('match', /\/libros\/[A-Z0-9]+$/);
+      cy.url().should('match', /\/libros\/[a-z0-9-]+\/[A-Z]\d{2}-[a-z0-9-]+$/);
     });
 
     it('muestra el botón de volver al catálogo', () => {
@@ -93,14 +91,14 @@ describe('Detalle de libro (#13)', () => {
   });
 
   describe('Libro no encontrado (404)', () => {
-    it('muestra el estado de no encontrado para un ULID inexistente', () => {
-      cy.visit('/libros/ULID_QUE_NO_EXISTE_00000');
+    it('muestra el estado de no encontrado para un código inexistente', () => {
+      cy.visit('/libros/autor-desconocido/Z99-libro-inexistente');
       cy.get('[data-cy="not-found-state"]', { timeout: 10000 }).should('be.visible');
       cy.contains('Libro no encontrado').should('be.visible');
     });
 
     it('el botón en el estado 404 vuelve al catálogo', () => {
-      cy.visit('/libros/ULID_QUE_NO_EXISTE_00000');
+      cy.visit('/libros/autor-desconocido/Z99-libro-inexistente');
       cy.get('[data-cy="not-found-state"]', { timeout: 10000 }).should('be.visible');
       cy.contains('Volver al catálogo').click();
       cy.url().should('include', '/catalogo');

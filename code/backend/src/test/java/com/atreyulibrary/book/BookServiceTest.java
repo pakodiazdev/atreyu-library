@@ -39,24 +39,23 @@ class BookServiceTest {
                 .build();
     }
 
-    // ── getByUlid ────────────────────────────────────────────────────────────
+    // ── getByCode ────────────────────────────────────────────────────────────
 
     @Test
-    void getByUlidReturnsBookWhenFound() {
-        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+    void getByCodeReturnsBookWhenFound() {
+        when(repository.findByCode("A01")).thenReturn(Optional.of(sampleBook));
 
-        final BookResponse response = service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
+        final BookResponse response = service.getByCode("A01");
 
-        assertEquals("01HW5XMTSC9AZAZ5YR0DR7B7GK", response.ulid());
         assertEquals("A01", response.code());
         assertEquals("Cien años de soledad", response.title());
     }
 
     @Test
-    void getByUlidMapsAllFieldsCorrectly() {
-        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+    void getByCodeMapsAllFieldsCorrectly() {
+        when(repository.findByCode("A01")).thenReturn(Optional.of(sampleBook));
 
-        final BookResponse response = service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
+        final BookResponse response = service.getByCode("A01");
 
         assertEquals("A01", response.code());
         assertEquals("01HW5XMTSC9AZAZ5YR0DR7B7GK", response.ulid());
@@ -67,30 +66,30 @@ class BookServiceTest {
     }
 
     @Test
-    void getByUlidMapsSynopsisCorrectly() {
+    void getByCodeMapsSynopsisCorrectly() {
         sampleBook.setSynopsis("Una saga familiar a lo largo de cien años en Macondo.");
-        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+        when(repository.findByCode("A01")).thenReturn(Optional.of(sampleBook));
 
-        final BookResponse response = service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
+        final BookResponse response = service.getByCode("A01");
 
         assertEquals("Una saga familiar a lo largo de cien años en Macondo.", response.synopsis());
     }
 
     @Test
-    void getByUlidMapsSynopsisAsNullWhenNotSet() {
-        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+    void getByCodeMapsSynopsisAsNullWhenNotSet() {
+        when(repository.findByCode("A01")).thenReturn(Optional.of(sampleBook));
 
-        final BookResponse response = service.getByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
+        final BookResponse response = service.getByCode("A01");
 
         assertNull(response.synopsis());
     }
 
     @Test
-    void getByUlidThrowsBookNotFoundExceptionWhenNotFound() {
-        when(repository.findByUlid("01HW00000000000000000000ZZ")).thenReturn(Optional.empty());
+    void getByCodeThrowsBookNotFoundExceptionWhenNotFound() {
+        when(repository.findByCode("Z99")).thenReturn(Optional.empty());
 
         assertThrows(BookNotFoundException.class,
-                () -> service.getByUlid("01HW00000000000000000000ZZ"));
+                () -> service.getByCode("Z99"));
     }
 
     // ── findAll — sin filtros ────────────────────────────────────────────────

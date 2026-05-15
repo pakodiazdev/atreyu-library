@@ -35,6 +35,9 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     /** Retorna el libro con el ULID dado, o vacío si no existe. */
     java.util.Optional<Book> findByUlid(String ulid);
 
+    /** Retorna el libro con el código de negocio dado, o vacío si no existe. */
+    java.util.Optional<Book> findByCode(String code);
+
     /** Retorna true si el código de negocio ya está en uso. */
     boolean existsByCode(String code);
 }

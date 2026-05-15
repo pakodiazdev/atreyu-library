@@ -64,6 +64,6 @@ describe('Catálogo — Lista de libros (#12)', () => {
   it('navega al detalle al hacer clic en una fila', () => {
     cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('be.visible');
     cy.get('[data-cy="book-row"]').first().click();
-    cy.url().should('include', '/libros/');
+    cy.url().should('match', /\/libros\/[a-z0-9-]+\/[A-Z]\d{2}-[a-z0-9-]+$/);
   });
 });
