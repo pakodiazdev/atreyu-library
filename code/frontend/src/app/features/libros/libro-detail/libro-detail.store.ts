@@ -11,11 +11,11 @@ export class LibroDetailStore {
   private readonly repo   = inject(BookRepository);
   private readonly router = inject(Router);
 
-  readonly ulid = signal('');
+  readonly code = signal('');
 
   private readonly resource = rxResource<BookDetail, string>({
-    params: () => this.ulid(),
-    stream: ({ params }) => params ? this.repo.getById(params) : EMPTY,
+    params: () => this.code(),
+    stream: ({ params }) => params ? this.repo.getByCode(params) : EMPTY,
   });
 
   readonly book      = computed(() => this.resource.value() ?? null);
@@ -27,8 +27,8 @@ export class LibroDetailStore {
     return err instanceof HttpErrorResponse && err.status === 404;
   });
 
-  setUlid(ulid: string): void {
-    this.ulid.set(ulid);
+  setCode(code: string): void {
+    this.code.set(code);
   }
 
   goBack(): void {

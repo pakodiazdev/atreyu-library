@@ -92,7 +92,7 @@ describe('BookRepository', () => {
     req.flush([]);
   });
 
-  describe('getById', () => {
+  describe('getByCode', () => {
     const MOCK_DETAIL: BookDetail = {
       code: 'A01',
       ulid: '01JTEST00000000000000001',
@@ -104,30 +104,30 @@ describe('BookRepository', () => {
       updatedAt: '2026-01-02T00:00:00Z',
     };
 
-    it('calls GET /books/:ulid', () => {
-      repo.getById('01JTEST00000000000000001').subscribe();
+    it('calls GET /books/:code', () => {
+      repo.getByCode('A01').subscribe();
 
-      const req = httpMock.expectOne('/books/01JTEST00000000000000001');
+      const req = httpMock.expectOne('/books/A01');
       expect(req.request.method).toBe('GET');
       req.flush(MOCK_DETAIL);
     });
 
     it('returns the full BookDetail from the API', () => {
       let result: BookDetail | undefined;
-      repo.getById('01JTEST00000000000000001').subscribe(b => (result = b));
+      repo.getByCode('A01').subscribe(b => (result = b));
 
-      httpMock.expectOne('/books/01JTEST00000000000000001').flush(MOCK_DETAIL);
+      httpMock.expectOne('/books/A01').flush(MOCK_DETAIL);
 
       expect(result).toEqual(MOCK_DETAIL);
     });
 
     it('propagates HTTP errors', () => {
       let errorStatus: number | undefined;
-      repo.getById('NOT_FOUND').subscribe({
+      repo.getByCode('Z99').subscribe({
         error: (e) => (errorStatus = e.status),
       });
 
-      httpMock.expectOne('/books/NOT_FOUND').flush(null, { status: 404, statusText: 'Not Found' });
+      httpMock.expectOne('/books/Z99').flush(null, { status: 404, statusText: 'Not Found' });
 
       expect(errorStatus).toBe(404);
     });

@@ -12,7 +12,7 @@ La tabla `books` usa dos identificadores con responsabilidades distintas:
 | `ulid` | `VARCHAR(26)` | Identificador externo — expuesto en la API para todas las operaciones sobre un recurso (lectura y escritura) |
 | `code` | `VARCHAR(3)` | Identificador de negocio — visible en la UI para búsqueda y selección |
 
-Todos los endpoints que operan sobre un recurso concreto (`GET /books/{ulid}`, `PUT /books/{ulid}`, `DELETE /books/{ulid}`) usan el ULID como parámetro de ruta. El `code` se usa exclusivamente en la interfaz de usuario para que el usuario identifique y seleccione un libro; internamente el frontend trabaja con el ULID que recibe en el `GET /books`.
+Los endpoints de **lectura** usan el `code` como parámetro de ruta (`GET /books/{code}`), mientras que los de **escritura** usarán el ULID (`PUT /books/{ulid}`, `DELETE /books/{ulid}`). El `code` es suficientemente seguro para GET — es de solo lectura y enumerar 2 600 combinaciones no compromete datos sensibles. El ULID protege las operaciones mutantes.
 
 ## Justificación
 
@@ -33,25 +33,52 @@ Un `id` secuencial expuesto en la API revela el volumen del catálogo (`/books/1
 ```
 API REST                              Frontend (Angular)
 ────────────────────────────────      ─────────────────────────────────────
-GET /api/v1/books                 →   lista: [{ ulid, code, title, ... }]
+GET /api/v1/books                 →   lista: [{ ulid, code, title, author, ... }]
                                                 ↓
                                       usuario ve "A04 — Don Quijote..."
                                                 ↓
-                                      navega a /libros/{ulid}
+                                      navega a /libros/miguel-de-cervantes/A04-don-quijote-de-la-mancha-1605
                                                 ↓
-GET /api/v1/books/{ulid}          ←   llama directamente con el ulid de la fila
-DELETE /api/v1/books/{ulid}       ←   ídem para operaciones mutantes
+GET /api/v1/books/{code}          ←   extrae "A04" del slug y llama al API
+DELETE /api/v1/books/{ulid}       ←   usa el ULID del libro cargado para mutaciones
 ```
 
-## Ruta de frontend: `/libros/:ulid`
+## Ruta de frontend: `/libros/:authorSlug/:bookSlug`
 
-Las rutas del frontend usan el ULID directamente como parámetro (p.ej. `/libros/01HVZQR3K...`). Este esquema:
+Las rutas del frontend usan una URL semántica y SEO-friendly:
 
-- **Simple y sin ambigüedad** — el ULID obtenido del listado se pasa directamente al router y al API; no hay extracción de `code` ni resolución en el store.
-- **Sin dependencia del título** — los slugs basados en texto requieren normalización (tildes, caracteres especiales, longitud variable), lo que añade complejidad sin beneficio en una herramienta interna.
-- **No enumerable** — el ULID tiene entropía de 80 bits en su componente aleatorio; no es predecible aunque se conozca el patrón.
+```
+/libros/:authorSlug/:bookSlug
+```
 
-El router de Angular define el parámetro como `:ulid`. El `code` sigue visible como badge en la UI para que el usuario identifique el libro; no se usa en la URL.
+Ejemplos:
+```
+/libros/gabriel-garcia-marquez/A01-cien-anos-de-soledad-1967
+/libros/miguel-de-cervantes/A04-don-quijote-de-la-mancha-1605
+/libros/j-r-r-tolkien/B02-el-senor-de-los-anillos-1954
+```
+
+### Anatomía del slug
+
+| Segmento | Rol | Generación |
+|---|---|---|
+| `:authorSlug` | SEO + jerarquía (habilita `/libros/:author` futuro) | `toSlug(book.author)` |
+| `code` | **Identificador real** para lookup en la API | Prefijo fijo, p. ej. `A01` |
+| `-title-slug` | SEO puro, ignorado en el lookup | `toSlug(book.title)` |
+| `-year` (opcional) | SEO puro | `book.publicationYear` si existe |
+
+### Extracción del código en el frontend
+
+El componente de detalle extrae el `code` del parámetro `:bookSlug` con la expresión regular `^([A-Z]\d{2})`, sin depender del autor ni del título. Si el libro cambia de título o autor, la URL cambia pero el lookup sigue funcionando.
+
+### Separación semántica de rutas
+
+```
+/catalogo                                          → listado/búsqueda (colección)
+/libros/:authorSlug/:bookSlug                      → detalle (recurso individual)
+```
+
+`/catalogo` y `/libros` cumplen roles distintos: colección navegable vs. recurso concreto. Esta separación refleja la misma distinción que en la API REST (`GET /books` vs. `GET /books/{code}`).
 
 ### Internacionalización (i18n) — decisión de no implementar
 

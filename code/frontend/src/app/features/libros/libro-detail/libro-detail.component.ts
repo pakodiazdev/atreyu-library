@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LibroDetailStore } from './libro-detail.store';
 import { UiBtnDirective, UiBadgeComponent } from '../../../shared/ui';
+import { extractCodeFromSlug } from '../../../shared/utils/book-url.util';
 
 @Component({
   standalone: true,
@@ -15,8 +16,8 @@ export class LibroDetailComponent implements OnInit {
   private  readonly route  = inject(ActivatedRoute);
 
   ngOnInit(): void {
-    const ulid = this.route.snapshot.paramMap.get('ulid') ?? '';
-    this.store.setUlid(ulid);
+    const bookSlug = this.route.snapshot.paramMap.get('bookSlug') ?? '';
+    this.store.setCode(extractCodeFromSlug(bookSlug));
   }
 
   protected genreVariant(genre: string | null): 'default' | 'gold' | 'moss' | 'rust' {

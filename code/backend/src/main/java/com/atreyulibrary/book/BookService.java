@@ -18,16 +18,16 @@ public class BookService {
     }
 
     /**
-     * Retorna el libro con el ULID dado.
+     * Retorna el libro con el código de negocio dado.
      *
-     * @param ulid identificador externo del libro
+     * @param code código de negocio del libro (ej. "A01")
      * @return libro como {@link BookResponse}
-     * @throws BookNotFoundException si no existe un libro con ese ULID
+     * @throws BookNotFoundException si no existe un libro con ese código
      */
-    public BookResponse getByUlid(final String ulid) {
-        return repository.findByUlid(ulid)
+    public BookResponse getByCode(final String code) {
+        return repository.findByCode(code)
                 .map(BookResponse::from)
-                .orElseThrow(() -> new BookNotFoundException(ulid));
+                .orElseThrow(() -> new BookNotFoundException(code));
     }
 
     /**

@@ -20,11 +20,11 @@ const MOCK_DETAIL: BookDetail = {
 
 describe('LibroDetailStore', () => {
   let store: LibroDetailStore;
-  const mockRepo   = { getById: vi.fn().mockReturnValue(EMPTY) };
+  const mockRepo   = { getByCode: vi.fn().mockReturnValue(EMPTY) };
   const mockRouter = { navigate: vi.fn() };
 
-  function setup(getById = vi.fn().mockReturnValue(EMPTY)) {
-    mockRepo.getById = getById;
+  function setup(getByCode = vi.fn().mockReturnValue(EMPTY)) {
+    mockRepo.getByCode = getByCode;
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
@@ -38,8 +38,8 @@ describe('LibroDetailStore', () => {
 
   beforeEach(() => setup());
 
-  it('initializes ulid as empty string', () => {
-    expect(store.ulid()).toBe('');
+  it('initializes code as empty string', () => {
+    expect(store.code()).toBe('');
   });
 
   it('book() is null initially', () => {
@@ -50,16 +50,16 @@ describe('LibroDetailStore', () => {
     expect(store.notFound()).toBe(false);
   });
 
-  it('setUlid updates the ulid signal', () => {
-    TestBed.runInInjectionContext(() => store.setUlid('01JTEST00000000000000001'));
-    expect(store.ulid()).toBe('01JTEST00000000000000001');
+  it('setCode updates the code signal', () => {
+    TestBed.runInInjectionContext(() => store.setCode('A01'));
+    expect(store.code()).toBe('A01');
   });
 
   it('book() returns data after resource resolves', async () => {
     vi.useFakeTimers();
     setup(vi.fn().mockReturnValue(of(MOCK_DETAIL)));
 
-    TestBed.runInInjectionContext(() => store.setUlid('01JTEST00000000000000001'));
+    TestBed.runInInjectionContext(() => store.setCode('A01'));
 
     vi.runAllTimers();
     await Promise.resolve();
@@ -74,7 +74,7 @@ describe('LibroDetailStore', () => {
     const err = new HttpErrorResponse({ status: 404, statusText: 'Not Found' });
     setup(vi.fn().mockReturnValue(throwError(() => err)));
 
-    TestBed.runInInjectionContext(() => store.setUlid('MISSING'));
+    TestBed.runInInjectionContext(() => store.setCode('Z99'));
 
     vi.runAllTimers();
     await Promise.resolve();

@@ -10,6 +10,8 @@ import {
   UiTableRowDirective,
   UiTableCellDirective,
 } from '../../../shared/ui';
+import { toBookUrl } from '../../../shared/utils/book-url.util';
+import { Book } from '../book.model';
 
 @Component({
   standalone: true,
@@ -31,8 +33,12 @@ export class LibroListComponent {
   protected readonly store = inject(LibroListStore);
   private readonly router = inject(Router);
 
-  protected navigateTo(ulid: string): void {
-    this.router.navigate(['/libros', ulid]);
+  protected bookUrl(book: Book): string[] {
+    return toBookUrl(book);
+  }
+
+  protected navigateTo(book: Book): void {
+    this.router.navigate(toBookUrl(book));
   }
 
   protected genreVariant(genre: string | null): 'default' | 'gold' | 'moss' | 'rust' {
