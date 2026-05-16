@@ -106,24 +106,27 @@ Merge a main
 │  └── SonarCloud      │          │  ├── Tests Vitest        │
 └──────────┬───────────┘          │  └── SonarCloud          │
            │ ✅ pasa              └────────────┬─────────────┘
-           │                                  │ ✅ pasa
-           ▼                                  ▼
-┌──────────────────────┐          ┌──────────────────────────┐
-│  Build + Push image  │          │  Build + Push image      │
-│  backend:sha         │          │  frontend:sha            │
-└──────────┬───────────┘          └────────────┬─────────────┘
-           │                                   │
-           ▼                                   ▼
-┌──────────────────────┐          ┌──────────────────────────┐
-│  Deploy Cloud Run    │          │  Deploy Cloud Run        │
-│  atreyu-backend      │          │  atreyu-frontend         │
-│  (prod)              │          │  (prod)                  │
-└──────────────────────┘          └──────────────────────────┘
+           └──────────────┬───────────────────┘
+                          │ ✅ ambos pasan
+              ┌───────────┴───────────┐
+              ▼                       ▼
+┌──────────────────────┐  ┌──────────────────────────┐
+│  Build + Push image  │  │  Build + Push image      │
+│  backend:sha         │  │  frontend:sha            │
+└──────────┬───────────┘  └────────────┬─────────────┘
+           │                           │
+           ▼                           ▼
+┌──────────────────────┐  ┌──────────────────────────┐
+│  Deploy Cloud Run    │  │  Deploy Cloud Run        │
+│  atreyu-backend      │  │  atreyu-frontend         │
+│  (prod)              │  │  (prod)                  │
+└──────────────────────┘  └──────────────────────────┘
 ```
 
 > Si el CI gate de cualquiera de los servicios falla (tests, lint o
-> SonarCloud quality gate), ese servicio **no se despliega**. El otro
-> servicio puede desplegarse de forma independiente si su propio CI pasa.
+> SonarCloud quality gate), **ningún servicio se despliega**. Ambos CI
+> gates deben pasar para que el deploy proceda, evitando desfases entre
+> el frontend y el backend en producción.
 
 ---
 
