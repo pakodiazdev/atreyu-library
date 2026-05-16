@@ -91,8 +91,8 @@ PR abierto / actualizado
 ## Flujo CD — Merge a main
 
 Se ejecuta automáticamente al hacer merge a `main`. El deploy solo ocurre
-si el CI gate completo pasa — tests, lint y SonarCloud corren sobre el
-código real de `main` antes de cualquier despliegue.
+si el CI gate completo y los tests E2E pasan — lint, tests, SonarCloud y
+Cypress corren sobre el código real de `main` antes de cualquier despliegue.
 
 ```
 Merge a main
@@ -108,6 +108,13 @@ Merge a main
            │ ✅ pasa              └────────────┬─────────────┘
            └──────────────┬───────────────────┘
                           │ ✅ ambos pasan
+                          ▼
+              ┌───────────────────────┐
+              │   E2E Gate — Cypress  │
+              │  stack completo E2E   │
+              │  (postgres+BE+FE)     │
+              └───────────┬───────────┘
+                          │ ✅ pasa
               ┌───────────┴───────────┐
               ▼                       ▼
 ┌──────────────────────┐  ┌──────────────────────────┐
@@ -120,13 +127,23 @@ Merge a main
 │  Deploy Cloud Run    │  │  Deploy Cloud Run        │
 │  atreyu-backend      │  │  atreyu-frontend         │
 │  (prod)              │  │  (prod)                  │
-└──────────────────────┘  └──────────────────────────┘
+└──────────┬───────────┘  └────────────┬─────────────┘
+           │                           │
+           └──────────────┬────────────┘
+                          ▼
+              ┌───────────────────────┐
+              │  Cleanup revisiones   │
+              │  Cloud Run + imágenes │
+              │  Artifact Registry    │
+              │  (solo queda la       │
+              │   última versión)     │
+              └───────────────────────┘
 ```
 
-> Si el CI gate de cualquiera de los servicios falla (tests, lint o
-> SonarCloud quality gate), **ningún servicio se despliega**. Ambos CI
-> gates deben pasar para que el deploy proceda, evitando desfases entre
-> el frontend y el backend en producción.
+> Si el CI gate o el gate E2E falla, **ningún servicio se despliega**. Los tres
+> gates (ci-backend, ci-frontend, e2e) deben pasar para que el deploy proceda.
+> Tras el deploy, el job cleanup elimina todas las revisiones anteriores de ambos
+> servicios — solo la revisión activa permanece en Cloud Run.
 
 ---
 
@@ -139,18 +156,27 @@ antes de abrir el PR a `main`.
 Trigger manual
 (branch seleccionado)
         │
-        ▼
-┌───────────────────────┐
-│  Build Docker images  │
-│  desde el branch      │
-└──────────┬────────────┘
-           │
-           ▼
-┌───────────────────────┐
-│  Deploy Cloud Run QA  │
-│  qa01.atreyu-library  │
-│  .pakodiaz.dev        │
-└───────────────────────┘
+        ├──────────────────────────┐
+        ▼                          ▼
+┌───────────────────┐  ┌───────────────────────┐
+│  Build + Push BE  │  │  Build + Push FE      │
+│  backend:qa-sha   │  │  frontend:qa-sha      │
+└────────┬──────────┘  └──────────┬────────────┘
+         │                        │
+         ▼                        ▼
+┌───────────────────┐  ┌───────────────────────┐
+│  Deploy Cloud Run │  │  Deploy Cloud Run QA  │
+│  atreyu-backend   │  │  atreyu-frontend-qa   │
+│  -qa              │  │  qa01.atreyu-library  │
+└────────┬──────────┘  └──────────┬────────────┘
+         │                        │
+         └────────────┬───────────┘
+                      ▼
+          ┌───────────────────────┐
+          │  Cleanup revisiones   │
+          │  e imágenes QA        │
+          │  anteriores           │
+          └───────────────────────┘
 ```
 
 ---

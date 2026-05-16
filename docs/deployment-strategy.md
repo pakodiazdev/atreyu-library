@@ -188,12 +188,19 @@ en el repositorio.
 
 ## Rollback
 
-En caso de fallo en producción, Cloud Run permite revertir a una revisión anterior
-desde la consola de GCP o mediante el CLI con un solo comando:
+El pipeline de CD elimina todas las revisiones anteriores de Cloud Run e imágenes de
+Artifact Registry tras cada deploy exitoso — solo la revisión activa permanece.
+Por tanto, el rollback instantáneo vía traffic routing a una revisión anterior
+**no está disponible**.
+
+El rollback se realiza redesplegando desde git:
 
 ```bash
-gcloud run services update-traffic atreyu-library-backend \
-  --to-revisions REVISION_ID=100
+git revert <sha-del-commit-problemático>
+git push origin main
+# El pipeline de CD despliega automáticamente el revert
 ```
 
-Esto hace el rollback instantáneo sin necesidad de un nuevo despliegue.
+Esta estrategia fue elegida intencionalmente (ver TD-02): el costo de almacenamiento
+eliminado supera el beneficio del rollback instantáneo en un proyecto sin SLA estricto,
+y el historial completo siempre está disponible en git.
