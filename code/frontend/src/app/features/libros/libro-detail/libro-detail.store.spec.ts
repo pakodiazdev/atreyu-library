@@ -46,7 +46,12 @@ describe('LibroDetailStore', () => {
     expect(store.book()).toBeNull();
   });
 
-  it('notFound is false initially', () => {
+  it('notFound is true initially (empty code = invalid slug)', () => {
+    expect(store.notFound()).toBe(true);
+  });
+
+  it('notFound is false after setting a valid code', () => {
+    TestBed.runInInjectionContext(() => store.setCode('A01'));
     expect(store.notFound()).toBe(false);
   });
 

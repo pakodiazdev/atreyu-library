@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { LibroDetailStore } from './libro-detail.store';
 import { UiBtnDirective, UiBadgeComponent } from '../../../shared/ui';
 import { extractCodeFromSlug } from '../../../shared/utils/book-url.util';
@@ -7,7 +7,7 @@ import { extractCodeFromSlug } from '../../../shared/utils/book-url.util';
 @Component({
   standalone: true,
   selector: 'app-libro-detail',
-  imports: [UiBtnDirective, UiBadgeComponent, RouterLink],
+  imports: [UiBtnDirective, UiBadgeComponent],
   providers: [LibroDetailStore],
   templateUrl: './libro-detail.component.html',
 })

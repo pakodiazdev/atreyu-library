@@ -4,18 +4,6 @@
  * No usa cy.intercept — las peticiones llegan al API real.
  */
 describe('Detalle de libro (#13)', () => {
-  let firstBookUlid: string;
-
-  before(() => {
-    cy.visit('/catalogo');
-    cy.get('[data-cy="book-row"]', { timeout: 10000 }).first().click();
-    cy.url().then((url) => {
-      // URL: /libros/:authorSlug/:bookSlug — guardamos el bookSlug
-      firstBookUlid = url.split('/').pop() ?? '';
-    });
-    cy.go('back');
-  });
-
   describe('Navegación desde el catálogo', () => {
     it('navega al detalle al hacer clic en una fila', () => {
       cy.visit('/catalogo');

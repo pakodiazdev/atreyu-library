@@ -23,6 +23,7 @@ export class LibroDetailStore {
   readonly error     = this.resource.error;
 
   readonly notFound = computed(() => {
+    if (!this.code()) return true;
     const err = this.resource.error();
     return err instanceof HttpErrorResponse && err.status === 404;
   });
