@@ -11,10 +11,10 @@ El pipeline de entrega continua opera con dos flujos diferenciados:
 
 La asimetría es intencional y refleja el riesgo diferente de cada ambiente:
 
-**Producción automática con CI gate** — `cd.yml` ejecuta lint, tests y SonarCloud sobre el código
-real de `main` antes de cada deploy. Si cualquier check falla, el deploy no ocurre. Esto garantiza
-que producción nunca recibe código que no pasó la suite completa de calidad, incluyendo el análisis
-de SonarCloud sobre la rama principal (no solo sobre el PR).
+**Producción automática con CI gate global** — `cd.yml` ejecuta lint, tests y SonarCloud sobre el código
+real de `main` para ambos servicios antes de cualquier deploy. Si el CI gate de cualquier servicio falla,
+**ningún servicio se despliega** — ni el que falló ni el que pasó. Esto evita desfases entre frontend y
+backend en producción (e.g. un frontend nuevo llamando APIs de un backend que no llegó por fallo de tests).
 
 El deploy es automático porque un merge a `main` ya viene validado por: CI en PR + review de PR + CI gate en CD.
 No hay razón para añadir un paso manual que solo introduce fricción sin agregar seguridad real.
@@ -25,7 +25,7 @@ que un push accidental o un branch en progreso sobreescriba una validación en c
 
 | Ambiente | Trigger | CI gate | Razón |
 |----------|---------|---------|-------|
-| Producción | Push a `main` (automático) | ✅ lint + tests + SonarCloud | Código validado en PR y nuevamente en main |
+| Producción | Push a `main` (automático) | ✅ lint + tests + SonarCloud (ambos servicios) | Deploy bloqueado si cualquier CI falla — evita desfases frontend/backend |
 | QA | `workflow_dispatch` (manual) | ❌ solo build y deploy | Control explícito de qué se valida y cuándo |
 
 ## Alternativa descartada
