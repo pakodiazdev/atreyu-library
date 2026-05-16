@@ -91,7 +91,7 @@ jobs:
         run: |
           docker build \
             --target qa \
-            --build-arg QA_HTPASSWD="${{ secrets.QA_HTPASSWD }}" \
+            --build-arg QA_HTPASSWD='${{ secrets.QA_HTPASSWD }}' \
             -t "$IMAGE" -f docker/frontend/Dockerfile .
           docker push "$IMAGE"
 
