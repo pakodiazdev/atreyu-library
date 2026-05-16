@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 @Order(2)
 public class BookSeederProd extends OnceSeeder {
 
+    private static final String NOVELA = "Novela";
+
     private final BookRepository repository;
 
     public BookSeederProd(final BookRepository repository, final SeederLogRepository seederLogRepository) {
@@ -47,7 +49,7 @@ public class BookSeederProd extends OnceSeeder {
                 "rebelión interior, y el amor clandestino que encuentra, lo enfrentarán a la maquinaria más " +
                 "implacable jamás imaginada. Una advertencia que sigue más vigente que nunca."),
 
-            book("A04", "Don Quijote de la Mancha", "Miguel de Cervantes", "Novela", 1605,
+            book("A04", "Don Quijote de la Mancha", "Miguel de Cervantes", NOVELA, 1605,
                 "Alonso Quijano, un hidalgo manchego enloquecido por las novelas de caballería, se convierte en " +
                 "Don Quijote de la Mancha y sale al mundo a desfacer entuertos acompañado de su fiel escudero " +
                 "Sancho Panza. Considerada la primera novela moderna, es un viaje por la ilusión y la realidad, " +
@@ -104,7 +106,7 @@ public class BookSeederProd extends OnceSeeder {
                 "esta reescritura moderna de La Odisea. Una revolución en la forma de narrar que redefinió " +
                 "las posibilidades de la novela del siglo XX."),
 
-            book("B03", "En busca del tiempo perdido", "Marcel Proust", "Novela", 1913,
+            book("B03", "En busca del tiempo perdido", "Marcel Proust", NOVELA, 1913,
                 "El narrador Marcel recorre su vida entera a través de la memoria involuntaria, esa memoria " +
                 "que despiertan las sensaciones: el sabor de una magdalena, el olor a humedad, una melodía " +
                 "escuchada al pasar. A lo largo de siete volúmenes, Proust construye una catedral literaria " +
@@ -118,7 +120,7 @@ public class BookSeederProd extends OnceSeeder {
                 "Gregor se desvanece. Una alegoría sobre la alienación, la culpa y la deshumanización que " +
                 "define la modernidad kafkiana."),
 
-            book("B05", "El gran Gatsby", "F. Scott Fitzgerald", "Novela", 1925,
+            book("B05", "El gran Gatsby", "F. Scott Fitzgerald", NOVELA, 1925,
                 "En los dorados años veinte, Jay Gatsby organiza fastuosas fiestas en su mansión de Long " +
                 "Island con un único propósito: reconquistar el amor perdido de Daisy Buchanan. Nick " +
                 "Carraway, narrador y vecino, observa cómo la obsesión de Gatsby choca contra la frivolidad " +

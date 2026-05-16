@@ -29,7 +29,7 @@ class BookSeederProdTest {
     private BookSeederProd seeder;
 
     @Test
-    void savesAllBooksOnFirstRun() throws Exception {
+    void savesAllBooksOnFirstRun() {
         when(seederLogRepository.existsBySeederClass(anyString())).thenReturn(false);
 
         seeder.run();
@@ -39,7 +39,7 @@ class BookSeederProdTest {
     }
 
     @Test
-    void skipsWhenAlreadyRan() throws Exception {
+    void skipsWhenAlreadyRan() {
         when(seederLogRepository.existsBySeederClass(anyString())).thenReturn(true);
 
         seeder.run();
