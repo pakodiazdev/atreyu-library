@@ -21,5 +21,5 @@ export function toBookUrl(book: {
 }
 
 export function extractCodeFromSlug(bookSlug: string): string {
-  return bookSlug.match(/^([A-Z]\d{2})/)?.[1] ?? '';
+  return /^([A-Z]\d{2})/.exec(bookSlug)?.[1] ?? '';
 }
