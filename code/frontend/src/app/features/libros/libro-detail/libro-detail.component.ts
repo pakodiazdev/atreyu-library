@@ -31,7 +31,7 @@ export class LibroDetailComponent implements OnInit {
   formatDate(iso: string | undefined): string {
     if (!iso) return '—';
     const d = new Date(iso);
-    if (isNaN(d.getTime())) return '—';
+    if (Number.isNaN(d.getTime())) return '—';
     return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
   }
 }
