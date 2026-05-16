@@ -28,6 +28,8 @@ public class DeployCheckSeeder extends OnceSeeder {
         final String activeProfile = env.getActiveProfiles().length > 0
                 ? env.getActiveProfiles()[0]
                 : "default";
-        jdbc.update("INSERT INTO deploy_checks (environment) VALUES (?)", activeProfile);
+        jdbc.update(
+                "INSERT INTO deploy_checks (environment) VALUES (?) ON CONFLICT DO NOTHING",
+                activeProfile);
     }
 }

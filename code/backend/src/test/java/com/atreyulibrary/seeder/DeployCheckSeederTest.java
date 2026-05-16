@@ -33,7 +33,7 @@ class DeployCheckSeederTest {
     private DeployCheckSeeder seeder;
 
     @Test
-    void insertsRowWithActiveProfileOnFirstRun() throws Exception {
+    void insertsRowWithActiveProfileOnFirstRun() {
         when(seederLogRepository.existsBySeederClass(anyString())).thenReturn(false);
         when(env.getActiveProfiles()).thenReturn(new String[]{"qa"});
 
@@ -44,7 +44,7 @@ class DeployCheckSeederTest {
     }
 
     @Test
-    void insertsRowWithFirstActiveProfileWhenMultipleAreSet() throws Exception {
+    void insertsRowWithFirstActiveProfileWhenMultipleAreSet() {
         when(seederLogRepository.existsBySeederClass(anyString())).thenReturn(false);
         when(env.getActiveProfiles()).thenReturn(new String[]{"qa", "debug"});
 
@@ -54,7 +54,7 @@ class DeployCheckSeederTest {
     }
 
     @Test
-    void fallsBackToDefaultProfileWhenNoProfileIsActive() throws Exception {
+    void fallsBackToDefaultProfileWhenNoProfileIsActive() {
         when(seederLogRepository.existsBySeederClass(anyString())).thenReturn(false);
         when(env.getActiveProfiles()).thenReturn(new String[]{});
 
@@ -64,7 +64,7 @@ class DeployCheckSeederTest {
     }
 
     @Test
-    void skipsWhenAlreadyRan() throws Exception {
+    void skipsWhenAlreadyRan() {
         when(seederLogRepository.existsBySeederClass(anyString())).thenReturn(true);
 
         seeder.run();
