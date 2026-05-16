@@ -90,40 +90,40 @@ PR abierto / actualizado
 
 ## Flujo CD — Merge a main
 
-Se ejecuta automáticamente al hacer merge a `main`.
+Se ejecuta automáticamente al hacer merge a `main`. El deploy solo ocurre
+si el CI gate completo pasa — tests, lint y SonarCloud corren sobre el
+código real de `main` antes de cualquier despliegue.
 
 ```
 Merge a main
       │
-      ▼
-┌─────────────────────────┐
-│   Build Docker images   │
-│  ├── backend:latest     │
-│  └── frontend:latest    │
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│   Push a registry       │
-│   Google Artifact       │
-│   Registry              │
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│   Deploy Cloud Run      │
-│  ├── BE → API           │
-│  └── FE → nginx         │
-│  atreyu-library         │
-│  .pakodiaz.dev          │
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│   Cypress smoke test    │
-│   contra producción     │
-└─────────────────────────┘
+      ├────────────────────────────────────────┐
+      ▼                                        ▼
+┌──────────────────────┐          ┌──────────────────────────┐
+│   CI Gate — Backend  │          │   CI Gate — Frontend     │
+│  ├── Checkstyle      │          │  ├── ESLint              │
+│  ├── Tests JUnit     │          │  ├── Typecheck           │
+│  └── SonarCloud      │          │  ├── Tests Vitest        │
+└──────────┬───────────┘          │  └── SonarCloud          │
+           │ ✅ pasa              └────────────┬─────────────┘
+           │                                  │ ✅ pasa
+           ▼                                  ▼
+┌──────────────────────┐          ┌──────────────────────────┐
+│  Build + Push image  │          │  Build + Push image      │
+│  backend:sha         │          │  frontend:sha            │
+└──────────┬───────────┘          └────────────┬─────────────┘
+           │                                   │
+           ▼                                   ▼
+┌──────────────────────┐          ┌──────────────────────────┐
+│  Deploy Cloud Run    │          │  Deploy Cloud Run        │
+│  atreyu-backend      │          │  atreyu-frontend         │
+│  (prod)              │          │  (prod)                  │
+└──────────────────────┘          └──────────────────────────┘
 ```
+
+> Si el CI gate de cualquiera de los servicios falla (tests, lint o
+> SonarCloud quality gate), ese servicio **no se despliega**. El otro
+> servicio puede desplegarse de forma independiente si su propio CI pasa.
 
 ---
 
