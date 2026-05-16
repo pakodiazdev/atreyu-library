@@ -24,11 +24,12 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 
 # Stage 3: runtime QA — agrega HTTP Basic Auth y cabeceras noindex
-# Las credenciales son públicas a propósito (demo); en producción se usaría un gestor de secretos
+# La entrada htpasswd se inyecta en build-time vía --build-arg QA_HTPASSWD (nunca hardcodeada)
 FROM nginx:stable-alpine AS qa
+ARG QA_HTPASSWD
 COPY --from=builder-qa /app/dist/frontend/browser /usr/share/nginx/html
 COPY docker/frontend/nginx-qa.conf /etc/nginx/conf.d/default.conf
-RUN echo 'qa:$apr1$atreyuqa$6zCwYTr2lMX9tJZUVhQ3l1' > /etc/nginx/.htpasswd && \
+RUN echo "${QA_HTPASSWD}" > /etc/nginx/.htpasswd && \
     chown nginx:nginx /etc/nginx/.htpasswd && \
     chmod 640 /etc/nginx/.htpasswd
 EXPOSE 80
