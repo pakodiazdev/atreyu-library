@@ -21,9 +21,9 @@ describe('LibroDetailComponent', () => {
   let store: LibroDetailStore;
   let mockRoute: { snapshot: { paramMap: { get: ReturnType<typeof vi.fn> } } };
 
-  function configureAndCreate(ulid: string | null) {
+  function configureAndCreate(bookSlug: string | null): LibroDetailComponent {
     store = makeStore();
-    mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(ulid) } } };
+    mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(bookSlug) } } };
 
     TestBed.configureTestingModule({
       imports: [LibroDetailComponent],
@@ -48,29 +48,29 @@ describe('LibroDetailComponent', () => {
     beforeEach(() => { component = configureAndCreate(''); });
 
     it('returns "default" for null genre', () => {
-      expect((component as any).genreVariant(null)).toBe('default');
+      expect(component.genreVariant(null)).toBe('default');
     });
 
     it('returns "gold" for "Fantasía"', () => {
-      expect((component as any).genreVariant('Fantasía')).toBe('gold');
+      expect(component.genreVariant('Fantasía')).toBe('gold');
     });
 
     it('returns "gold" for uppercase "FANTASÍA"', () => {
-      expect((component as any).genreVariant('FANTASÍA')).toBe('gold');
+      expect(component.genreVariant('FANTASÍA')).toBe('gold');
     });
 
     it('returns "moss" for "Poesía"', () => {
-      expect((component as any).genreVariant('Poesía')).toBe('moss');
+      expect(component.genreVariant('Poesía')).toBe('moss');
     });
 
     it('returns "moss" for lowercase "poesia"', () => {
-      expect((component as any).genreVariant('poesia')).toBe('moss');
+      expect(component.genreVariant('poesia')).toBe('moss');
     });
 
     it('returns "default" for any other genre', () => {
-      expect((component as any).genreVariant('Realismo mágico')).toBe('default');
-      expect((component as any).genreVariant('Épica')).toBe('default');
-      expect((component as any).genreVariant('Terror')).toBe('default');
+      expect(component.genreVariant('Realismo mágico')).toBe('default');
+      expect(component.genreVariant('Épica')).toBe('default');
+      expect(component.genreVariant('Terror')).toBe('default');
     });
   });
 
@@ -81,19 +81,19 @@ describe('LibroDetailComponent', () => {
     beforeEach(() => { component = configureAndCreate(''); });
 
     it('returns "—" for undefined', () => {
-      expect((component as any).formatDate(undefined)).toBe('—');
+      expect(component.formatDate(undefined)).toBe('—');
     });
 
     it('returns "—" for empty string', () => {
-      expect((component as any).formatDate('')).toBe('—');
+      expect(component.formatDate('')).toBe('—');
     });
 
     it('returns "—" for invalid date string', () => {
-      expect((component as any).formatDate('not-a-date')).toBe('—');
+      expect(component.formatDate('not-a-date')).toBe('—');
     });
 
     it('formats a valid ISO date to Spanish locale', () => {
-      const result = (component as any).formatDate('2026-01-15T00:00:00Z');
+      const result = component.formatDate('2026-01-15T00:00:00Z');
       expect(result).toMatch(/15/);
       expect(result).toMatch(/2026/);
     });
@@ -103,7 +103,7 @@ describe('LibroDetailComponent', () => {
 
   describe('ngOnInit()', () => {
     it('extracts code from bookSlug param and calls store.setCode()', () => {
-      const component = configureAndCreate('A01-cien-anos-de-soledad-1967');
+      configureAndCreate('A01-cien-anos-de-soledad-1967');
       expect(mockRoute.snapshot.paramMap.get).toHaveBeenCalledWith('bookSlug');
       expect(store.setCode).toHaveBeenCalledWith('A01');
     });
