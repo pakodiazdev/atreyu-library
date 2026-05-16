@@ -18,10 +18,45 @@ env:
   GCP_REPO: atreyu
 
 jobs:
+  # ── CI Check — verificar que el branch pasó todos los checks ───────────────
+  check-ci:
+    name: Verificar CI del branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validar que todos los checks de CI del branch estén en SUCCESS
+        run: |
+          SHA=$(gh api repos/pakodiazdev/atreyu-library/git/ref/heads/${{ github.event.inputs.branch }} \
+            --jq '.object.sha')
+          echo "Branch: ${{ github.event.inputs.branch }} → SHA: $SHA"
+
+          # Solo verifica los checks del workflow CI (ci.yml), no los del propio QA deploy
+          CI_CHECKS=$(gh api repos/pakodiazdev/atreyu-library/commits/$SHA/check-runs \
+            --paginate \
+            --jq '[.check_runs[] | select(.name == "Backend — lint + test + sonar" or .name == "Frontend — lint + typecheck + test + sonar" or .name == "E2E — Cypress")]')
+
+          echo "$CI_CHECKS" | jq '.[] | {name: .name, conclusion: .conclusion}'
+
+          TOTAL=$(echo "$CI_CHECKS" | jq 'length')
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "❌ No se encontraron checks de CI en el branch — ¿corrió el CI alguna vez?"
+            exit 1
+          fi
+
+          FAILED=$(echo "$CI_CHECKS" | jq '[.[] | select(.conclusion != "success")] | length')
+          if [ "$FAILED" -gt 0 ]; then
+            echo "❌ El branch tiene $FAILED check(s) de CI que no pasaron — deploy bloqueado"
+            exit 1
+          fi
+          echo "✅ Los $TOTAL checks de CI del branch están en SUCCESS"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # ── Backend ────────────────────────────────────────────────────────────────
   deploy-backend:
     name: Backend → Cloud Run QA
     runs-on: ubuntu-latest
+    needs: [check-ci]
 
     steps:
       - uses: actions/checkout@v4
@@ -66,6 +101,7 @@ jobs:
   deploy-frontend:
     name: Frontend → Cloud Run QA
     runs-on: ubuntu-latest
+    needs: [check-ci]
 
     steps:
       - uses: actions/checkout@v4
@@ -103,3 +139,98 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           image: ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/frontend:qa-${{ steps.sha.outputs.value }}
           flags: --port=80 --allow-unauthenticated
+
+  # ── Cleanup — eliminar revisiones anteriores de Cloud Run QA ───────────────
+  cleanup:
+    name: Cleanup — Cloud Run QA revisions + AR images
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Eliminar revisiones antiguas — backend QA
+        run: |
+          set -euo pipefail
+          REVISIONS=$(gcloud run revisions list \
+            --service=atreyu-backend-qa \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --sort-by="~metadata.creationTimestamp" \
+            --format="value(metadata.name)")
+          OLD=$(echo "$REVISIONS" | tail -n +2)
+          if [ -n "$OLD" ]; then
+            echo "$OLD" | xargs -I{} gcloud run revisions delete {} \
+              --region=${{ env.GCP_REGION }} \
+              --project=${{ secrets.GCP_PROJECT_ID }} \
+              --quiet
+          else
+            echo "No hay revisiones antiguas de backend QA que eliminar"
+          fi
+
+      - name: Eliminar revisiones antiguas — frontend QA
+        run: |
+          set -euo pipefail
+          REVISIONS=$(gcloud run revisions list \
+            --service=atreyu-frontend-qa \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --sort-by="~metadata.creationTimestamp" \
+            --format="value(metadata.name)")
+          OLD=$(echo "$REVISIONS" | tail -n +2)
+          if [ -n "$OLD" ]; then
+            echo "$OLD" | xargs -I{} gcloud run revisions delete {} \
+              --region=${{ env.GCP_REGION }} \
+              --project=${{ secrets.GCP_PROJECT_ID }} \
+              --quiet
+          else
+            echo "No hay revisiones antiguas de frontend QA que eliminar"
+          fi
+
+      - name: Eliminar imágenes antiguas de AR — backend QA
+        run: |
+          set -euo pipefail
+          IMAGES=$(gcloud artifacts docker images list \
+            "${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/backend" \
+            --include-tags \
+            --sort-by="~createTime" \
+            --format="json")
+          OLD=$(echo "$IMAGES" | jq -r '
+            ( [.[] | select(.tags != null and any(.tags[]; startswith("qa-")))] | .[1:][] | .version ),
+            ( .[] | select(.tags == null or (.tags | length == 0)) | .version )
+          ')
+          if [ -n "$OLD" ]; then
+            while IFS= read -r digest; do
+              gcloud artifacts docker images delete \
+                "${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/backend@$digest" \
+                --quiet --delete-tags
+            done <<< "$OLD"
+          else
+            echo "No hay imágenes QA antiguas de backend en AR que eliminar"
+          fi
+
+      - name: Eliminar imágenes antiguas de AR — frontend QA
+        run: |
+          set -euo pipefail
+          IMAGES=$(gcloud artifacts docker images list \
+            "${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/frontend" \
+            --include-tags \
+            --sort-by="~createTime" \
+            --format="json")
+          OLD=$(echo "$IMAGES" | jq -r '
+            ( [.[] | select(.tags != null and any(.tags[]; startswith("qa-")))] | .[1:][] | .version ),
+            ( .[] | select(.tags == null or (.tags | length == 0)) | .version )
+          ')
+          if [ -n "$OLD" ]; then
+            while IFS= read -r digest; do
+              gcloud artifacts docker images delete \
+                "${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/frontend@$digest" \
+                --quiet --delete-tags
+            done <<< "$OLD"
+          else
+            echo "No hay imágenes QA antiguas de frontend en AR que eliminar"
+          fi

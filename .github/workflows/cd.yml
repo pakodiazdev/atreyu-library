@@ -88,11 +88,88 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONTEND }}
           SONAR_HOST_URL: https://sonarcloud.io
 
+  # ── E2E Gate ───────────────────────────────────────────────────────────────
+  e2e:
+    name: E2E — Cypress
+    runs-on: ubuntu-latest
+    needs: [ci-backend, ci-frontend]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: code/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: code/frontend
+        run: npm ci
+
+      - name: Preparar .env.e2e y exportar variables al job
+        run: |
+          cp .env.e2e.example .env.e2e
+          grep -v '^#' .env.e2e | grep -v '^$' >> $GITHUB_ENV
+
+      - name: Levantar stack E2E completo (postgres + backend + frontend)
+        run: docker compose --env-file .env.e2e -f docker-compose.e2e.yml up -d --build
+
+      - name: Esperar stack E2E listo
+        run: |
+          BPORT=${E2E_BACKEND_PORT:-8081}
+          FPORT=${E2E_FRONTEND_PORT:-4200}
+          MAX=60
+          i=0
+          until curl -sf http://localhost:$BPORT/api/v1/books | grep -q '\['; do
+            i=$((i+1))
+            if [ $i -ge $MAX ]; then
+              echo "❌ Backend no listo tras $((MAX*3))s — logs:"
+              docker compose --env-file .env.e2e -f docker-compose.e2e.yml logs backend_e2e
+              exit 1
+            fi
+            sleep 3
+          done
+          COUNT=$(curl -sf http://localhost:$BPORT/api/v1/books | python3 -c "import sys,json; print(len(json.load(sys.stdin)))")
+          echo "✅ Backend listo — $COUNT libros en localhost:$BPORT"
+          i=0
+          until curl -sf http://localhost:$FPORT | grep -qi 'atreyu\|html'; do
+            i=$((i+1))
+            if [ $i -ge $MAX ]; then
+              echo "❌ Frontend no listo tras $((MAX*3))s — logs:"
+              docker compose --env-file .env.e2e -f docker-compose.e2e.yml logs frontend_e2e
+              exit 1
+            fi
+            sleep 3
+          done
+          echo "✅ Frontend listo — ng serve respondiendo en localhost:$FPORT"
+
+      - name: Run Cypress
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: code/frontend
+          browser: chrome
+        env:
+          CYPRESS_BASE_URL: http://localhost:${{ env.E2E_FRONTEND_PORT }}
+
+      - name: Subir screenshots de Cypress
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: code/frontend/cypress/screenshots
+          retention-days: 7
+
+      - name: Bajar stack E2E
+        if: always()
+        run: docker compose --env-file .env.e2e -f docker-compose.e2e.yml down -v
+
   # ── Backend ────────────────────────────────────────────────────────────────
   deploy-backend:
     name: Backend → Cloud Run prod
     runs-on: ubuntu-latest
-    needs: [ci-backend, ci-frontend]
+    needs: [e2e]
 
     steps:
       - uses: actions/checkout@v4
@@ -131,7 +208,7 @@ jobs:
   deploy-frontend:
     name: Frontend → Cloud Run prod
     runs-on: ubuntu-latest
-    needs: [ci-backend, ci-frontend]
+    needs: [e2e]
 
     steps:
       - uses: actions/checkout@v4
@@ -160,3 +237,98 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           image: ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/frontend:${{ github.sha }}
           flags: --port=80 --allow-unauthenticated
+
+  # ── Cleanup — revisiones Cloud Run e imágenes Artifact Registry ───────────
+  cleanup:
+    name: Cleanup — Cloud Run revisions + AR images
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Eliminar revisiones antiguas — backend
+        run: |
+          set -euo pipefail
+          REVISIONS=$(gcloud run revisions list \
+            --service=atreyu-backend \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --sort-by="~metadata.creationTimestamp" \
+            --format="value(metadata.name)")
+          OLD=$(echo "$REVISIONS" | tail -n +2)
+          if [ -n "$OLD" ]; then
+            echo "$OLD" | xargs -I{} gcloud run revisions delete {} \
+              --region=${{ env.GCP_REGION }} \
+              --project=${{ secrets.GCP_PROJECT_ID }} \
+              --quiet
+          else
+            echo "No hay revisiones antiguas de backend que eliminar"
+          fi
+
+      - name: Eliminar revisiones antiguas — frontend
+        run: |
+          set -euo pipefail
+          REVISIONS=$(gcloud run revisions list \
+            --service=atreyu-frontend \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --sort-by="~metadata.creationTimestamp" \
+            --format="value(metadata.name)")
+          OLD=$(echo "$REVISIONS" | tail -n +2)
+          if [ -n "$OLD" ]; then
+            echo "$OLD" | xargs -I{} gcloud run revisions delete {} \
+              --region=${{ env.GCP_REGION }} \
+              --project=${{ secrets.GCP_PROJECT_ID }} \
+              --quiet
+          else
+            echo "No hay revisiones antiguas de frontend que eliminar"
+          fi
+
+      - name: Eliminar imágenes antiguas de AR — backend
+        run: |
+          set -euo pipefail
+          IMAGES=$(gcloud artifacts docker images list \
+            "${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/backend" \
+            --include-tags \
+            --sort-by="~createTime" \
+            --format="json")
+          OLD=$(echo "$IMAGES" | jq -r '
+            ( [.[] | select(.tags != null and (any(.tags[]; startswith("qa-")) | not))] | .[1:][] | .version ),
+            ( .[] | select(.tags == null or (.tags | length == 0)) | .version )
+          ')
+          if [ -n "$OLD" ]; then
+            while IFS= read -r digest; do
+              gcloud artifacts docker images delete \
+                "${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/backend@$digest" \
+                --quiet --delete-tags
+            done <<< "$OLD"
+          else
+            echo "No hay imágenes antiguas de backend en AR que eliminar"
+          fi
+
+      - name: Eliminar imágenes antiguas de AR — frontend
+        run: |
+          set -euo pipefail
+          IMAGES=$(gcloud artifacts docker images list \
+            "${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/frontend" \
+            --include-tags \
+            --sort-by="~createTime" \
+            --format="json")
+          OLD=$(echo "$IMAGES" | jq -r '
+            ( [.[] | select(.tags != null and (any(.tags[]; startswith("qa-")) | not))] | .[1:][] | .version ),
+            ( .[] | select(.tags == null or (.tags | length == 0)) | .version )
+          ')
+          if [ -n "$OLD" ]; then
+            while IFS= read -r digest; do
+              gcloud artifacts docker images delete \
+                "${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_REPO }}/frontend@$digest" \
+                --quiet --delete-tags
+            done <<< "$OLD"
+          else
+            echo "No hay imágenes antiguas de frontend en AR que eliminar"
+          fi
