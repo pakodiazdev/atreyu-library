@@ -23,7 +23,8 @@ public class SeederLog {
     @Column(name = "executed_at", nullable = false)
     private OffsetDateTime executedAt;
 
-    protected SeederLog() { }
+    protected SeederLog() {
+    }
 
     private SeederLog(final String seederClass) {
         this.seederClass = seederClass;
@@ -34,7 +35,15 @@ public class SeederLog {
         return new SeederLog(seederClass);
     }
 
-    public Long getId() { return id; }
-    public String getSeederClass() { return seederClass; }
-    public OffsetDateTime getExecutedAt() { return executedAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getSeederClass() {
+        return seederClass;
+    }
+
+    public OffsetDateTime getExecutedAt() {
+        return executedAt;
+    }
 }

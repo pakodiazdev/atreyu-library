@@ -6,7 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 
 public abstract class OnceSeeder implements CommandLineRunner {
 
-    private static final Logger log = LoggerFactory.getLogger(OnceSeeder.class);
+    private static final Logger LOG = LoggerFactory.getLogger(OnceSeeder.class);
 
     private final SeederLogRepository seederLogRepository;
 
@@ -18,12 +18,12 @@ public abstract class OnceSeeder implements CommandLineRunner {
     public final void run(final String... args) {
         final String className = getClass().getName();
         if (seederLogRepository.existsBySeederClass(className)) {
-            log.info("Seeder {} already ran — skipping", getClass().getSimpleName());
+            LOG.info("Seeder {} already ran — skipping", getClass().getSimpleName());
             return;
         }
         seed();
         seederLogRepository.save(SeederLog.of(className));
-        log.info("Seeder {} completed", getClass().getSimpleName());
+        LOG.info("Seeder {} completed", getClass().getSimpleName());
     }
 
     protected abstract void seed();
