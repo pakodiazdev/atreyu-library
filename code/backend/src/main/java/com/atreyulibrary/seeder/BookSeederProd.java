@@ -2,40 +2,31 @@ package com.atreyulibrary.seeder;
 
 import com.atreyulibrary.book.Book;
 import com.atreyulibrary.book.BookRepository;
+import com.atreyulibrary.seeder.base.OnceSeeder;
+import com.atreyulibrary.seeder.base.SeederLogRepository;
 import java.util.List;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
-/**
- * Carga datos de muestra en la tabla de libros al iniciar en dev/qa.
- * Es idempotente: si los libros ya existen (constraint único en code), la excepción
- * se captura y se ignora sin interrumpir el arranque.
- */
 @Component
-@Profile({"dev", "qa", "e2e"})
+@Profile({"dev", "qa", "e2e", "prod"})
 @Order(2)
-public class BookSeeder implements CommandLineRunner {
+public class BookSeederProd extends OnceSeeder {
 
     private final BookRepository repository;
 
-    /** Inyección por constructor. */
-    public BookSeeder(final BookRepository repository) {
+    public BookSeederProd(final BookRepository repository, final SeederLogRepository seederLogRepository) {
+        super(seederLogRepository);
         this.repository = repository;
     }
 
     @Override
-    public void run(final String... args) {
-        try {
-            repository.saveAll(buildSampleBooks());
-        } catch (DataIntegrityViolationException ignored) {
-            // Los libros ya fueron insertados por una instancia anterior o concurrente
-        }
+    protected void seed() {
+        repository.saveAll(buildCatalog());
     }
 
-    private List<Book> buildSampleBooks() {
+    private List<Book> buildCatalog() {
         return List.of(
             book("A01", "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967,
                 "La saga de la familia Buendía a lo largo de siete generaciones en el mítico pueblo de Macondo. " +
