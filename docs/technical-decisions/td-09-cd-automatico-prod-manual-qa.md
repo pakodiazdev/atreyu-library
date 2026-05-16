@@ -4,25 +4,29 @@
 
 El pipeline de entrega continua opera con dos flujos diferenciados:
 
-- **Producción** (`cd.yml`): deploy automático en cada merge a `main`
+- **Producción** (`cd.yml`): CI completo (lint + tests + SonarCloud) seguido de deploy automático en cada merge a `main`
 - **QA** (`qa-deploy.yml`): deploy manual vía `workflow_dispatch`, seleccionando el branch a promover
 
 ## Justificación
 
 La asimetría es intencional y refleja el riesgo diferente de cada ambiente:
 
-**Producción automática** — main ya pasó CI completo (lint + tests + SonarCloud) y review de PR.
-Un merge a main representa código validado en múltiples capas; no hay razón para añadir un paso
-manual que solo introduce fricción sin agregar seguridad real.
+**Producción automática con CI gate** — `cd.yml` ejecuta lint, tests y SonarCloud sobre el código
+real de `main` antes de cada deploy. Si cualquier check falla, el deploy no ocurre. Esto garantiza
+que producción nunca recibe código que no pasó la suite completa de calidad, incluyendo el análisis
+de SonarCloud sobre la rama principal (no solo sobre el PR).
+
+El deploy es automático porque un merge a `main` ya viene validado por: CI en PR + review de PR + CI gate en CD.
+No hay razón para añadir un paso manual que solo introduce fricción sin agregar seguridad real.
 
 **QA manual** — QA es un ambiente de validación funcional donde se prueban branches antes de mergear.
 El deploy manual permite elegir exactamente qué branch se promueve a QA en cualquier momento, sin
 que un push accidental o un branch en progreso sobreescriba una validación en curso.
 
-| Ambiente | Trigger | Razón |
-|----------|---------|-------|
-| Producción | Push a `main` (automático) | Código ya validado por CI + PR review |
-| QA | `workflow_dispatch` (manual) | Control explícito de qué se valida y cuándo |
+| Ambiente | Trigger | CI gate | Razón |
+|----------|---------|---------|-------|
+| Producción | Push a `main` (automático) | ✅ lint + tests + SonarCloud | Código validado en PR y nuevamente en main |
+| QA | `workflow_dispatch` (manual) | ❌ solo build y deploy | Control explícito de qué se valida y cuándo |
 
 ## Alternativa descartada
 
