@@ -4,8 +4,8 @@ export function toSlug(text: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+/, '')
-    .replace(/-+$/, '');
+    .replace(/^-/, '')
+    .replace(/-$/, '');
 }
 
 export function toBookUrl(book: {
