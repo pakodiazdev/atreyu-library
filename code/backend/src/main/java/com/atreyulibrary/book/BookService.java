@@ -1,5 +1,6 @@
 package com.atreyulibrary.book;
 
+import com.atreyulibrary.book.dto.BookRequest;
 import com.atreyulibrary.book.dto.BookResponse;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -59,5 +60,25 @@ public class BookService {
             return null;
         }
         return value;
+    }
+
+    /**
+     * Actualiza los datos de un libro existente. El {@code code} es inmutable.
+     *
+     * @param ulid    identificador externo del libro
+     * @param request datos de actualización validados
+     * @return libro actualizado como {@link BookResponse}
+     * @throws BookNotFoundException si no existe un libro con ese ULID
+     */
+    @Transactional
+    public BookResponse update(final String ulid, final BookRequest request) {
+        final Book book = repository.findByUlid(ulid)
+                .orElseThrow(() -> new BookNotFoundException(ulid));
+        book.setTitle(request.title());
+        book.setAuthor(request.author());
+        book.setGenre(request.genre());
+        book.setPublicationYear(request.publicationYear());
+        book.setSynopsis(request.synopsis());
+        return BookResponse.from(repository.save(book));
     }
 }

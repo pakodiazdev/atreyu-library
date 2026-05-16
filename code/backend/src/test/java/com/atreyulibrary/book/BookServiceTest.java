@@ -3,9 +3,11 @@ package com.atreyulibrary.book;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.atreyulibrary.book.dto.BookRequest;
 import com.atreyulibrary.book.dto.BookResponse;
 import java.util.List;
 import java.util.Optional;
@@ -223,5 +225,67 @@ class BookServiceTest {
         final List<BookResponse> result = service.findAll("inexistente", null, null);
 
         assertEquals(0, result.size());
+    }
+
+    // ── update ───────────────────────────────────────────────────────────────
+
+    @Test
+    void updateReturnsUpdatedBook() {
+        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+        when(repository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        final BookRequest request = new BookRequest(
+                "El coronel no tiene quien le escriba", "García Márquez",
+                "Novela corta", 1961, null);
+        final BookResponse response = service.update("01HW5XMTSC9AZAZ5YR0DR7B7GK", request);
+
+        assertEquals("El coronel no tiene quien le escriba", response.title());
+        assertEquals("García Márquez", response.author());
+        assertEquals("Novela corta", response.genre());
+        assertEquals(1961, response.publicationYear());
+    }
+
+    @Test
+    void updatePreservesCode() {
+        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+        when(repository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        final BookRequest request = new BookRequest("Nuevo título", "Autor", null, null, null);
+        final BookResponse response = service.update("01HW5XMTSC9AZAZ5YR0DR7B7GK", request);
+
+        assertEquals("A01", response.code());
+    }
+
+    @Test
+    void updateThrowsWhenBookNotFound() {
+        when(repository.findByUlid("NONEXISTENT")).thenReturn(Optional.empty());
+
+        final BookRequest request = new BookRequest("Título", "Autor", null, null, null);
+
+        assertThrows(BookNotFoundException.class,
+                () -> service.update("NONEXISTENT", request));
+    }
+
+    @Test
+    void updateSavesBookToRepository() {
+        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+        when(repository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        final BookRequest request = new BookRequest("Título", "Autor", null, null, null);
+        service.update("01HW5XMTSC9AZAZ5YR0DR7B7GK", request);
+
+        verify(repository).save(sampleBook);
+    }
+
+    @Test
+    void updateSetsSynopsis() {
+        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+        when(repository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        final BookRequest request = new BookRequest(
+                "Título", "Autor", null, null, "Una sinopsis de prueba.");
+        final BookResponse response = service.update("01HW5XMTSC9AZAZ5YR0DR7B7GK", request);
+
+        assertEquals("Una sinopsis de prueba.", response.synopsis());
     }
 }
