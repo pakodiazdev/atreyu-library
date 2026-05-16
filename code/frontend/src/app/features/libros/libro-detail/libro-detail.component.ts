@@ -20,7 +20,7 @@ export class LibroDetailComponent implements OnInit {
     this.store.setCode(extractCodeFromSlug(bookSlug));
   }
 
-  protected genreVariant(genre: string | null): 'default' | 'gold' | 'moss' | 'rust' {
+  genreVariant(genre: string | null): 'default' | 'gold' | 'moss' | 'rust' {
     if (!genre) return 'default';
     const g = genre.toLowerCase();
     if (g.startsWith('fant')) return 'gold';
@@ -28,7 +28,7 @@ export class LibroDetailComponent implements OnInit {
     return 'default';
   }
 
-  protected formatDate(iso: string | undefined): string {
+  formatDate(iso: string | undefined): string {
     if (!iso) return '—';
     const d = new Date(iso);
     if (isNaN(d.getTime())) return '—';
