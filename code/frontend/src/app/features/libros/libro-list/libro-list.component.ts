@@ -1,5 +1,6 @@
-import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Location } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LibroListStore } from './libro-list.store';
 import {
   UiBtnDirective,
@@ -9,9 +10,11 @@ import {
   UiTableHeaderDirective,
   UiTableRowDirective,
   UiTableCellDirective,
+  UiDrawerComponent,
 } from '../../../shared/ui';
-import { toBookUrl } from '../../../shared/utils/book-url.util';
+import { toBookUrl, extractCodeFromSlug } from '../../../shared/utils/book-url.util';
 import { Book } from '../book.model';
+import { LibroDetailComponent } from '../libro-detail/libro-detail.component';
 
 @Component({
   standalone: true,
@@ -25,20 +28,38 @@ import { Book } from '../book.model';
     UiTableHeaderDirective,
     UiTableRowDirective,
     UiTableCellDirective,
+    UiDrawerComponent,
+    LibroDetailComponent,
   ],
   providers: [LibroListStore],
   templateUrl: './libro-list.component.html',
 })
-export class LibroListComponent {
+export class LibroListComponent implements OnInit {
   protected readonly store = inject(LibroListStore);
-  private readonly router = inject(Router);
+  private readonly location = inject(Location);
+  private readonly route = inject(ActivatedRoute);
 
-  protected bookUrl(book: Book): string[] {
-    return toBookUrl(book);
+  protected readonly drawerBookCode = signal<string | null>(null);
+  protected readonly isDrawerOpen = signal(false);
+
+  ngOnInit(): void {
+    const bookSlug = this.route.snapshot.paramMap.get('bookSlug') ?? '';
+    const code = extractCodeFromSlug(bookSlug);
+    if (code) {
+      this.drawerBookCode.set(code);
+      this.isDrawerOpen.set(true);
+    }
   }
 
   protected navigateTo(book: Book): void {
-    this.router.navigate(toBookUrl(book));
+    this.drawerBookCode.set(book.code);
+    this.isDrawerOpen.set(true);
+    this.location.replaceState(toBookUrl(book).join('/'));
+  }
+
+  protected closeDrawer(): void {
+    this.isDrawerOpen.set(false);
+    this.location.replaceState('/catalogo');
   }
 
   protected genreVariant(genre: string | null): 'default' | 'gold' | 'moss' | 'rust' {

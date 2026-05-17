@@ -1,0 +1,46 @@
+@if (isVisible()) {
+  <div
+    class="fixed inset-0 z-50 flex justify-end"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="title() ?? 'Detalle'"
+    data-cy="drawer"
+  >
+    <!-- Backdrop -->
+    <div
+      class="absolute inset-0 bg-tinta/40 transition-opacity"
+      [style.transition-duration.ms]="drawerTransitionMs"
+      [class.opacity-0]="!isAnimatingIn()"
+      [class.opacity-100]="isAnimatingIn()"
+      (click)="close()"
+      data-cy="drawer-backdrop"
+    ></div>
+
+    <!-- Panel: empieza fuera de pantalla, entra al activarse isAnimatingIn -->
+    <div
+      [class]="panelClass()"
+      [style.transition-duration.ms]="drawerTransitionMs"
+      data-cy="drawer-panel"
+    >
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-tinta/15 shrink-0">
+        @if (title()) {
+          <h2 class="font-editorial text-xl text-tinta truncate">{{ title() }}</h2>
+        } @else {
+          <span></span>
+        }
+        <button
+          class="ml-4 font-ui text-lg text-tinta-suave hover:text-tinta transition-colors p-1 leading-none"
+          (click)="close()"
+          aria-label="Cerrar"
+          data-cy="drawer-close-btn"
+        >✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="flex-1 overflow-y-auto px-6 py-4" data-cy="drawer-body">
+        <ng-content />
+      </div>
+    </div>
+  </div>
+}

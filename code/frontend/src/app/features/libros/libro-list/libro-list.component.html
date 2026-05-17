@@ -113,10 +113,10 @@
         @for (book of store.books(); track book.ulid) {
           <tr
             uiTableRow
-            [routerLink]="bookUrl(book)"
             class="cursor-pointer"
             role="link"
             tabindex="0"
+            (click)="navigateTo(book)"
             (keydown.enter)="navigateTo(book)"
             (keydown.space)="$event.preventDefault(); navigateTo(book)"
             data-cy="book-row"
@@ -149,3 +149,14 @@
   }
 
 </div>
+
+<!-- Drawer de detalle -->
+<ui-drawer
+  [isOpen]="isDrawerOpen()"
+  (closed)="closeDrawer()"
+  data-cy="book-detail-drawer"
+>
+  @if (drawerBookCode()) {
+    <app-libro-detail [bookCode]="drawerBookCode()!" />
+  }
+</ui-drawer>

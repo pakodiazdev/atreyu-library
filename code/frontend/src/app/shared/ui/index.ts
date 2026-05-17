@@ -8,3 +8,4 @@ export {
   UiTableCellDirective,
 } from './ui-table/ui-table.directives';
 export { cn } from './ui.utils';
+export { UiDrawerComponent } from './ui-drawer/ui-drawer.component';

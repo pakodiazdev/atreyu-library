@@ -93,7 +93,8 @@ describe('LibroDetailComponent', () => {
     });
 
     it('formats a valid ISO date to Spanish locale', () => {
-      const result = component.formatDate('2026-01-15T00:00:00Z');
+      // mediodía UTC — el mismo día en cualquier huso horario (UTC-12 a UTC+12)
+      const result = component.formatDate('2026-01-15T12:00:00Z');
       expect(result).toMatch(/15/);
       expect(result).toMatch(/2026/);
     });
@@ -115,6 +116,73 @@ describe('LibroDetailComponent', () => {
 
     it('calls store.setCode with empty string when route param is null', () => {
       configureAndCreate(null);
+      expect(store.setCode).toHaveBeenCalledWith('');
+    });
+  });
+
+  // ── @Input bookCode ────────────────────────────────────────────────────────
+
+  describe('@Input bookCode', () => {
+    it('llama a store.setCode con el valor del input cuando se provee', () => {
+      store = makeStore();
+      mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } };
+
+      TestBed.configureTestingModule({
+        imports: [LibroDetailComponent],
+        providers: [
+          { provide: LibroDetailStore, useValue: store },
+          { provide: ActivatedRoute,   useValue: mockRoute },
+          { provide: Router,           useValue: { navigate: vi.fn() } },
+        ],
+      }).overrideComponent(LibroDetailComponent, { set: { providers: [] } });
+
+      const fixture = TestBed.createComponent(LibroDetailComponent);
+      fixture.componentRef.setInput('bookCode', 'B03');
+      fixture.detectChanges();
+
+      expect(store.setCode).toHaveBeenCalledWith('B03');
+    });
+
+    it('no llama a store.setCode desde ngOnInit cuando bookCode input está presente', () => {
+      store = makeStore();
+      mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue('A01-slug') } } };
+
+      TestBed.configureTestingModule({
+        imports: [LibroDetailComponent],
+        providers: [
+          { provide: LibroDetailStore, useValue: store },
+          { provide: ActivatedRoute,   useValue: mockRoute },
+          { provide: Router,           useValue: { navigate: vi.fn() } },
+        ],
+      }).overrideComponent(LibroDetailComponent, { set: { providers: [] } });
+
+      const fixture = TestBed.createComponent(LibroDetailComponent);
+      fixture.componentRef.setInput('bookCode', 'B03');
+      fixture.detectChanges();
+
+      // Solo se debe llamar con 'B03' (del input), no con 'A01' (de la ruta)
+      expect(store.setCode).toHaveBeenCalledTimes(1);
+      expect(store.setCode).toHaveBeenCalledWith('B03');
+    });
+
+    it('ignora bookCode null o undefined y no cambia el estado', () => {
+      store = makeStore();
+      mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } };
+
+      TestBed.configureTestingModule({
+        imports: [LibroDetailComponent],
+        providers: [
+          { provide: LibroDetailStore, useValue: store },
+          { provide: ActivatedRoute,   useValue: mockRoute },
+          { provide: Router,           useValue: { navigate: vi.fn() } },
+        ],
+      }).overrideComponent(LibroDetailComponent, { set: { providers: [] } });
+
+      const fixture = TestBed.createComponent(LibroDetailComponent);
+      fixture.componentRef.setInput('bookCode', null);
+      fixture.detectChanges();
+
+      // Con null, ngOnInit sí corre y llama con '' (no hay ruta válida)
       expect(store.setCode).toHaveBeenCalledWith('');
     });
   });

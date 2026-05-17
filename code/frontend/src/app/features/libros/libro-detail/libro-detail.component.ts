@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, Input, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { LibroDetailStore } from './libro-detail.store';
 import { UiBtnDirective, UiBadgeComponent } from '../../../shared/ui';
@@ -15,7 +15,17 @@ export class LibroDetailComponent implements OnInit {
   protected readonly store = inject(LibroDetailStore);
   private  readonly route  = inject(ActivatedRoute);
 
+  private bookCodeFromInput = false;
+
+  @Input() set bookCode(value: string | null | undefined) {
+    if (value) {
+      this.bookCodeFromInput = true;
+      this.store.setCode(value);
+    }
+  }
+
   ngOnInit(): void {
+    if (this.bookCodeFromInput) return;
     const bookSlug = this.route.snapshot.paramMap.get('bookSlug') ?? '';
     this.store.setCode(extractCodeFromSlug(bookSlug));
   }

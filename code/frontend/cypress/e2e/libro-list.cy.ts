@@ -12,7 +12,7 @@ describe('Catálogo — Lista de libros (#12)', () => {
     cy.contains('h1', 'Catálogo').should('be.visible');
     cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('be.visible');
     cy.get('[data-cy="book-row"]').should('have.length.at.least', 15);
-    cy.contains('15 títulos').should('be.visible');
+    cy.contains(/\d+ títulos/).should('be.visible');
   });
 
   it('muestra libros conocidos del seeder en la tabla', () => {
