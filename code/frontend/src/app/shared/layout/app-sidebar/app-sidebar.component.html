@@ -1,4 +1,14 @@
-<aside class="hidden md:flex flex-col h-full w-[200px] bg-tinte border-r border-tinta shrink-0">
+<aside
+  data-cy="sidebar-drawer"
+  class="flex flex-col h-full w-[200px] bg-tinte border-r border-tinta shrink-0
+         fixed inset-y-0 left-0 z-30 transition-transform duration-300 ease-in-out
+         md:static md:translate-x-0 md:z-auto"
+  [class.translate-x-0]="isOpen()"
+  [class.-translate-x-full]="!isOpen()"
+  [attr.role]="isOpen() ? 'dialog' : null"
+  [attr.aria-modal]="isOpen() ? 'true' : null"
+  [attr.aria-label]="isOpen() ? 'Menú de navegación' : null"
+>
 
   <!-- Marca -->
   <div class="px-4 pt-5 pb-[18px]">
@@ -14,6 +24,7 @@
       <a
         [routerLink]="item.path"
         routerLinkActive="!bg-tinta !text-papel-claro"
+        (click)="closed.emit()"
         class="flex items-center gap-2 px-[10px] py-[7px] rounded-md font-ui text-[15px] text-tinta-suave
                hover:bg-tinta/10 transition-colors duration-150"
       >

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 interface NavItem {
@@ -15,6 +15,9 @@ interface NavItem {
   styleUrl: './app-sidebar.component.scss',
 })
 export class AppSidebarComponent {
+  readonly isOpen = input<boolean>(false);
+  readonly closed = output<void>();
+
   readonly navItems: NavItem[] = [
     { label: 'Inicio',       path: '/inicio',        icon: '⌂' },
     { label: 'Catálogo',     path: '/catalogo',      icon: '◫' },

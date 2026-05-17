@@ -1,3 +1,9 @@
 <header class="flex items-center h-14 px-4 bg-papel border-b border-tinta/20 shrink-0 md:hidden">
+  <button
+    (click)="burgerToggle.emit()"
+    class="mr-3 p-1 rounded text-tinta hover:bg-tinta/10 transition-colors duration-150"
+    aria-label="Abrir menú de navegación"
+    data-cy="burger-menu"
+  >☰</button>
   <span class="font-editorial text-lg text-tinta">{{ title() }}</span>
 </header>
