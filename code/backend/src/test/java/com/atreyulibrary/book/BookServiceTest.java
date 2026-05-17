@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -291,6 +292,38 @@ class BookServiceTest {
         final BookResponse response = service.update("01HW5XMTSC9AZAZ5YR0DR7B7GK", request);
 
         assertEquals("Una sinopsis de prueba.", response.synopsis());
+    }
+
+    // ── deleteByUlid ─────────────────────────────────────────────────────────
+
+    @Test
+    void deleteByUlidRemovesBook() {
+        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+
+        service.deleteByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
+
+        verify(repository).delete(sampleBook);
+    }
+
+    @Test
+    void deleteByUlidThrowsWhenBookNotFound() {
+        when(repository.findByUlid("NONEXISTENT")).thenReturn(Optional.empty());
+
+        assertThrows(BookNotFoundException.class,
+                () -> service.deleteByUlid("NONEXISTENT"));
+    }
+
+    @Test
+    void deleteByUlidDoesNotCallDeleteWhenBookNotFound() {
+        when(repository.findByUlid("NONEXISTENT")).thenReturn(Optional.empty());
+
+        try {
+            service.deleteByUlid("NONEXISTENT");
+        } catch (final BookNotFoundException ignored) {
+            // excepción esperada
+        }
+
+        verify(repository, never()).delete(any());
     }
 
     // ── create ───────────────────────────────────────────────────────────────
