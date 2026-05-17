@@ -12,10 +12,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class BookService {
 
     private final BookRepository repository;
+    private final BookCodeGenerator codeGenerator;
 
     /** Inyección por constructor. */
-    public BookService(final BookRepository repository) {
+    public BookService(
+            final BookRepository repository,
+            final BookCodeGenerator codeGenerator
+    ) {
         this.repository = repository;
+        this.codeGenerator = codeGenerator;
     }
 
     /**
@@ -53,6 +58,26 @@ public class BookService {
                 .stream()
                 .map(BookResponse::from)
                 .toList();
+    }
+
+    /**
+     * Crea un nuevo libro a partir del request, generando su código de negocio y ULID.
+     *
+     * @param request datos del nuevo libro
+     * @return libro creado como {@link BookResponse}
+     */
+    @Transactional
+    public BookResponse create(final BookRequest request) {
+        final String code = codeGenerator.generate(repository);
+        final Book book = Book.builder()
+                .code(code)
+                .title(request.title())
+                .author(request.author())
+                .genre(request.genre())
+                .publicationYear(request.publicationYear())
+                .synopsis(request.synopsis())
+                .build();
+        return BookResponse.from(repository.save(book));
     }
 
     private String blankToNull(final String value) {

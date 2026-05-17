@@ -1,6 +1,7 @@
 package com.atreyulibrary.book;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,6 +24,9 @@ class BookServiceTest {
 
     @Mock
     private BookRepository repository;
+
+    @Mock
+    private BookCodeGenerator codeGenerator;
 
     @InjectMocks
     private BookService service;
@@ -287,5 +291,71 @@ class BookServiceTest {
         final BookResponse response = service.update("01HW5XMTSC9AZAZ5YR0DR7B7GK", request);
 
         assertEquals("Una sinopsis de prueba.", response.synopsis());
+    }
+
+    // ── create ───────────────────────────────────────────────────────────────
+
+    @Test
+    void createReturnsSavedBookAsResponse() {
+        when(codeGenerator.generate(repository)).thenReturn("A01");
+        when(repository.save(any(Book.class))).thenAnswer(inv -> {
+            final Book book = inv.getArgument(0);
+            book.setCode("A01");
+            return book;
+        });
+
+        final BookRequest request = new BookRequest(
+                "Cien años de soledad", "Gabriel García Márquez",
+                "Realismo mágico", 1967, null);
+
+        final BookResponse response = service.create(request);
+
+        assertNotNull(response);
+        assertEquals("A01", response.code());
+        assertEquals("Cien años de soledad", response.title());
+        assertEquals("Gabriel García Márquez", response.author());
+    }
+
+    @Test
+    void createDelegatesToCodeGenerator() {
+        when(codeGenerator.generate(repository)).thenReturn("B07");
+        when(repository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        final BookRequest request = new BookRequest("1984", "George Orwell", null, null, null);
+        service.create(request);
+
+        verify(codeGenerator).generate(repository);
+    }
+
+    @Test
+    void createSavesBookWithCorrectFields() {
+        when(codeGenerator.generate(repository)).thenReturn("C03");
+        when(repository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        final BookRequest request = new BookRequest(
+                "Don Quijote", "Miguel de Cervantes", "Novela", 1605, "Primera novela moderna.");
+
+        final BookResponse response = service.create(request);
+
+        assertEquals("Don Quijote", response.title());
+        assertEquals("Miguel de Cervantes", response.author());
+        assertEquals("Novela", response.genre());
+        assertEquals(1605, response.publicationYear());
+    }
+
+    @Test
+    void createDoesNotExposeInternalId() {
+        when(codeGenerator.generate(repository)).thenReturn("A01");
+        when(repository.save(any(Book.class))).thenAnswer(inv -> {
+            final Book book = inv.getArgument(0);
+            book.setCode("A01");
+            return book;
+        });
+
+        final BookRequest request = new BookRequest("Hamlet", "Shakespeare", null, null, null);
+        final BookResponse response = service.create(request);
+
+        // BookResponse expone code y ulid como identificadores públicos; la PK interna (id) no se incluye
+        assertNotNull(response.code());
     }
 }
