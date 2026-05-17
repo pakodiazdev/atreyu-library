@@ -137,6 +137,24 @@
           </dl>
         }
 
+        <!-- Acciones -->
+        <div class="mt-6 flex justify-end gap-2">
+          <button uiBtn variant="secondary" size="icon"
+            title="Editar libro"
+            aria-label="Editar libro"
+            data-cy="book-edit-btn"
+            (click)="onEditClicked()">
+            ✎
+          </button>
+          <button uiBtn variant="destructive" size="icon"
+            title="Eliminar libro"
+            aria-label="Eliminar libro"
+            data-cy="book-delete-btn"
+            (click)="onDeleteClicked()">
+            ✕
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
