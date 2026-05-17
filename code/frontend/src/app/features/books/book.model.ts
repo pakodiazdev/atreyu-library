@@ -18,3 +18,11 @@ export interface BookFilters {
   author?: string;
   genre?: string;
 }
+
+export interface BookCreatePayload {
+  title: string;
+  author: string;
+  genre: string | null;
+  publicationYear: number | null;
+  synopsis: string | null;
+}

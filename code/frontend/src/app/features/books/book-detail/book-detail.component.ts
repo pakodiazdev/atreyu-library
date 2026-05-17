@@ -1,18 +1,18 @@
 import { Component, Input, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { LibroDetailStore } from './libro-detail.store';
+import { BookDetailStore } from './book-detail.store';
 import { UiBtnDirective, UiBadgeComponent } from '../../../shared/ui';
 import { extractCodeFromSlug } from '../../../shared/utils/book-url.util';
 
 @Component({
   standalone: true,
-  selector: 'app-libro-detail',
+  selector: 'app-book-detail',
   imports: [UiBtnDirective, UiBadgeComponent],
-  providers: [LibroDetailStore],
-  templateUrl: './libro-detail.component.html',
+  providers: [BookDetailStore],
+  templateUrl: './book-detail.component.html',
 })
-export class LibroDetailComponent implements OnInit {
-  protected readonly store = inject(LibroDetailStore);
+export class BookDetailComponent implements OnInit {
+  protected readonly store = inject(BookDetailStore);
   private  readonly route  = inject(ActivatedRoute);
 
   private bookCodeFromInput = false;

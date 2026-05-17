@@ -10,7 +10,7 @@
       }
     </p>
   </div>
-  <a uiBtn variant="primary" routerLink="/libros/nuevo">+ Añadir libro</a>
+  <button uiBtn variant="primary" (click)="drawer.openForm()">+ Añadir libro</button>
 </div>
 
 <!-- Filtros -->
@@ -116,9 +116,9 @@
             class="cursor-pointer"
             role="link"
             tabindex="0"
-            (click)="navigateTo(book)"
-            (keydown.enter)="navigateTo(book)"
-            (keydown.space)="$event.preventDefault(); navigateTo(book)"
+            (click)="openDetail(book)"
+            (keydown.enter)="openDetail(book)"
+            (keydown.space)="$event.preventDefault(); openDetail(book)"
             data-cy="book-row"
           >
             <td uiTableCell>
@@ -149,14 +149,3 @@
   }
 
 </div>
-
-<!-- Drawer de detalle -->
-<ui-drawer
-  [isOpen]="isDrawerOpen()"
-  (closed)="closeDrawer()"
-  data-cy="book-detail-drawer"
->
-  @if (drawerBookCode()) {
-    <app-libro-detail [bookCode]="drawerBookCode()!" />
-  }
-</ui-drawer>

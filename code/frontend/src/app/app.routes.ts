@@ -14,29 +14,26 @@ export const routes: Routes = [
   {
     path: 'catalogo',
     loadComponent: () =>
-      import('./features/libros/libro-list/libro-list.component').then(
-        (m) => m.LibroListComponent
+      import('./features/books/book-list/book-list.component').then(
+        (m) => m.BookListComponent
       ),
   },
   {
     path: 'libros/nuevo',
-    loadComponent: () =>
-      import('./features/libros/libro-form/libro-form.component').then(
-        (m) => m.LibroFormComponent
-      ),
+    redirectTo: '/catalogo',
   },
   {
     path: 'libros/:authorSlug/:bookSlug/editar',
     loadComponent: () =>
-      import('./features/libros/libro-form/libro-form.component').then(
-        (m) => m.LibroFormComponent
+      import('./features/books/book-form/book-form.component').then(
+        (m) => m.BookFormComponent
       ),
   },
   {
     path: 'libros/:authorSlug/:bookSlug',
     loadComponent: () =>
-      import('./features/libros/libro-list/libro-list.component').then(
-        (m) => m.LibroListComponent
+      import('./features/books/book-list/book-list.component').then(
+        (m) => m.BookListComponent
       ),
   },
   {

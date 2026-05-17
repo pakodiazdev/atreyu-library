@@ -119,7 +119,7 @@ jobs:
           MAX=60
           i=0
           # Espera al backend (books con datos reales) y al frontend (ng serve en 4200).
-          # El frontend usa apiUrl directo al backend (sin proxy), así que basta con
+          # El frontend usa apiUrl directo al backend (sin proxy en E2E), así que basta con
           # verificar ambos puertos por separado.
           until curl -sf http://localhost:$BPORT/api/v1/books | grep -q '\['; do
             i=$((i+1))

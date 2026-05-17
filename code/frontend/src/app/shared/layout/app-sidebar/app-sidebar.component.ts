@@ -1,5 +1,6 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { DrawerService } from '../../ui/drawer.service';
 
 interface NavItem {
   label: string;
@@ -15,14 +16,20 @@ interface NavItem {
   styleUrl: './app-sidebar.component.scss',
 })
 export class AppSidebarComponent {
+  private readonly drawer = inject(DrawerService);
+
   readonly isOpen = input<boolean>(false);
   readonly closed = output<void>();
 
   readonly navItems: NavItem[] = [
-    { label: 'Inicio',       path: '/inicio',        icon: '⌂' },
-    { label: 'Catálogo',     path: '/catalogo',      icon: '◫' },
-    { label: 'Buscar',       path: '/buscar',        icon: '◎' },
-    { label: 'Añadir libro', path: '/libros/nuevo',  icon: '+' },
-    { label: 'Géneros',      path: '/generos',       icon: '⊞' },
+    { label: 'Inicio',   path: '/inicio',   icon: '⌂' },
+    { label: 'Catálogo', path: '/catalogo', icon: '◫' },
+    { label: 'Buscar',   path: '/buscar',   icon: '◎' },
+    { label: 'Géneros',  path: '/generos',  icon: '⊞' },
   ];
+
+  openNewBook(): void {
+    this.drawer.openForm();
+    this.closed.emit();
+  }
 }
