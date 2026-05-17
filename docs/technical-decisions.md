@@ -28,3 +28,4 @@
 | [TD-17](technical-decisions/td-17-bigserial-pk-ulid-identificador-externo.md) | BIGSERIAL como PK interna + ULID como identificador externo de la API | Base de datos |
 | [TD-18](technical-decisions/td-18-single-action-controller.md) | Single Action Controller como patrón para los endpoints REST | Backend |
 | [TD-19](technical-decisions/td-19-rebase-and-merge-como-estrategia-de-merge.md) | Rebase and merge como estrategia de merge en PRs | Git |
+| [TD-20](technical-decisions/td-20-sentry-monitoreo-de-errores.md) | Sentry como plataforma de monitoreo de errores | Observabilidad |
