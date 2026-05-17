@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { vi } from 'vitest';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { BookFormComponent } from './book-form.component';
 import { BookFormStore } from './book-form.store';
-import { BookCreatePayload } from '../book.model';
+import { BookCreatePayload, BookDetail } from '../book.model';
 
 type FormInternals = {
   fieldError(f: string): string | null;
@@ -17,11 +17,15 @@ function expose(c: BookFormComponent): FormInternals {
 
 function makeStore() {
   return {
-    isSubmitting: signal(false),
-    fieldErrors:  signal<Record<string, string>>({}),
-    submitError:  signal<string | null>(null),
-    submit: vi.fn(),
-    cancel: vi.fn(),
+    isSubmitting:  signal(false),
+    fieldErrors:   signal<Record<string, string>>({}),
+    submitError:   signal<string | null>(null),
+    isEditMode:    signal(false),
+    editedBook:    signal<BookDetail | null>(null),
+    isLoadingBook: signal(false),
+    submit:        vi.fn(),
+    cancel:        vi.fn(),
+    setBookCode:   vi.fn(),
   } as unknown as BookFormStore;
 }
 
@@ -29,20 +33,21 @@ describe('BookFormComponent', () => {
   let component: BookFormComponent;
   let store: ReturnType<typeof makeStore>;
 
-  function configure(bookSlug: string | null = null) {
+  function configure(bookCode: string | null = null) {
     store = makeStore();
-    const mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(bookSlug) } } };
 
     TestBed.configureTestingModule({
       imports: [BookFormComponent],
       providers: [
         provideRouter([]),
-        { provide: BookFormStore,  useValue: store },
-        { provide: ActivatedRoute,  useValue: mockRoute },
+        { provide: BookFormStore, useValue: store },
       ],
     }).overrideComponent(BookFormComponent, { set: { providers: [] } });
 
     const fixture = TestBed.createComponent(BookFormComponent);
+    if (bookCode) {
+      fixture.componentRef.setInput('bookCode', bookCode);
+    }
     fixture.detectChanges();
     component = fixture.componentInstance;
     return fixture;
@@ -202,13 +207,32 @@ describe('BookFormComponent', () => {
       });
     });
 
-    it('no llama a store.submit en modo edición (guard contra POST accidental)', () => {
-      configure('A01-titulo-2024');
+    it('calls store.submit in edit mode — el store decide create vs update', () => {
+      configure('A01');
+      expect(store.setBookCode).toHaveBeenCalledWith('A01');
+
       component.form.setValue({
         title: 'Título', author: 'Autor', genre: '', publicationYear: null, synopsis: '',
       });
       expose(component).submit();
-      expect(store.submit).not.toHaveBeenCalled();
+
+      expect(store.submit).toHaveBeenCalledWith({
+        title: 'Título', author: 'Autor', genre: null, publicationYear: null, synopsis: null,
+      });
+    });
+  });
+
+  // ── @Input bookCode ────────────────────────────────────────────────────────
+
+  describe('@Input bookCode', () => {
+    it('calls store.setBookCode with the provided value', () => {
+      configure('B03');
+      expect(store.setBookCode).toHaveBeenCalledWith('B03');
+    });
+
+    it('does not call store.setBookCode when no bookCode input is provided', () => {
+      configure(null);
+      expect(store.setBookCode).not.toHaveBeenCalled();
     });
   });
 });

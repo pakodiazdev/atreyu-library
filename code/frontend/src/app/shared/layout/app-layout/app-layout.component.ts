@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
@@ -26,6 +26,13 @@ export class AppLayoutComponent implements OnInit {
   protected readonly drawer  = inject(DrawerService);
   private  readonly router   = inject(Router);
   readonly sidebarOpen = signal(false);
+
+  protected readonly drawerTitle = computed(() => {
+    const mode = this.drawer.mode();
+    if (mode === 'form') return 'Nuevo libro';
+    if (mode === 'edit') return 'Editar libro';
+    return undefined;
+  });
 
   constructor() {
     effect(() => {
@@ -59,9 +66,10 @@ export class AppLayoutComponent implements OnInit {
   }
 
   closeDrawer(): void {
-    if (this.drawer.mode() === 'detail') {
+    const mode = this.drawer.mode();
+    if (mode === 'detail' || mode === 'edit') {
       this.router.navigate(['/catalogo'], { replaceUrl: true });
-    } else if (this.drawer.mode() === 'form') {
+    } else if (mode === 'form') {
       this.router.navigate([], {
         queryParams: { 'nuevo-libro': null },
         queryParamsHandling: 'merge',

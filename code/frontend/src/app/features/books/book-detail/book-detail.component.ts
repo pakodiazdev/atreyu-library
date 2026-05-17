@@ -1,8 +1,10 @@
-import { Component, Input, inject, OnInit } from '@angular/core';
+import { Component, Input, effect, inject, untracked, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BookDetailStore } from './book-detail.store';
+import { DrawerService } from '../../../shared/ui/drawer.service';
 import { UiBtnDirective, UiBadgeComponent } from '../../../shared/ui';
 import { extractCodeFromSlug } from '../../../shared/utils/book-url.util';
+import { BookDetail } from '../book.model';
 
 @Component({
   standalone: true,
@@ -12,10 +14,13 @@ import { extractCodeFromSlug } from '../../../shared/utils/book-url.util';
   templateUrl: './book-detail.component.html',
 })
 export class BookDetailComponent implements OnInit {
-  protected readonly store = inject(BookDetailStore);
-  private  readonly route  = inject(ActivatedRoute);
+  protected readonly store  = inject(BookDetailStore);
+  private  readonly route   = inject(ActivatedRoute);
+  private  readonly drawer  = inject(DrawerService);
 
   private bookCodeFromInput = false;
+
+  private readonly mountUpdateCount = this.drawer.updateCount();
 
   @Input() set bookCode(value: string | null | undefined) {
     if (value) {
@@ -24,10 +29,23 @@ export class BookDetailComponent implements OnInit {
     }
   }
 
+  constructor() {
+    effect(() => {
+      const current = this.drawer.updateCount();
+      if (current > this.mountUpdateCount) {
+        untracked(() => this.store.reload());
+      }
+    });
+  }
+
   ngOnInit(): void {
     if (this.bookCodeFromInput) return;
     const bookSlug = this.route.snapshot.paramMap.get('bookSlug') ?? '';
     this.store.setCode(extractCodeFromSlug(bookSlug));
+  }
+
+  openEdit(book: BookDetail): void {
+    this.drawer.openEdit(book.code);
   }
 
   genreVariant(genre: string | null): 'default' | 'gold' | 'moss' | 'rust' {

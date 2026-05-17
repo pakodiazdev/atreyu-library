@@ -4,6 +4,17 @@ import { signal } from '@angular/core';
 import { vi } from 'vitest';
 import { BookDetailComponent } from './book-detail.component';
 import { BookDetailStore } from './book-detail.store';
+import { DrawerService } from '../../../shared/ui/drawer.service';
+import { BookDetail } from '../book.model';
+
+const MOCK_BOOK: BookDetail = {
+  code: 'A01',
+  ulid: '01JTEST00000000000000001',
+  title: 'El Nombre del Viento',
+  author: 'Patrick Rothfuss',
+  genre: 'Fantasía',
+  publicationYear: 2007,
+};
 
 function makeStore(): BookDetailStore {
   return {
@@ -14,16 +25,19 @@ function makeStore(): BookDetailStore {
     notFound:  signal(false),
     setCode:   vi.fn(),
     goBack:    vi.fn(),
+    reload:    vi.fn(),
   } as unknown as BookDetailStore;
 }
 
 describe('BookDetailComponent', () => {
   let store: BookDetailStore;
+  let mockDrawer: { openEdit: ReturnType<typeof vi.fn>; updateCount: ReturnType<typeof signal<number>> };
   let mockRoute: { snapshot: { paramMap: { get: ReturnType<typeof vi.fn> } } };
 
   function configureAndCreate(bookSlug: string | null): BookDetailComponent {
-    store = makeStore();
-    mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(bookSlug) } } };
+    store      = makeStore();
+    mockDrawer = { openEdit: vi.fn(), updateCount: signal(0) };
+    mockRoute  = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(bookSlug) } } };
 
     TestBed.configureTestingModule({
       imports: [BookDetailComponent],
@@ -31,6 +45,7 @@ describe('BookDetailComponent', () => {
         { provide: BookDetailStore, useValue: store },
         { provide: ActivatedRoute,   useValue: mockRoute },
         { provide: Router,           useValue: { navigate: vi.fn() } },
+        { provide: DrawerService,    useValue: mockDrawer },
       ],
     }).overrideComponent(BookDetailComponent, { set: { providers: [] } });
 
@@ -93,7 +108,6 @@ describe('BookDetailComponent', () => {
     });
 
     it('formats a valid ISO date to Spanish locale', () => {
-      // mediodía UTC — el mismo día en cualquier huso horario (UTC-12 a UTC+12)
       const result = component.formatDate('2026-01-15T12:00:00Z');
       expect(result).toMatch(/15/);
       expect(result).toMatch(/2026/);
@@ -124,8 +138,9 @@ describe('BookDetailComponent', () => {
 
   describe('@Input bookCode', () => {
     it('llama a store.setCode con el valor del input cuando se provee', () => {
-      store = makeStore();
-      mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } };
+      store      = makeStore();
+      mockDrawer = { openEdit: vi.fn(), updateCount: signal(0) };
+      mockRoute  = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } };
 
       TestBed.configureTestingModule({
         imports: [BookDetailComponent],
@@ -133,6 +148,7 @@ describe('BookDetailComponent', () => {
           { provide: BookDetailStore, useValue: store },
           { provide: ActivatedRoute,   useValue: mockRoute },
           { provide: Router,           useValue: { navigate: vi.fn() } },
+          { provide: DrawerService,    useValue: mockDrawer },
         ],
       }).overrideComponent(BookDetailComponent, { set: { providers: [] } });
 
@@ -144,8 +160,9 @@ describe('BookDetailComponent', () => {
     });
 
     it('no llama a store.setCode desde ngOnInit cuando bookCode input está presente', () => {
-      store = makeStore();
-      mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue('A01-slug') } } };
+      store      = makeStore();
+      mockDrawer = { openEdit: vi.fn(), updateCount: signal(0) };
+      mockRoute  = { snapshot: { paramMap: { get: vi.fn().mockReturnValue('A01-slug') } } };
 
       TestBed.configureTestingModule({
         imports: [BookDetailComponent],
@@ -153,6 +170,7 @@ describe('BookDetailComponent', () => {
           { provide: BookDetailStore, useValue: store },
           { provide: ActivatedRoute,   useValue: mockRoute },
           { provide: Router,           useValue: { navigate: vi.fn() } },
+          { provide: DrawerService,    useValue: mockDrawer },
         ],
       }).overrideComponent(BookDetailComponent, { set: { providers: [] } });
 
@@ -160,14 +178,14 @@ describe('BookDetailComponent', () => {
       fixture.componentRef.setInput('bookCode', 'B03');
       fixture.detectChanges();
 
-      // Solo se debe llamar con 'B03' (del input), no con 'A01' (de la ruta)
       expect(store.setCode).toHaveBeenCalledTimes(1);
       expect(store.setCode).toHaveBeenCalledWith('B03');
     });
 
     it('ignora bookCode null o undefined y no cambia el estado', () => {
-      store = makeStore();
-      mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } };
+      store      = makeStore();
+      mockDrawer = { openEdit: vi.fn(), updateCount: signal(0) };
+      mockRoute  = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } };
 
       TestBed.configureTestingModule({
         imports: [BookDetailComponent],
@@ -175,6 +193,7 @@ describe('BookDetailComponent', () => {
           { provide: BookDetailStore, useValue: store },
           { provide: ActivatedRoute,   useValue: mockRoute },
           { provide: Router,           useValue: { navigate: vi.fn() } },
+          { provide: DrawerService,    useValue: mockDrawer },
         ],
       }).overrideComponent(BookDetailComponent, { set: { providers: [] } });
 
@@ -182,8 +201,17 @@ describe('BookDetailComponent', () => {
       fixture.componentRef.setInput('bookCode', null);
       fixture.detectChanges();
 
-      // Con null, ngOnInit sí corre y llama con '' (no hay ruta válida)
       expect(store.setCode).toHaveBeenCalledWith('');
+    });
+  });
+
+  // ── openEdit() ─────────────────────────────────────────────────────────────
+
+  describe('openEdit()', () => {
+    it('llama a drawer.openEdit con el código del libro', () => {
+      const component = configureAndCreate('');
+      component.openEdit(MOCK_BOOK);
+      expect(mockDrawer.openEdit).toHaveBeenCalledWith('A01');
     });
   });
 });

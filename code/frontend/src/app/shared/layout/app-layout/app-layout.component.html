@@ -32,13 +32,41 @@
 <!-- Drawer global — disponible en cualquier ruta -->
 <ui-drawer
   [isOpen]="drawer.isOpen()"
-  [title]="drawer.mode() === 'form' ? 'Nuevo libro' : undefined"
+  [title]="drawerTitle()"
   (closed)="closeDrawer()"
   data-cy="global-drawer"
 >
-  @if (drawer.mode() === 'detail') {
-    <app-book-detail [bookCode]="drawer.bookCode()!" />
-  } @else if (drawer.mode() === 'form') {
-    <app-book-form />
-  }
+  <!--
+    Contenedor de paneles deslizantes. Ocupa toda el área del body del drawer
+    (h-full dentro del flex-1 del panel). Cada panel es absoluto y se desplaza
+    con translate-x según el modo activo, produciendo la transición detail ↔ form.
+  -->
+  <div class="relative h-full overflow-hidden">
+
+    <!-- Panel de detalle: visible en 'detail', sale por la izquierda en 'edit' -->
+    <div
+      class="absolute inset-0 overflow-y-auto transition-transform duration-300 ease-in-out"
+      [class.translate-x-0]=  "drawer.mode() === 'detail'"
+      [class.-translate-x-full]="drawer.mode() === 'edit'"
+      [class.translate-x-full]= "drawer.mode() === 'form' || !drawer.mode()"
+      data-cy="drawer-panel-detail"
+    >
+      @if (drawer.bookCode()) {
+        <app-book-detail [bookCode]="drawer.bookCode()!" />
+      }
+    </div>
+
+    <!-- Panel de formulario: visible en 'form' y 'edit', entra por la derecha -->
+    <div
+      class="absolute inset-0 overflow-y-auto transition-transform duration-300 ease-in-out"
+      [class.translate-x-0]=  "drawer.mode() === 'form' || drawer.mode() === 'edit'"
+      [class.translate-x-full]="drawer.mode() === 'detail' || !drawer.mode()"
+      data-cy="drawer-panel-form"
+    >
+      <app-book-form
+        [bookCode]="drawer.mode() === 'edit' ? drawer.bookCode() : null"
+      />
+    </div>
+
+  </div>
 </ui-drawer>
