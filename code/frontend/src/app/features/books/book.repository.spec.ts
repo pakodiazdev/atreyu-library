@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { BookRepository } from './book.repository';
-import { Book, BookDetail } from './book.model';
+import { Book, BookCreatePayload, BookDetail } from './book.model';
 
 const MOCK_BOOKS: Book[] = [
   { code: 'A01', ulid: '01', title: 'El Nombre del Viento', author: 'Patrick Rothfuss', genre: 'Fantasía', publicationYear: 2007 },
@@ -130,6 +130,69 @@ describe('BookRepository', () => {
       httpMock.expectOne('/books/Z99').flush(null, { status: 404, statusText: 'Not Found' });
 
       expect(errorStatus).toBe(404);
+    });
+  });
+
+  describe('create()', () => {
+    const PAYLOAD: BookCreatePayload = {
+      title: 'El Nombre del Viento',
+      author: 'Patrick Rothfuss',
+      genre: 'Fantasía',
+      publicationYear: 2007,
+      synopsis: null,
+    };
+
+    const CREATED: BookDetail = {
+      code: 'A01',
+      ulid: '01JTEST00000000000000001',
+      title: 'El Nombre del Viento',
+      author: 'Patrick Rothfuss',
+      genre: 'Fantasía',
+      publicationYear: 2007,
+    };
+
+    it('calls POST /books with the payload', () => {
+      repo.create(PAYLOAD).subscribe();
+
+      const req = httpMock.expectOne('/books');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(PAYLOAD);
+      req.flush(CREATED);
+    });
+
+    it('returns the created BookDetail from the API', () => {
+      let result: BookDetail | undefined;
+      repo.create(PAYLOAD).subscribe(b => (result = b));
+
+      httpMock.expectOne('/books').flush(CREATED);
+
+      expect(result).toEqual(CREATED);
+    });
+
+    it('propagates 422 HTTP errors', () => {
+      let errorStatus: number | undefined;
+      repo.create(PAYLOAD).subscribe({
+        error: (e) => (errorStatus = e.status),
+      });
+
+      httpMock.expectOne('/books').flush(
+        { errors: { title: 'El título es obligatorio' } },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+
+      expect(errorStatus).toBe(422);
+    });
+
+    it('sends null fields in the request body', () => {
+      const minimalPayload: BookCreatePayload = {
+        title: 'Test', author: 'Autor', genre: null, publicationYear: null, synopsis: null,
+      };
+      repo.create(minimalPayload).subscribe();
+
+      const req = httpMock.expectOne('/books');
+      expect(req.request.body.genre).toBeNull();
+      expect(req.request.body.publicationYear).toBeNull();
+      req.flush(CREATED);
     });
   });
 });

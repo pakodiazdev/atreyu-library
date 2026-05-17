@@ -1,17 +1,54 @@
-import { Component, HostListener, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, HostListener, OnInit, effect, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
 import { AppHeaderComponent } from '../app-header/app-header.component';
+import { UiDrawerComponent } from '../../ui/ui-drawer/ui-drawer.component';
+import { DrawerService } from '../../ui/drawer.service';
+import { BookDetailComponent } from '../../../features/books/book-detail/book-detail.component';
+import { BookFormComponent } from '../../../features/books/book-form/book-form.component';
 
 @Component({
   standalone: true,
   selector: 'app-layout',
-  imports: [RouterOutlet, AppSidebarComponent, AppHeaderComponent],
+  imports: [
+    RouterOutlet,
+    AppSidebarComponent,
+    AppHeaderComponent,
+    UiDrawerComponent,
+    BookDetailComponent,
+    BookFormComponent,
+  ],
   templateUrl: './app-layout.component.html',
   styleUrl: './app-layout.component.scss',
 })
-export class AppLayoutComponent {
+export class AppLayoutComponent implements OnInit {
+  protected readonly drawer  = inject(DrawerService);
+  private  readonly router   = inject(Router);
   readonly sidebarOpen = signal(false);
+
+  constructor() {
+    effect(() => {
+      if (this.drawer.mode() === 'form') {
+        this.router.navigate([], {
+          queryParams: { 'nuevo-libro': 'true' },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe(() => {
+        const { queryParams } = this.router.parseUrl(this.router.url);
+        if (queryParams['nuevo-libro'] === 'true' && !this.drawer.isOpen()) {
+          this.drawer.openForm();
+        }
+      });
+  }
 
   toggleSidebar(): void {
     this.sidebarOpen.update(v => !v);
@@ -21,8 +58,25 @@ export class AppLayoutComponent {
     this.sidebarOpen.set(false);
   }
 
+  closeDrawer(): void {
+    if (this.drawer.mode() === 'detail') {
+      this.router.navigate(['/catalogo'], { replaceUrl: true });
+    } else if (this.drawer.mode() === 'form') {
+      this.router.navigate([], {
+        queryParams: { 'nuevo-libro': null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    }
+    this.drawer.close();
+  }
+
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.closeSidebar();
+    if (this.drawer.isOpen()) {
+      this.closeDrawer();
+    } else {
+      this.closeSidebar();
+    }
   }
 }

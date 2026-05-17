@@ -5,7 +5,7 @@
   @if (sidebarOpen()) {
     <div
       data-cy="sidebar-backdrop"
-      class="fixed inset-0 z-20 bg-black/40 md:hidden"
+      class="fixed inset-y-0 right-0 left-[200px] z-20 bg-black/40 md:hidden"
       (click)="closeSidebar()"
       aria-hidden="true"
     ></div>
@@ -28,3 +28,17 @@
   </div>
 
 </div>
+
+<!-- Drawer global — disponible en cualquier ruta -->
+<ui-drawer
+  [isOpen]="drawer.isOpen()"
+  [title]="drawer.mode() === 'form' ? 'Nuevo libro' : undefined"
+  (closed)="closeDrawer()"
+  data-cy="global-drawer"
+>
+  @if (drawer.mode() === 'detail') {
+    <app-book-detail [bookCode]="drawer.bookCode()!" />
+  } @else if (drawer.mode() === 'form') {
+    <app-book-form />
+  }
+</ui-drawer>

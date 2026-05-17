@@ -9,7 +9,7 @@ import { Book, BookFilters } from '../book.model';
  * Los componentes leen señales e invocan métodos — sin conocimiento del HTTP.
  */
 @Injectable()
-export class LibroListStore {
+export class BookListStore {
   private readonly repo = inject(BookRepository);
 
   readonly filterTitle  = signal('');
@@ -45,5 +45,9 @@ export class LibroListStore {
     this.filterTitle.set('');
     this.filterAuthor.set('');
     this.filterGenre.set('');
+  }
+
+  reload(): void {
+    this.resource.reload();
   }
 }

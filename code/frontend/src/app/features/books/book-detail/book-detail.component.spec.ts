@@ -2,10 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { signal } from '@angular/core';
 import { vi } from 'vitest';
-import { LibroDetailComponent } from './libro-detail.component';
-import { LibroDetailStore } from './libro-detail.store';
+import { BookDetailComponent } from './book-detail.component';
+import { BookDetailStore } from './book-detail.store';
 
-function makeStore(): LibroDetailStore {
+function makeStore(): BookDetailStore {
   return {
     code:      signal(''),
     book:      signal(null),
@@ -14,27 +14,27 @@ function makeStore(): LibroDetailStore {
     notFound:  signal(false),
     setCode:   vi.fn(),
     goBack:    vi.fn(),
-  } as unknown as LibroDetailStore;
+  } as unknown as BookDetailStore;
 }
 
-describe('LibroDetailComponent', () => {
-  let store: LibroDetailStore;
+describe('BookDetailComponent', () => {
+  let store: BookDetailStore;
   let mockRoute: { snapshot: { paramMap: { get: ReturnType<typeof vi.fn> } } };
 
-  function configureAndCreate(bookSlug: string | null): LibroDetailComponent {
+  function configureAndCreate(bookSlug: string | null): BookDetailComponent {
     store = makeStore();
     mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(bookSlug) } } };
 
     TestBed.configureTestingModule({
-      imports: [LibroDetailComponent],
+      imports: [BookDetailComponent],
       providers: [
-        { provide: LibroDetailStore, useValue: store },
+        { provide: BookDetailStore, useValue: store },
         { provide: ActivatedRoute,   useValue: mockRoute },
         { provide: Router,           useValue: { navigate: vi.fn() } },
       ],
-    }).overrideComponent(LibroDetailComponent, { set: { providers: [] } });
+    }).overrideComponent(BookDetailComponent, { set: { providers: [] } });
 
-    const fixture = TestBed.createComponent(LibroDetailComponent);
+    const fixture = TestBed.createComponent(BookDetailComponent);
     fixture.detectChanges();
     return fixture.componentInstance;
   }
@@ -44,7 +44,7 @@ describe('LibroDetailComponent', () => {
   // ── genreVariant ───────────────────────────────────────────────────────────
 
   describe('genreVariant()', () => {
-    let component: LibroDetailComponent;
+    let component: BookDetailComponent;
     beforeEach(() => { component = configureAndCreate(''); });
 
     it('returns "default" for null genre', () => {
@@ -77,7 +77,7 @@ describe('LibroDetailComponent', () => {
   // ── formatDate ─────────────────────────────────────────────────────────────
 
   describe('formatDate()', () => {
-    let component: LibroDetailComponent;
+    let component: BookDetailComponent;
     beforeEach(() => { component = configureAndCreate(''); });
 
     it('returns "—" for undefined', () => {
@@ -128,15 +128,15 @@ describe('LibroDetailComponent', () => {
       mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } };
 
       TestBed.configureTestingModule({
-        imports: [LibroDetailComponent],
+        imports: [BookDetailComponent],
         providers: [
-          { provide: LibroDetailStore, useValue: store },
+          { provide: BookDetailStore, useValue: store },
           { provide: ActivatedRoute,   useValue: mockRoute },
           { provide: Router,           useValue: { navigate: vi.fn() } },
         ],
-      }).overrideComponent(LibroDetailComponent, { set: { providers: [] } });
+      }).overrideComponent(BookDetailComponent, { set: { providers: [] } });
 
-      const fixture = TestBed.createComponent(LibroDetailComponent);
+      const fixture = TestBed.createComponent(BookDetailComponent);
       fixture.componentRef.setInput('bookCode', 'B03');
       fixture.detectChanges();
 
@@ -148,15 +148,15 @@ describe('LibroDetailComponent', () => {
       mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue('A01-slug') } } };
 
       TestBed.configureTestingModule({
-        imports: [LibroDetailComponent],
+        imports: [BookDetailComponent],
         providers: [
-          { provide: LibroDetailStore, useValue: store },
+          { provide: BookDetailStore, useValue: store },
           { provide: ActivatedRoute,   useValue: mockRoute },
           { provide: Router,           useValue: { navigate: vi.fn() } },
         ],
-      }).overrideComponent(LibroDetailComponent, { set: { providers: [] } });
+      }).overrideComponent(BookDetailComponent, { set: { providers: [] } });
 
-      const fixture = TestBed.createComponent(LibroDetailComponent);
+      const fixture = TestBed.createComponent(BookDetailComponent);
       fixture.componentRef.setInput('bookCode', 'B03');
       fixture.detectChanges();
 
@@ -170,15 +170,15 @@ describe('LibroDetailComponent', () => {
       mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } };
 
       TestBed.configureTestingModule({
-        imports: [LibroDetailComponent],
+        imports: [BookDetailComponent],
         providers: [
-          { provide: LibroDetailStore, useValue: store },
+          { provide: BookDetailStore, useValue: store },
           { provide: ActivatedRoute,   useValue: mockRoute },
           { provide: Router,           useValue: { navigate: vi.fn() } },
         ],
-      }).overrideComponent(LibroDetailComponent, { set: { providers: [] } });
+      }).overrideComponent(BookDetailComponent, { set: { providers: [] } });
 
-      const fixture = TestBed.createComponent(LibroDetailComponent);
+      const fixture = TestBed.createComponent(BookDetailComponent);
       fixture.componentRef.setInput('bookCode', null);
       fixture.detectChanges();
 

@@ -33,13 +33,13 @@ La transición usa clases Tailwind puras (`transition-transform duration-300 eas
 
 ## Estructura de navegación
 
-| Icono | Etiqueta       | Ruta            |
-|-------|----------------|-----------------|
-| ⌂     | Inicio         | `/inicio`       |
-| ◫     | Catálogo       | `/catalogo`     |
-| ◎     | Buscar         | `/buscar`       |
-| +     | Añadir libro   | `/libros/nuevo` |
-| ⊞     | Géneros        | `/generos`      |
+| Icono | Etiqueta       | Acción / Ruta                                         |
+|-------|----------------|-------------------------------------------------------|
+| ⌂     | Inicio         | `/inicio`                                             |
+| ◫     | Catálogo       | `/catalogo`                                           |
+| ◎     | Buscar         | `/buscar`                                             |
+| +     | Añadir libro   | Llama `DrawerService.openForm()` — abre drawer global |
+| ⊞     | Géneros        | `/generos`                                            |
 
 ## Notas
 

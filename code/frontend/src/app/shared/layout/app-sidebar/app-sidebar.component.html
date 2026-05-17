@@ -32,6 +32,18 @@
         <span>{{ item.label }}</span>
       </a>
     }
+
+    <!-- Añadir libro — abre el drawer global en vez de navegar -->
+    <button
+      type="button"
+      data-cy="sidebar-add-book"
+      (click)="openNewBook()"
+      class="flex items-center gap-2 px-[10px] py-[7px] rounded-md font-ui text-[15px] text-tinta-suave
+             hover:bg-tinta/10 transition-colors duration-150 w-full text-left"
+    >
+      <span class="text-base w-5 text-center shrink-0" aria-hidden="true">+</span>
+      <span>Añadir libro</span>
+    </button>
   </nav>
 
   <!-- Footer -->

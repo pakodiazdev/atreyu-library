@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
-import { LibroListStore } from './libro-list.store';
+import { BookListStore } from './book-list.store';
 import { BookRepository } from '../book.repository';
 import { Book } from '../book.model';
 
@@ -9,8 +9,8 @@ const MOCK_BOOKS: Book[] = [
   { code: 'A01', ulid: '01', title: 'El Nombre del Viento', author: 'Patrick Rothfuss', genre: 'Fantasía', publicationYear: 2007 },
 ];
 
-describe('LibroListStore', () => {
-  let store: LibroListStore;
+describe('BookListStore', () => {
+  let store: BookListStore;
   const mockRepo = { getAll: vi.fn().mockReturnValue(of([])) };
 
   beforeEach(() => {
@@ -18,11 +18,11 @@ describe('LibroListStore', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        LibroListStore,
+        BookListStore,
         { provide: BookRepository, useValue: mockRepo },
       ],
     });
-    store = TestBed.inject(LibroListStore);
+    store = TestBed.inject(BookListStore);
   });
 
   it('initializes all filter signals as empty strings', () => {
@@ -89,11 +89,11 @@ describe('LibroListStore', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        LibroListStore,
+        BookListStore,
         { provide: BookRepository, useValue: mockRepo },
       ],
     });
-    const freshStore = TestBed.inject(LibroListStore);
+    const freshStore = TestBed.inject(BookListStore);
 
     // rxResource usa un scheduler interno — runAllTimers() lo avanza aunque no haya timer(300)
     vi.runAllTimers();

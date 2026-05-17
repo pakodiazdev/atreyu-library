@@ -7,7 +7,7 @@ import { BookRepository } from '../book.repository';
 import { BookDetail } from '../book.model';
 
 @Injectable()
-export class LibroDetailStore {
+export class BookDetailStore {
   private readonly repo   = inject(BookRepository);
   private readonly router = inject(Router);
 

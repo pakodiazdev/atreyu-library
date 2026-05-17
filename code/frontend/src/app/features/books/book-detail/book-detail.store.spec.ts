@@ -3,7 +3,7 @@ import { EMPTY, of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { LibroDetailStore } from './libro-detail.store';
+import { BookDetailStore } from './book-detail.store';
 import { BookRepository } from '../book.repository';
 import { BookDetail } from '../book.model';
 
@@ -18,8 +18,8 @@ const MOCK_DETAIL: BookDetail = {
   updatedAt: '2026-01-02T00:00:00Z',
 };
 
-describe('LibroDetailStore', () => {
-  let store: LibroDetailStore;
+describe('BookDetailStore', () => {
+  let store: BookDetailStore;
   const mockRepo   = { getByCode: vi.fn().mockReturnValue(EMPTY) };
   const mockRouter = { navigate: vi.fn() };
 
@@ -28,12 +28,12 @@ describe('LibroDetailStore', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        LibroDetailStore,
+        BookDetailStore,
         { provide: BookRepository, useValue: mockRepo },
         { provide: Router,         useValue: mockRouter },
       ],
     });
-    store = TestBed.inject(LibroDetailStore);
+    store = TestBed.inject(BookDetailStore);
   }
 
   beforeEach(() => setup());
