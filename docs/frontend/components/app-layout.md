@@ -1,6 +1,6 @@
 # AppLayoutComponent
 
-Shell principal de la aplicación. Combina sidebar fijo + área de contenido con scroll.
+Shell principal de la aplicación. Gestiona el estado del drawer de navegación móvil y combina sidebar + área de contenido.
 
 ## Uso básico
 
@@ -11,25 +11,36 @@ Shell principal de la aplicación. Combina sidebar fijo + área de contenido con
 
 > Renderizado automáticamente desde `AppComponent`. No se instancia directamente en otras vistas.
 
+## Estado interno
+
+| Signal / Método     | Descripción                                                    |
+|---------------------|----------------------------------------------------------------|
+| `sidebarOpen`       | Signal `boolean` — indica si el drawer móvil está abierto     |
+| `toggleSidebar()`   | Invierte `sidebarOpen`; llamado desde `AppHeaderComponent`     |
+| `closeSidebar()`    | Establece `sidebarOpen` en `false`; llamado desde backdrop, nav-link o Escape |
+| `onEscape()`        | `@HostListener('document:keydown.escape')` → llama `closeSidebar()` |
+
 ## Variantes
 
 | Breakpoint | Comportamiento |
 |------------|----------------|
-| `< md`     | Sidebar oculto; se muestra `AppHeaderComponent` en la parte superior |
-| `≥ md`     | Sidebar visible (ancho fijo 240 px); header oculto |
+| `< md`     | Sidebar como drawer deslizante; header con botón ☰ visible; backdrop semitransparente al abrir |
+| `≥ md`     | Sidebar estático siempre visible; header oculto; `sidebarOpen` ignorado |
 
 ## Estructura interna
 
 ```
 app-layout
-├── app-sidebar   (oculto en móvil)
+├── [backdrop data-cy="sidebar-backdrop"]  (solo móvil, solo cuando sidebarOpen = true)
+├── app-sidebar [isOpen] (closed)
 └── div.flex-col
-    ├── app-header  (oculto en desktop)
+    ├── app-header (burgerToggle)
     └── main > router-outlet
 ```
 
 ## Notas
 
-- Usa `display: contents` en `:host` para no introducir un elemento extra en el DOM.
+- El backdrop cierra el drawer al hacer clic (`(click)="closeSidebar()"`).
+- La tecla Escape cierra el drawer desde cualquier punto de la página.
 - El scroll de la página ocurre en `<main>`, no en `<body>`.
-- Para añadir una barra de título por ruta, inyectar el título vía `@Input` en `AppHeaderComponent`.
+- `data-cy="sidebar-backdrop"` en el backdrop para tests E2E.

@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 
 @Component({
   standalone: true,
@@ -7,6 +7,6 @@ import { Component, input } from '@angular/core';
   styleUrl: './app-header.component.scss',
 })
 export class AppHeaderComponent {
-  /** Título que se muestra en la barra superior */
   readonly title = input<string>('Atreyu · biblioteca');
+  readonly burgerToggle = output<void>();
 }

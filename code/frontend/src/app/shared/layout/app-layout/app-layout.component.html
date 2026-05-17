@@ -1,14 +1,24 @@
 <!-- Shell: sidebar fijo + área principal -->
 <div class="flex h-screen overflow-hidden bg-papel">
 
-  <!-- Sidebar — oculto en móvil -->
-  <app-sidebar />
+  <!-- Backdrop móvil — visible solo cuando sidebar abierto -->
+  @if (sidebarOpen()) {
+    <div
+      data-cy="sidebar-backdrop"
+      class="fixed inset-0 z-20 bg-black/40 md:hidden"
+      (click)="closeSidebar()"
+      aria-hidden="true"
+    ></div>
+  }
+
+  <!-- Sidebar -->
+  <app-sidebar [isOpen]="sidebarOpen()" (closed)="closeSidebar()" />
 
   <!-- Área principal -->
   <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
 
     <!-- Header móvil -->
-    <app-header />
+    <app-header (burgerToggle)="toggleSidebar()" />
 
     <!-- Contenido de la ruta activa -->
     <main class="flex-1 overflow-y-auto p-6">
