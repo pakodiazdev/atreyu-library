@@ -42,19 +42,6 @@
 } @else if (store.book(); as book) {
   <div data-cy="book-detail">
 
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-1.5 font-ui text-sm text-tinta-suave" data-cy="breadcrumb">
-      <button class="hover:text-tinta transition-colors" (click)="store.goBack()" data-cy="back-btn">
-        ← Catálogo
-      </button>
-      @if (book.genre) {
-        <span class="text-tinta-muted">/</span>
-        <span>{{ book.genre }}</span>
-      }
-      <span class="text-tinta-muted">/</span>
-      <span class="text-tinta truncate max-w-[280px]">{{ book.title }}</span>
-    </nav>
-
     <!-- Layout de dos columnas -->
     <div class="mt-6 flex gap-8 items-start">
 

@@ -35,8 +35,8 @@ export const routes: Routes = [
   {
     path: 'libros/:authorSlug/:bookSlug',
     loadComponent: () =>
-      import('./features/libros/libro-detail/libro-detail.component').then(
-        (m) => m.LibroDetailComponent
+      import('./features/libros/libro-list/libro-list.component').then(
+        (m) => m.LibroListComponent
       ),
   },
   {
