@@ -106,4 +106,17 @@ public class BookService {
         book.setSynopsis(request.synopsis());
         return BookResponse.from(repository.save(book));
     }
+
+    /**
+     * Elimina el libro con el ULID dado.
+     *
+     * @param ulid identificador externo del libro
+     * @throws BookNotFoundException si no existe un libro con ese ULID
+     */
+    @Transactional
+    public void deleteByUlid(final String ulid) {
+        final Book book = repository.findByUlid(ulid)
+                .orElseThrow(() -> new BookNotFoundException(ulid));
+        repository.delete(book);
+    }
 }
