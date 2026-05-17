@@ -19,7 +19,10 @@ export class LibroFormStore {
     this.submitError.set(null);
 
     this.repo.create(payload).subscribe({
-      next: () => this.router.navigate(['/catalogo']),
+      next: () => {
+        this.isSubmitting.set(false);
+        this.router.navigate(['/catalogo']);
+      },
       error: (err: HttpErrorResponse) => {
         this.isSubmitting.set(false);
         if (err.status === 422 && err.error?.errors) {

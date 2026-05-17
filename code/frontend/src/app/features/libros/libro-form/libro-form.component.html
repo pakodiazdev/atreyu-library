@@ -1,8 +1,14 @@
 <!-- Encabezado -->
 <div class="flex items-baseline justify-between">
   <div>
-    <h1 class="font-editorial text-4xl text-tinta leading-none">Nuevo libro</h1>
-    <p class="font-ui text-sm text-tinta-suave mt-1">Completa los datos para registrar el libro en el catálogo.</p>
+    <h1 class="font-editorial text-4xl text-tinta leading-none">
+      {{ isEditMode ? 'Editar libro' : 'Nuevo libro' }}
+    </h1>
+    <p class="font-ui text-sm text-tinta-suave mt-1">
+      {{ isEditMode
+          ? 'La edición de libros estará disponible próximamente.'
+          : 'Completa los datos para registrar el libro en el catálogo.' }}
+    </p>
   </div>
 </div>
 

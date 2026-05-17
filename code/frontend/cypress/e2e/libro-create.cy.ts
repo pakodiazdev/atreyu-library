@@ -51,7 +51,9 @@ describe('Creación de libro (#15)', () => {
       cy.url({ timeout: 10000 }).should('include', '/catalogo');
 
       cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('be.visible');
-      cy.contains('[data-cy="book-row"]', uniqueTitle).should('be.visible');
+      cy.contains('[data-cy="book-row"]', uniqueTitle)
+        .scrollIntoView()
+        .should('be.visible');
       cy.contains('[data-cy="book-row"]', uniqueTitle)
         .find('span.font-code')
         .should('not.be.empty');

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { signal, WritableSignal } from '@angular/core';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { vi } from 'vitest';
 import { LibroFormComponent } from './libro-form.component';
 import { LibroFormStore } from './libro-form.store';
@@ -15,16 +16,23 @@ function makeStore() {
   } as unknown as LibroFormStore;
 }
 
+function makeRoute(params: Record<string, string> = {}) {
+  return { snapshot: { paramMap: convertToParamMap(params) } };
+}
+
 describe('LibroFormComponent', () => {
   let component: LibroFormComponent;
   let store: ReturnType<typeof makeStore>;
 
-  function configure() {
+  function configure(routeParams: Record<string, string> = {}) {
     store = makeStore();
 
     TestBed.configureTestingModule({
       imports: [LibroFormComponent],
-      providers: [{ provide: LibroFormStore, useValue: store }],
+      providers: [
+        { provide: LibroFormStore,  useValue: store },
+        { provide: ActivatedRoute,  useValue: makeRoute(routeParams) },
+      ],
     }).overrideComponent(LibroFormComponent, { set: { providers: [] } });
 
     const fixture = TestBed.createComponent(LibroFormComponent);
@@ -34,6 +42,20 @@ describe('LibroFormComponent', () => {
   }
 
   afterEach(() => TestBed.resetTestingModule());
+
+  // ── isEditMode ─────────────────────────────────────────────────────────────
+
+  describe('isEditMode', () => {
+    it('is false on create route (no bookSlug param)', () => {
+      configure();
+      expect(component.isEditMode).toBe(false);
+    });
+
+    it('is true on edit route (bookSlug param present)', () => {
+      configure({ bookSlug: 'A01-cien-anos-de-soledad' });
+      expect(component.isEditMode).toBe(true);
+    });
+  });
 
   // ── fieldError() ───────────────────────────────────────────────────────────
 
@@ -143,6 +165,15 @@ describe('LibroFormComponent', () => {
 
     it('does not call store.submit when form is invalid', () => {
       configure();
+      (component as unknown as { submit(): void }).submit();
+      expect(store.submit).not.toHaveBeenCalled();
+    });
+
+    it('does not call store.submit in edit mode even with valid form', () => {
+      configure({ bookSlug: 'A01-cien-anos' });
+      component.form.setValue({
+        title: 'Título', author: 'Autor', genre: '', publicationYear: null, synopsis: '',
+      });
       (component as unknown as { submit(): void }).submit();
       expect(store.submit).not.toHaveBeenCalled();
     });

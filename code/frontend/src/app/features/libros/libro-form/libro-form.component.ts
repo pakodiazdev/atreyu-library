@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { UiBtnDirective } from '../../../shared/ui';
 import { LibroFormStore } from './libro-form.store';
 
@@ -13,6 +14,10 @@ import { LibroFormStore } from './libro-form.store';
 export class LibroFormComponent {
   protected readonly store = inject(LibroFormStore);
   private  readonly fb    = inject(FormBuilder);
+  private  readonly route = inject(ActivatedRoute);
+
+  /** true cuando la ruta contiene bookSlug (modo editar — implementado en #14) */
+  readonly isEditMode = !!this.route.snapshot.paramMap.get('bookSlug');
 
   readonly form = this.fb.group({
     title:           ['', [Validators.required, Validators.maxLength(255)]],
@@ -23,6 +28,7 @@ export class LibroFormComponent {
   });
 
   protected submit(): void {
+    if (this.isEditMode) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

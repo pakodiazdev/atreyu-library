@@ -79,6 +79,11 @@ describe('LibroFormStore', () => {
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/catalogo']);
     });
 
+    it('resets isSubmitting to false before navigating', () => {
+      store.submit(PAYLOAD);
+      expect(store.isSubmitting()).toBe(false);
+    });
+
     it('clears fieldErrors before submitting', () => {
       const err422 = new HttpErrorResponse({
         status: 422, error: { errors: { title: 'obligatorio' } },
