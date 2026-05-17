@@ -1,4 +1,4 @@
-import { Component, Input, inject, OnInit } from '@angular/core';
+import { Component, Input, inject, OnInit, output } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BookDetailStore } from './book-detail.store';
 import { UiBtnDirective, UiBadgeComponent } from '../../../shared/ui';
@@ -14,6 +14,19 @@ import { extractCodeFromSlug } from '../../../shared/utils/book-url.util';
 export class BookDetailComponent implements OnInit {
   protected readonly store = inject(BookDetailStore);
   private  readonly route  = inject(ActivatedRoute);
+
+  readonly editClicked   = output<void>();
+  readonly deleteClicked = output<void>();
+
+  onEditClicked(): void {
+    console.log('[BookDetail] edit clicked');
+    this.editClicked.emit();
+  }
+
+  onDeleteClicked(): void {
+    console.log('[BookDetail] delete clicked');
+    this.deleteClicked.emit();
+  }
 
   private bookCodeFromInput = false;
 

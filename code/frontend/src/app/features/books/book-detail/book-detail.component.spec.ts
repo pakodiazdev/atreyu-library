@@ -1,14 +1,25 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { signal } from '@angular/core';
 import { vi } from 'vitest';
 import { BookDetailComponent } from './book-detail.component';
 import { BookDetailStore } from './book-detail.store';
+import type { BookDetail } from '../book.model';
 
-function makeStore(): BookDetailStore {
+const MOCK_BOOK: BookDetail = {
+  code: 'A01',
+  ulid: '01J000000000000000000000A1',
+  title: 'Cien años de soledad',
+  author: 'Gabriel García Márquez',
+  genre: 'Realismo mágico',
+  publicationYear: 1967,
+};
+
+function makeStore(book: BookDetail | null = null): BookDetailStore {
   return {
     code:      signal(''),
-    book:      signal(null),
+    book:      signal(book),
     isLoading: signal(false),
     error:     signal(null),
     notFound:  signal(false),
@@ -117,6 +128,60 @@ describe('BookDetailComponent', () => {
     it('calls store.setCode with empty string when route param is null', () => {
       configureAndCreate(null);
       expect(store.setCode).toHaveBeenCalledWith('');
+    });
+  });
+
+  // ── outputs: editClicked / deleteClicked ───────────────────────────────────
+
+  describe('action buttons', () => {
+    function configureWithBook(book: BookDetail | null) {
+      const s = makeStore(book);
+      const mockRoute = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } };
+
+      TestBed.configureTestingModule({
+        imports: [BookDetailComponent],
+        providers: [
+          { provide: BookDetailStore, useValue: s },
+          { provide: ActivatedRoute,   useValue: mockRoute },
+          { provide: Router,           useValue: { navigate: vi.fn() } },
+        ],
+      }).overrideComponent(BookDetailComponent, { set: { providers: [] } });
+
+      const fixture = TestBed.createComponent(BookDetailComponent);
+      fixture.detectChanges();
+      return { fixture, component: fixture.componentInstance };
+    }
+
+    afterEach(() => TestBed.resetTestingModule());
+
+    it('emite editClicked al hacer click en el botón editar', () => {
+      const { fixture, component } = configureWithBook(MOCK_BOOK);
+      const spy = vi.spyOn(component.editClicked, 'emit');
+
+      fixture.debugElement.query(By.css('[data-cy="book-edit-btn"]'))
+        .triggerEventHandler('click', null);
+
+      expect(spy).toHaveBeenCalledOnce();
+    });
+
+    it('emite deleteClicked al hacer click en el botón eliminar', () => {
+      const { fixture, component } = configureWithBook(MOCK_BOOK);
+      const spy = vi.spyOn(component.deleteClicked, 'emit');
+
+      fixture.debugElement.query(By.css('[data-cy="book-delete-btn"]'))
+        .triggerEventHandler('click', null);
+
+      expect(spy).toHaveBeenCalledOnce();
+    });
+
+    it('no renderiza los botones cuando no hay libro cargado', () => {
+      const { fixture } = configureWithBook(null);
+
+      const editBtn  = fixture.nativeElement.querySelector('[data-cy="book-edit-btn"]');
+      const deleteBtn = fixture.nativeElement.querySelector('[data-cy="book-delete-btn"]');
+
+      expect(editBtn).toBeNull();
+      expect(deleteBtn).toBeNull();
     });
   });
 
