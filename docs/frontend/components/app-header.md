@@ -1,12 +1,12 @@
 # AppHeaderComponent
 
-Barra superior para móvil. Muestra el título de la sección activa.
+Barra superior para móvil. Muestra el botón hamburguesa (☰) y el título de la sección activa.
 
 ## Uso básico
 
 ```html
-<app-header />
-<app-header title="Catálogo" />
+<app-header (burgerToggle)="toggleSidebar()" />
+<app-header title="Catálogo" (burgerToggle)="toggleSidebar()" />
 ```
 
 ## Inputs
@@ -14,6 +14,12 @@ Barra superior para móvil. Muestra el título de la sección activa.
 | Nombre  | Tipo     | Default                  | Descripción                      |
 |---------|----------|--------------------------|----------------------------------|
 | `title` | `string` | `'Atreyu · biblioteca'`  | Título mostrado en la barra      |
+
+## Outputs
+
+| Nombre          | Tipo   | Descripción                                              |
+|-----------------|--------|----------------------------------------------------------|
+| `burgerToggle`  | `void` | Emitido al hacer clic en el botón ☰ del header móvil    |
 
 ## Variantes
 
@@ -24,6 +30,7 @@ Barra superior para móvil. Muestra el título de la sección activa.
 
 ## Notas
 
-- Usa `input<string>()` de Angular signals (Angular 17+).
+- El botón ☰ tiene `data-cy="burger-menu"` para tests E2E y `aria-label="Abrir menú de navegación"` para accesibilidad.
+- Usa `input<string>()` y `output<void>()` de Angular signals (Angular 17+).
 - El título usa `font-editorial` (IM Fell English) para mantener la estética de la marca.
 - Para títulos dinámicos por ruta, pasar el valor desde `AppLayoutComponent` vía un servicio de título o `ActivatedRoute.data`.
