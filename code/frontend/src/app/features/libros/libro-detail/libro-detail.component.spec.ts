@@ -93,7 +93,8 @@ describe('LibroDetailComponent', () => {
     });
 
     it('formats a valid ISO date to Spanish locale', () => {
-      const result = component.formatDate('2026-01-15T00:00:00Z');
+      // noon UTC — stays on the same calendar day regardless of local timezone offset
+      const result = component.formatDate('2026-01-15T12:00:00Z');
       expect(result).toMatch(/15/);
       expect(result).toMatch(/2026/);
     });

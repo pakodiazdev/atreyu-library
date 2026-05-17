@@ -14,7 +14,7 @@ export class LibroFormComponent {
   protected readonly store = inject(LibroFormStore);
   private  readonly fb    = inject(FormBuilder);
 
-  protected readonly form = this.fb.group({
+  readonly form = this.fb.group({
     title:           ['', [Validators.required, Validators.maxLength(255)]],
     author:          ['', [Validators.required, Validators.maxLength(255)]],
     genre:           ['', [Validators.maxLength(100)]],
@@ -37,7 +37,7 @@ export class LibroFormComponent {
     });
   }
 
-  protected fieldError(field: string): string | null {
+  fieldError(field: string): string | null {
     const serverErr = this.store.fieldErrors()[field];
     if (serverErr) return serverErr;
     const ctrl = this.form.get(field);
@@ -49,7 +49,7 @@ export class LibroFormComponent {
     return null;
   }
 
-  protected inputClass(field: string): string {
+  inputClass(field: string): string {
     const base = 'block w-full font-ui text-[15px] text-tinta bg-papel-claro'
       + ' placeholder:text-tinta-muted focus:outline-none transition-colors'
       + ' border-[1.5px] rounded-lg px-3 py-2';
