@@ -1,0 +1,133 @@
+<!-- Encabezado -->
+<div class="flex items-baseline justify-between">
+  <div>
+    <h1 class="font-editorial text-4xl text-tinta leading-none">Nuevo libro</h1>
+    <p class="font-ui text-sm text-tinta-suave mt-1">Completa los datos para registrar el libro en el catálogo.</p>
+  </div>
+</div>
+
+<!-- Formulario -->
+<form
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  class="mt-8 max-w-lg space-y-6"
+  data-cy="book-create-form"
+  novalidate
+>
+
+  <!-- Título -->
+  <div class="space-y-1">
+    <label class="font-ui text-sm text-tinta" for="field-title">
+      Título <span class="text-oxido">*</span>
+    </label>
+    <input
+      id="field-title"
+      type="text"
+      formControlName="title"
+      placeholder="Ej. Cien años de soledad"
+      data-cy="field-title"
+      [class]="inputClass('title')"
+    />
+    @if (fieldError('title'); as err) {
+      <p class="font-ui text-xs text-oxido" data-cy="error-title">{{ err }}</p>
+    }
+  </div>
+
+  <!-- Autor -->
+  <div class="space-y-1">
+    <label class="font-ui text-sm text-tinta" for="field-author">
+      Autor <span class="text-oxido">*</span>
+    </label>
+    <input
+      id="field-author"
+      type="text"
+      formControlName="author"
+      placeholder="Ej. Gabriel García Márquez"
+      data-cy="field-author"
+      [class]="inputClass('author')"
+    />
+    @if (fieldError('author'); as err) {
+      <p class="font-ui text-xs text-oxido" data-cy="error-author">{{ err }}</p>
+    }
+  </div>
+
+  <!-- Género y Año — fila -->
+  <div class="flex gap-4">
+
+    <!-- Género -->
+    <div class="flex-1 space-y-1">
+      <label class="font-ui text-sm text-tinta" for="field-genre">Género</label>
+      <input
+        id="field-genre"
+        type="text"
+        formControlName="genre"
+        placeholder="Ej. Realismo mágico"
+        data-cy="field-genre"
+        [class]="inputClass('genre')"
+      />
+      @if (fieldError('genre'); as err) {
+        <p class="font-ui text-xs text-oxido" data-cy="error-genre">{{ err }}</p>
+      }
+    </div>
+
+    <!-- Año -->
+    <div class="w-32 space-y-1">
+      <label class="font-ui text-sm text-tinta" for="field-year">Año</label>
+      <input
+        id="field-year"
+        type="number"
+        formControlName="publicationYear"
+        placeholder="Ej. 1967"
+        data-cy="field-year"
+        [class]="inputClass('publicationYear')"
+      />
+      @if (fieldError('publicationYear'); as err) {
+        <p class="font-ui text-xs text-oxido" data-cy="error-year">{{ err }}</p>
+      }
+    </div>
+
+  </div>
+
+  <!-- Sinopsis -->
+  <div class="space-y-1">
+    <label class="font-ui text-sm text-tinta" for="field-synopsis">Sinopsis</label>
+    <textarea
+      id="field-synopsis"
+      formControlName="synopsis"
+      placeholder="Breve descripción del libro…"
+      rows="4"
+      data-cy="field-synopsis"
+      class="block w-full font-ui text-[15px] text-tinta bg-papel-claro placeholder:text-tinta-muted focus:outline-none transition-colors border-[1.5px] border-tinta-suave/70 focus:border-tinta rounded-lg px-3 py-2 resize-none"
+    ></textarea>
+  </div>
+
+  <!-- Error general de servidor -->
+  @if (store.submitError(); as err) {
+    <div class="border border-oxido/40 bg-oxido/5 rounded-lg px-4 py-3" data-cy="submit-error">
+      <p class="font-ui text-sm text-oxido">{{ err }}</p>
+    </div>
+  }
+
+  <!-- Acciones -->
+  <div class="flex gap-3 pt-2">
+    <button
+      type="submit"
+      uiBtn
+      variant="primary"
+      [disabled]="store.isSubmitting()"
+      data-cy="btn-submit"
+    >
+      {{ store.isSubmitting() ? 'Guardando…' : 'Guardar libro' }}
+    </button>
+    <button
+      type="button"
+      uiBtn
+      variant="outline"
+      (click)="store.cancel()"
+      data-cy="btn-cancel"
+    >
+      Cancelar
+    </button>
+  </div>
+
+</form>
