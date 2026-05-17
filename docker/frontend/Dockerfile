@@ -10,10 +10,16 @@ COPY code/frontend/ .
 
 # Stage 1b: build producción
 FROM deps AS builder-prod
+ARG SENTRY_DSN_FRONTEND=""
+RUN [ -n "$SENTRY_DSN_FRONTEND" ] && \
+    sed -i "s|SENTRY_DSN_FRONTEND_PLACEHOLDER|${SENTRY_DSN_FRONTEND}|g" src/environments/environment.prod.ts || true
 RUN npm run build -- --configuration=production
 
 # Stage 1c: build QA (apiUrl apunta a api-qa01.atreyu-library.pakodiaz.dev)
 FROM deps AS builder-qa
+ARG SENTRY_DSN_FRONTEND=""
+RUN [ -n "$SENTRY_DSN_FRONTEND" ] && \
+    sed -i "s|SENTRY_DSN_FRONTEND_PLACEHOLDER|${SENTRY_DSN_FRONTEND}|g" src/environments/environment.qa.ts || true
 RUN npm run build -- --configuration=qa
 
 # Stage 2: production runtime
