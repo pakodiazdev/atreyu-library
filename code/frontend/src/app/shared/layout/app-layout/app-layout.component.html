@@ -32,13 +32,42 @@
 <!-- Drawer global — disponible en cualquier ruta -->
 <ui-drawer
   [isOpen]="drawer.isOpen()"
-  [title]="drawer.mode() === 'form' ? 'Nuevo libro' : undefined"
+  [title]="drawerTitle()"
   (closed)="closeDrawer()"
   data-cy="global-drawer"
 >
-  @if (drawer.mode() === 'detail') {
-    <app-book-detail [bookCode]="drawer.bookCode()!" />
-  } @else if (drawer.mode() === 'form') {
-    <app-book-form />
-  }
+  <!--
+    Contenedor de paneles deslizantes. Ocupa toda el área del body del drawer
+    (h-full dentro del flex-1 del panel). Cada panel es absoluto y se desplaza
+    con translate-x según el modo activo, produciendo la transición detail ↔ form.
+  -->
+  <div class="relative h-full">
+
+    <!-- Panel de detalle: fade in en 'detail', fade out en edit/form -->
+    <div
+      class="absolute inset-0 overflow-y-auto transition-opacity duration-300 ease-in-out"
+      [class.opacity-100]="drawer.mode() === 'detail'"
+      [class.opacity-0]  ="drawer.mode() === 'edit' || drawer.mode() === 'form' || !drawer.mode()"
+      [class.pointer-events-none]="drawer.mode() !== 'detail'"
+      data-cy="drawer-panel-detail"
+    >
+      @if (drawer.bookCode()) {
+        <app-book-detail [bookCode]="drawer.bookCode()!" />
+      }
+    </div>
+
+    <!-- Panel de formulario: fade in en 'form'/'edit', fade out en detail -->
+    <div
+      class="absolute inset-0 overflow-y-auto transition-opacity duration-300 ease-in-out"
+      [class.opacity-100]="drawer.mode() === 'form' || drawer.mode() === 'edit'"
+      [class.opacity-0]  ="drawer.mode() === 'detail' || !drawer.mode()"
+      [class.pointer-events-none]="drawer.mode() !== 'form' && drawer.mode() !== 'edit'"
+      data-cy="drawer-panel-form"
+    >
+      <app-book-form
+        [bookCode]="drawer.mode() === 'edit' ? drawer.bookCode() : null"
+      />
+    </div>
+
+  </div>
 </ui-drawer>

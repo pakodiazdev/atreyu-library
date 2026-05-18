@@ -32,6 +32,10 @@ export class BookDetailStore {
     this.code.set(code);
   }
 
+  reload(): void {
+    this.resource.reload();
+  }
+
   goBack(): void {
     this.router.navigate(['/catalogo']);
   }

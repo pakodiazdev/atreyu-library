@@ -21,8 +21,8 @@ const panelVariants = cva(
   [
     'relative flex flex-col h-full bg-papel shadow-2xl overflow-hidden',
     'transition-transform ease-in-out',
-    // Responsivo: ancho completo en móvil, se adapta desde 30% en pantallas grandes
-    'w-full sm:w-4/5 md:w-3/5 lg:w-[38%] lg:min-w-[30vw]',
+    // Responsivo: ancho completo en móvil, escala progresivamente en pantallas grandes
+    'w-full sm:w-4/5 md:w-3/5 lg:w-[55%] xl:w-[48%] 2xl:w-[44%] lg:min-w-[30vw]',
   ].join(' '),
   {
     variants: {

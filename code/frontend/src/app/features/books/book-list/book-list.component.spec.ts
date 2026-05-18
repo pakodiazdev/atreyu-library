@@ -30,6 +30,7 @@ function makeDrawer() {
     mode:            signal(null),
     bookCode:        signal(null),
     bookCreated:     signal(0),
+    updateCount:     signal(0),
   } as unknown as DrawerService;
 }
 

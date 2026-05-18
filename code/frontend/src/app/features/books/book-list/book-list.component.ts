@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, OnInit, effect, inject } from '@angular/core';
+import { Component, OnInit, effect, inject, untracked } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BookListStore } from './book-list.store';
 import {
@@ -41,6 +41,13 @@ export class BookListComponent implements OnInit {
     effect(() => {
       if (this.drawer.bookCreated() > initialCreated) {
         this.store.reload();
+      }
+    });
+
+    const initialUpdated = this.drawer.updateCount();
+    effect(() => {
+      if (this.drawer.updateCount() > initialUpdated) {
+        untracked(() => this.store.reload());
       }
     });
   }

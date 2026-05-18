@@ -45,8 +45,8 @@
     <!-- Layout de dos columnas -->
     <div class="mt-6 flex gap-8 items-start">
 
-      <!-- Columna izquierda: portada + identificador -->
-      <div class="w-56 shrink-0">
+      <!-- Columna izquierda: portada + identificador — decrece en pantallas pequeñas del drawer -->
+      <div class="w-36 lg:w-44 xl:w-52 2xl:w-56 shrink-0">
 
         <!-- Portada (placeholder) -->
         <div
@@ -138,12 +138,12 @@
         }
 
         <!-- Acciones -->
-        <div class="mt-6 flex justify-end gap-2">
+        <div class="mt-6 flex justify-end gap-2 pr-1">
           <button uiBtn variant="secondary" size="icon"
             title="Editar libro"
             aria-label="Editar libro"
             data-cy="book-edit-btn"
-            (click)="onEditClicked()">
+            (click)="openEdit(book)">
             ✎
           </button>
           <button uiBtn variant="destructive" size="icon"
@@ -157,5 +157,6 @@
 
       </div>
     </div>
+
   </div>
 }

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Book, BookCreatePayload, BookDetail, BookFilters } from './book.model';
+import { Book, BookCreatePayload, BookDetail, BookFilters, BookUpdatePayload } from './book.model';
 
 /** Capa HTTP pura. Sin estado ni efectos secundarios — solo llamadas al API. */
 @Injectable({ providedIn: 'root' })
@@ -22,5 +22,9 @@ export class BookRepository {
 
   create(payload: BookCreatePayload): Observable<BookDetail> {
     return this.http.post<BookDetail>('/books', payload);
+  }
+
+  update(ulid: string, payload: BookUpdatePayload): Observable<BookDetail> {
+    return this.http.put<BookDetail>(`/books/${ulid}`, payload);
   }
 }
