@@ -1,4 +1,4 @@
-import { Component, Input, effect, inject, untracked, OnInit, output } from '@angular/core';
+import { Component, Input, effect, inject, untracked, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BookDetailStore } from './book-detail.store';
 import { DrawerService } from '../../../shared/ui/drawer.service';
@@ -18,11 +18,8 @@ export class BookDetailComponent implements OnInit {
   private  readonly route   = inject(ActivatedRoute);
   private  readonly drawer  = inject(DrawerService);
 
-  readonly deleteClicked = output<void>();
-
   onDeleteClicked(): void {
-    console.log('[BookDetail] delete clicked');
-    this.deleteClicked.emit();
+    this.store.requestDelete();
   }
 
   private bookCodeFromInput = false;

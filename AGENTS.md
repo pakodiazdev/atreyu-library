@@ -188,6 +188,37 @@ features/<name>/    ← Componentes de negocio que consumen los anteriores
 
 **Regla**: si un componente usa los mismos estilos o estructura en dos lugares distintos → extraer a `shared/`.
 
+### Notificaciones al usuario (obligatorio)
+
+**Toda acción mutante iniciada por el usuario debe emitir un toast** al completarse. La notificación es la confirmación explícita de que el sistema procesó la acción.
+
+Usar `ToastService.show()` desde el store que ejecuta la mutación:
+
+```ts
+private readonly toast = inject(ToastService);
+
+// éxito
+this.toast.show('Libro añadido al catálogo');
+
+// éxito tras animación de cierre (drawer = 350ms → delay 400ms)
+this.toast.show('Libro eliminado del catálogo', 'success', 400);
+
+// error irrecuperable
+this.toast.show('No se pudo guardar el libro. Inténtalo de nuevo.', 'error');
+```
+
+| Variante | Cuándo |
+|----------|--------|
+| `success` | Mutación completada correctamente |
+| `error` | Error de servidor no recuperable (mostrar además el error inline en el form) |
+| `info` | Información neutral sin acción requerida |
+
+**No emitir toast en:** navegación, apertura/cierre de drawers y dialogs, cambios de filtro — son feedback visual inmediato.
+
+Ver documentación completa en [`docs/frontend/components/ui-toast.md`](docs/frontend/components/ui-toast.md).
+
+---
+
 ### Documentación de componentes (obligatorio)
 
 **Todo componente creado o modificado en `shared/` debe tener su archivo de documentación en:**

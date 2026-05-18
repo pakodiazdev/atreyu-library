@@ -19,14 +19,15 @@ const MOCK_BOOK: BookDetail = {
 
 function makeStore(book: BookDetail | null = null): BookDetailStore {
   return {
-    code:      signal(''),
-    book:      signal(book),
-    isLoading: signal(false),
-    error:     signal(null),
-    notFound:  signal(false),
-    setCode:   vi.fn(),
-    goBack:    vi.fn(),
-    reload:    vi.fn(),
+    code:          signal(''),
+    book:          signal(book),
+    isLoading:     signal(false),
+    error:         signal(null),
+    notFound:      signal(false),
+    setCode:       vi.fn(),
+    goBack:        vi.fn(),
+    reload:        vi.fn(),
+    requestDelete: vi.fn(),
   } as unknown as BookDetailStore;
 }
 
@@ -169,14 +170,14 @@ describe('BookDetailComponent', () => {
       expect(drawer.openEdit).toHaveBeenCalledWith(MOCK_BOOK.code);
     });
 
-    it('emite deleteClicked al hacer click en el botón eliminar', () => {
-      const { fixture, component } = configureWithBook(MOCK_BOOK);
-      const spy = vi.spyOn(component.deleteClicked, 'emit');
+    it('llama a store.requestDelete() al hacer click en el botón eliminar', () => {
+      const { fixture } = configureWithBook(MOCK_BOOK);
+      const s = TestBed.inject(BookDetailStore);
 
       fixture.debugElement.query(By.css('[data-cy="book-delete-btn"]'))
         .triggerEventHandler('click', null);
 
-      expect(spy).toHaveBeenCalledOnce();
+      expect(s.requestDelete).toHaveBeenCalledOnce();
     });
 
     it('no renderiza los botones cuando no hay libro cargado', () => {

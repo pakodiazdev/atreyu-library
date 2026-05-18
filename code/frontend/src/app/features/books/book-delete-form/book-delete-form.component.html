@@ -1,0 +1,69 @@
+<form (ngSubmit)="submit()">
+<!-- Advertencia -->
+<div class="flex gap-3 mb-5">
+  <div class="flex-shrink-0 w-8 h-8 rounded-full bg-oxido/10 flex items-center justify-center">
+    <span class="font-ui text-oxido text-sm font-bold leading-none">!</span>
+  </div>
+  <div>
+    <p class="font-ui text-sm text-tinta font-medium">Esta acción no se puede deshacer.</p>
+    <p class="font-ui text-sm text-tinta-suave mt-0.5">
+      El libro será eliminado permanentemente del catálogo.
+    </p>
+  </div>
+</div>
+
+<!-- Instrucción de confirmación -->
+<div class="space-y-3 mb-6">
+  <p class="font-ui text-sm text-tinta">
+    Escribe el identificador del libro para confirmar:
+  </p>
+
+  <div class="px-3 py-1.5 bg-papel-claro border border-dashed border-tinta/40 rounded-lg inline-block">
+    <span class="font-code text-lg text-tinta" data-cy="expected-code">{{ store.bookCode() }}</span>
+  </div>
+
+  <div class="space-y-1">
+    <input
+      type="text"
+      [value]="confirmCode()"
+      (input)="confirmCode.set($any($event.target).value)"
+      placeholder="Escribe el código aquí"
+      autocomplete="off"
+      data-cy="field-confirm-code"
+      [class]="inputClass()"
+    />
+    @if (store.codeError(); as err) {
+      <p class="font-ui text-xs text-oxido" data-cy="error-confirm-code">{{ err }}</p>
+    }
+  </div>
+</div>
+
+<!-- Error general de servidor -->
+@if (store.submitError(); as err) {
+  <div class="border border-oxido/40 bg-oxido/5 rounded-lg px-4 py-3 mb-4" data-cy="submit-error">
+    <p class="font-ui text-sm text-oxido">{{ err }}</p>
+  </div>
+}
+
+<!-- Acciones -->
+<div class="flex justify-end gap-3">
+  <button
+    type="button"
+    uiBtn
+    variant="outline"
+    (click)="store.cancel()"
+    data-cy="btn-cancel"
+  >
+    Cancelar
+  </button>
+  <button
+    type="submit"
+    uiBtn
+    variant="destructive"
+    [disabled]="store.isSubmitting()"
+    data-cy="btn-confirm-delete"
+  >
+    {{ store.isSubmitting() ? 'Eliminando…' : 'Eliminar libro' }}
+  </button>
+</div>
+</form>

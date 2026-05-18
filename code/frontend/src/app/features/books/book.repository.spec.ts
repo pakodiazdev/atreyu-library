@@ -133,6 +133,38 @@ describe('BookRepository', () => {
     });
   });
 
+  describe('delete()', () => {
+    it('calls DELETE /books/:ulid', () => {
+      repo.delete('01JTEST00000000000000001').subscribe();
+
+      const req = httpMock.expectOne('/books/01JTEST00000000000000001');
+      expect(req.request.method).toBe('DELETE');
+      req.flush(null);
+    });
+
+    it('completes on 204', () => {
+      let completed = false;
+      repo.delete('01JTEST00000000000000001').subscribe({
+        complete: () => { completed = true; },
+      });
+
+      httpMock.expectOne('/books/01JTEST00000000000000001').flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(completed).toBe(true);
+    });
+
+    it('propagates HTTP errors', () => {
+      let errorStatus: number | undefined;
+      repo.delete('01JTEST00000000000000001').subscribe({
+        error: (e) => (errorStatus = e.status),
+      });
+
+      httpMock.expectOne('/books/01JTEST00000000000000001').flush(null, { status: 404, statusText: 'Not Found' });
+
+      expect(errorStatus).toBe(404);
+    });
+  });
+
   describe('create()', () => {
     const PAYLOAD: BookCreatePayload = {
       title: 'El Nombre del Viento',
