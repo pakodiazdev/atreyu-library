@@ -11,9 +11,13 @@ import {
 } from './core/interceptors';
 import { environment } from '../environments/environment';
 
+export function buildSentryProviders(dsn: string) {
+  return dsn ? [{ provide: ErrorHandler, useValue: Sentry.createErrorHandler() }] : [];
+}
+
 export const appConfig: ApplicationConfig = {
   providers: [
-    ...(environment.sentryDsn ? [{ provide: ErrorHandler, useValue: Sentry.createErrorHandler() }] : []),
+    ...buildSentryProviders(environment.sentryDsn),
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(
       withFetch(),
