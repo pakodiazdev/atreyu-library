@@ -1,0 +1,17 @@
+<div
+  class="fixed bottom-6 left-6 z-[70] flex flex-col gap-2 items-start pointer-events-none"
+  aria-live="polite"
+  aria-label="Notificaciones"
+>
+  @for (toast of service.toasts(); track toast.id) {
+    <div [class]="panelClass(toast.variant)" style="pointer-events:auto" data-cy="toast">
+      <span [class]="iconClass(toast.variant)" aria-hidden="true">{{ icon(toast.variant) }}</span>
+      <p class="font-ui text-sm text-tinta flex-1 leading-snug">{{ toast.message }}</p>
+      <button
+        class="font-ui text-sm text-tinta-muted hover:text-tinta transition-colors leading-none"
+        (click)="service.dismiss(toast.id)"
+        aria-label="Cerrar notificación"
+      >✕</button>
+    </div>
+  }
+</div>

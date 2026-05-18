@@ -5,6 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BookDetailStore } from './book-detail.store';
 import { BookRepository } from '../book.repository';
+import { DialogService } from '../../../shared/ui/dialog.service';
 import { BookDetail } from '../book.model';
 
 const MOCK_DETAIL: BookDetail = {
@@ -22,6 +23,7 @@ describe('BookDetailStore', () => {
   let store: BookDetailStore;
   const mockRepo   = { getByCode: vi.fn().mockReturnValue(EMPTY) };
   const mockRouter = { navigate: vi.fn() };
+  const mockDialog = { openBookDelete: vi.fn() };
 
   function setup(getByCode = vi.fn().mockReturnValue(EMPTY)) {
     mockRepo.getByCode = getByCode;
@@ -31,6 +33,7 @@ describe('BookDetailStore', () => {
         BookDetailStore,
         { provide: BookRepository, useValue: mockRepo },
         { provide: Router,         useValue: mockRouter },
+        { provide: DialogService,  useValue: mockDialog },
       ],
     });
     store = TestBed.inject(BookDetailStore);
@@ -92,5 +95,32 @@ describe('BookDetailStore', () => {
   it('goBack navigates to /catalogo', () => {
     store.goBack();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/catalogo']);
+  });
+
+  // ── requestDelete() ────────────────────────────────────────────────────────
+
+  describe('requestDelete()', () => {
+    it('does nothing when book is null', () => {
+      store.requestDelete();
+      expect(mockDialog.openBookDelete).not.toHaveBeenCalled();
+    });
+
+    it('opens the delete dialog with book code and ulid when book is loaded', async () => {
+      vi.useFakeTimers();
+      setup(vi.fn().mockReturnValue(of(MOCK_DETAIL)));
+
+      TestBed.runInInjectionContext(() => store.setCode('A01'));
+      vi.runAllTimers();
+      await Promise.resolve();
+      TestBed.flushEffects();
+      vi.useRealTimers();
+
+      store.requestDelete();
+
+      expect(mockDialog.openBookDelete).toHaveBeenCalledWith(
+        MOCK_DETAIL.code,
+        MOCK_DETAIL.ulid,
+      );
+    });
   });
 });

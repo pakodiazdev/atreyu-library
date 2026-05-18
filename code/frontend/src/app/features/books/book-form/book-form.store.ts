@@ -5,12 +5,14 @@ import { Router } from '@angular/router';
 import { BookRepository } from '../book.repository';
 import { BookCreatePayload, BookUpdatePayload, BookDetail } from '../book.model';
 import { DrawerService } from '../../../shared/ui/drawer.service';
+import { ToastService } from '../../../shared/ui/toast.service';
 
 @Injectable()
 export class BookFormStore {
   private readonly repo   = inject(BookRepository);
   private readonly drawer = inject(DrawerService);
   private readonly router = inject(Router);
+  private readonly toast  = inject(ToastService);
 
   readonly isSubmitting = signal(false);
   readonly fieldErrors  = signal<Record<string, string>>({});
@@ -57,6 +59,7 @@ export class BookFormStore {
     this.repo.create(payload).subscribe({
       next: () => {
         this.isSubmitting.set(false);
+        this.toast.show('Libro añadido al catálogo');
         this.drawer.notifyBookCreated();
         this.router.navigate(['/catalogo']);
       },
@@ -65,7 +68,9 @@ export class BookFormStore {
         if (err.status === 422 && err.error?.errors) {
           this.fieldErrors.set(err.error.errors as Record<string, string>);
         } else {
-          this.submitError.set('No se pudo guardar el libro. Inténtalo de nuevo.');
+          const msg = 'No se pudo guardar el libro. Inténtalo de nuevo.';
+          this.submitError.set(msg);
+          this.toast.show(msg, 'error');
         }
       },
     });
@@ -85,6 +90,7 @@ export class BookFormStore {
     this.repo.update(ulid, payload).subscribe({
       next: () => {
         this.isSubmitting.set(false);
+        this.toast.show('Cambios guardados');
         this.drawer.notifyBookUpdated();
       },
       error: (err: HttpErrorResponse) => {
@@ -92,7 +98,9 @@ export class BookFormStore {
         if (err.status === 422 && err.error?.errors) {
           this.fieldErrors.set(err.error.errors as Record<string, string>);
         } else {
-          this.submitError.set('No se pudo guardar los cambios. Inténtalo de nuevo.');
+          const msg = 'No se pudo guardar los cambios. Inténtalo de nuevo.';
+          this.submitError.set(msg);
+          this.toast.show(msg, 'error');
         }
       },
     });

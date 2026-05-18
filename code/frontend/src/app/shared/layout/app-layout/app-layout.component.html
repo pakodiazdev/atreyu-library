@@ -71,3 +71,18 @@
 
   </div>
 </ui-drawer>
+
+<!-- Toast global — feedback de acciones -->
+<ui-toast />
+
+<!-- Dialog global — para confirmaciones destructivas -->
+<ui-dialog
+  [isOpen]="dialog.isOpen()"
+  [title]="dialog.mode() === 'book-delete' ? 'Eliminar libro' : undefined"
+  (closed)="closeDialog()"
+  data-cy="global-dialog"
+>
+  @if (dialog.mode() === 'book-delete') {
+    <app-book-delete-form />
+  }
+</ui-dialog>

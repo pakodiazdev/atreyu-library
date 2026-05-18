@@ -5,11 +5,13 @@ import { Router } from '@angular/router';
 import { EMPTY } from 'rxjs';
 import { BookRepository } from '../book.repository';
 import { BookDetail } from '../book.model';
+import { DialogService } from '../../../shared/ui/dialog.service';
 
 @Injectable()
 export class BookDetailStore {
   private readonly repo   = inject(BookRepository);
   private readonly router = inject(Router);
+  private readonly dialog = inject(DialogService);
 
   readonly code = signal('');
 
@@ -34,6 +36,12 @@ export class BookDetailStore {
 
   reload(): void {
     this.resource.reload();
+  }
+
+  requestDelete(): void {
+    const book = this.book();
+    if (!book) return;
+    this.dialog.openBookDelete(book.code, book.ulid);
   }
 
   goBack(): void {

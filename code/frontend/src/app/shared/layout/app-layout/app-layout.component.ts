@@ -4,9 +4,13 @@ import { filter } from 'rxjs';
 import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
 import { AppHeaderComponent } from '../app-header/app-header.component';
 import { UiDrawerComponent } from '../../ui/ui-drawer/ui-drawer.component';
+import { UiDialogComponent } from '../../ui/ui-dialog/ui-dialog.component';
+import { UiToastComponent }  from '../../ui/ui-toast/ui-toast.component';
 import { DrawerService } from '../../ui/drawer.service';
+import { DialogService } from '../../ui/dialog.service';
 import { BookDetailComponent } from '../../../features/books/book-detail/book-detail.component';
 import { BookFormComponent } from '../../../features/books/book-form/book-form.component';
+import { BookDeleteFormComponent } from '../../../features/books/book-delete-form/book-delete-form.component';
 
 @Component({
   standalone: true,
@@ -16,14 +20,18 @@ import { BookFormComponent } from '../../../features/books/book-form/book-form.c
     AppSidebarComponent,
     AppHeaderComponent,
     UiDrawerComponent,
+    UiDialogComponent,
+    UiToastComponent,
     BookDetailComponent,
     BookFormComponent,
+    BookDeleteFormComponent,
   ],
   templateUrl: './app-layout.component.html',
   styleUrl: './app-layout.component.scss',
 })
 export class AppLayoutComponent implements OnInit {
   protected readonly drawer  = inject(DrawerService);
+  protected readonly dialog  = inject(DialogService);
   private  readonly router   = inject(Router);
   readonly sidebarOpen = signal(false);
 
@@ -79,8 +87,13 @@ export class AppLayoutComponent implements OnInit {
     this.drawer.close();
   }
 
+  closeDialog(): void {
+    this.dialog.close();
+  }
+
   @HostListener('document:keydown.escape')
   onEscape(): void {
+    if (this.dialog.isOpen()) return; // UiDialogComponent lo maneja y emite (closed)
     if (this.drawer.isOpen()) {
       this.closeDrawer();
     } else {

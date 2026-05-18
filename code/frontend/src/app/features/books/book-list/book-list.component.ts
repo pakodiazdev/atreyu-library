@@ -12,6 +12,7 @@ import {
   UiTableCellDirective,
 } from '../../../shared/ui';
 import { DrawerService } from '../../../shared/ui/drawer.service';
+import { DialogService } from '../../../shared/ui/dialog.service';
 import { toBookUrl, extractCodeFromSlug } from '../../../shared/utils/book-url.util';
 import { Book } from '../book.model';
 
@@ -33,15 +34,16 @@ import { Book } from '../book.model';
 export class BookListComponent implements OnInit {
   protected readonly store  = inject(BookListStore);
   protected readonly drawer = inject(DrawerService);
+  private  readonly dialog  = inject(DialogService);
   private  readonly location = inject(Location);
   private  readonly route    = inject(ActivatedRoute);
 
   constructor() {
     const initialCreated = this.drawer.bookCreated();
+    const initialDeleted = this.dialog.bookDeleted();
     effect(() => {
-      if (this.drawer.bookCreated() > initialCreated) {
-        this.store.reload();
-      }
+      if (this.drawer.bookCreated() > initialCreated) this.store.reload();
+      if (this.dialog.bookDeleted() > initialDeleted)  this.store.reload();
     });
 
     const initialUpdated = this.drawer.updateCount();

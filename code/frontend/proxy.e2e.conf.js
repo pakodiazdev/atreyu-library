@@ -9,6 +9,9 @@ module.exports = {
   '/api': {
     target: `http://${backendHost}:${backendPort}`,
     changeOrigin: true,
+    // Tomcat 10 rechaza hostnames con guiones bajos (p. ej. backend_e2e).
+    // Se sobreescribe la cabecera Host con un valor válido para que pase la validación.
+    headers: { host: `localhost:${backendPort}` },
     logLevel: 'info',
   },
 };

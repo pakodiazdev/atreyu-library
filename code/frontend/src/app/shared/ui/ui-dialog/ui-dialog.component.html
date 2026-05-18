@@ -1,0 +1,50 @@
+@if (isVisible()) {
+  <div
+    class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="title() ?? 'Diálogo'"
+    data-cy="dialog"
+  >
+    <!-- Fondo oscuro -->
+    <div
+      class="absolute inset-0 bg-tinta/40 transition-opacity"
+      [style.transition-duration.ms]="dialogTransitionMs"
+      [class.opacity-0]="!isAnimatingIn()"
+      [class.opacity-100]="isAnimatingIn()"
+      (click)="close()"
+      data-cy="dialog-backdrop"
+    ></div>
+
+    <!-- Panel del dialog -->
+    <div
+      class="relative bg-papel rounded-xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden transition-all"
+      [style.transition-duration.ms]="dialogTransitionMs"
+      [class.opacity-0]="!isAnimatingIn()"
+      [class.scale-95]="!isAnimatingIn()"
+      [class.opacity-100]="isAnimatingIn()"
+      [class.scale-100]="isAnimatingIn()"
+      data-cy="dialog-panel"
+    >
+      <!-- Cabecera -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-tinta/15 shrink-0">
+        @if (title()) {
+          <h2 class="font-editorial text-xl text-tinta truncate">{{ title() }}</h2>
+        } @else {
+          <span></span>
+        }
+        <button
+          class="ml-4 font-ui text-lg text-tinta-suave hover:text-tinta transition-colors p-1 leading-none"
+          (click)="close()"
+          aria-label="Cerrar"
+          data-cy="dialog-close-btn"
+        >✕</button>
+      </div>
+
+      <!-- Contenido -->
+      <div class="px-6 py-5" data-cy="dialog-body">
+        <ng-content />
+      </div>
+    </div>
+  </div>
+}

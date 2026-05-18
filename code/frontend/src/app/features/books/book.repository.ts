@@ -27,4 +27,8 @@ export class BookRepository {
   update(ulid: string, payload: BookUpdatePayload): Observable<BookDetail> {
     return this.http.put<BookDetail>(`/books/${ulid}`, payload);
   }
+
+  delete(ulid: string): Observable<void> {
+    return this.http.delete<void>(`/books/${ulid}`);
+  }
 }
