@@ -20,6 +20,46 @@ Integrar **Sentry** en el backend (Spring Boot) y el frontend (Angular) como pla
 | Datadog APM | Overkill para un proyecto de demo; costo elevado |
 | Solo logs en Cloud Logging | Requiere revisión manual; sin agrupación ni alertas automáticas |
 
+## Configuración inicial (one-time setup)
+
+Pasos para activar Sentry en un fork o deploy nuevo del proyecto.
+
+### 1. Crear proyectos en Sentry
+
+En [sentry.io](https://sentry.io), crear **dos proyectos**:
+
+| Proyecto | Platform | Slug sugerido |
+|----------|----------|---------------|
+| Backend  | Java — Spring Boot | `backend-atreyu-library` |
+| Frontend | JavaScript — Angular | `frontend-atreyu-library` |
+
+Al crear cada proyecto, Sentry genera un **DSN** (URL tipo `https://abc@o123.ingest.sentry.io/456`).
+
+### 2. Agregar GitHub Secrets
+
+En el repositorio → **Settings → Secrets and variables → Actions**, agregar:
+
+| Secret | Valor |
+|--------|-------|
+| `SENTRY_DSN_BACKEND` | DSN del proyecto Spring Boot |
+| `SENTRY_DSN_FRONTEND` | DSN del proyecto Angular |
+
+Estos secrets son consumidos por `cd.yml` (prod) y `qa-deploy.yml` (QA) automáticamente — no se requiere ningún cambio en el código.
+
+### 3. Verificar
+
+Tras el primer deploy con los secrets configurados, lanzar un error de prueba:
+
+- **Backend**: lanzar una excepción no controlada en cualquier endpoint.
+- **Frontend**: ejecutar `Sentry.captureException(new Error('test'))` desde la consola del navegador.
+
+El evento debe aparecer en el dashboard de Sentry con el ambiente correcto (`qa` o `prod`).
+
+> Los ambientes `qa` y `prod` comparten los mismos DSNs — Sentry los diferencia
+> por el campo `environment` que el SDK envía en cada evento.
+
+---
+
 ## Consecuencias
 
 - Los errores de prod y QA aparecen agrupados en el dashboard de Sentry con ambiente diferenciado.
