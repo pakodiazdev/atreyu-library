@@ -24,10 +24,7 @@ export const routes: Routes = [
   },
   {
     path: 'libros/:authorSlug/:bookSlug/editar',
-    loadComponent: () =>
-      import('./features/books/book-form/book-form.component').then(
-        (m) => m.BookFormComponent
-      ),
+    redirectTo: '/catalogo',
   },
   {
     path: 'libros/:authorSlug/:bookSlug',

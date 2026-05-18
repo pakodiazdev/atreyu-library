@@ -1,130 +1,168 @@
 <!-- Descripción -->
 <p class="font-ui text-sm text-tinta-suave mb-6">
-  Completa los datos para registrar el libro en el catálogo.
+  @if (store.isEditMode()) {
+    Modifica los datos del libro en el catálogo.
+  } @else {
+    Completa los datos para registrar el libro en el catálogo.
+  }
 </p>
 
-<!-- Formulario -->
-<form
-  [formGroup]="form"
-  (ngSubmit)="submit()"
-  class="space-y-6"
-  data-cy="book-create-form"
-  novalidate
->
-
-  <!-- Título -->
-  <div class="space-y-1">
-    <label class="font-ui text-sm text-tinta" for="field-title">
-      Título <span class="text-oxido">*</span>
-    </label>
-    <input
-      id="field-title"
-      type="text"
-      formControlName="title"
-      placeholder="Ej. Cien años de soledad"
-      data-cy="field-title"
-      [class]="inputClass('title')"
-    />
-    @if (fieldError('title'); as err) {
-      <p class="font-ui text-xs text-oxido" data-cy="error-title">{{ err }}</p>
+<!-- Skeleton de carga en modo edición -->
+@if (store.isLoadingBook()) {
+  <div class="space-y-6" data-cy="form-loading">
+    @for (_ of [1, 2, 3]; track _) {
+      <div class="space-y-1">
+        <div class="h-3 w-20 bg-tinta/8 rounded animate-pulse"></div>
+        <div class="h-9 w-full bg-tinta/8 rounded-lg animate-pulse"></div>
+      </div>
     }
   </div>
-
-  <!-- Autor -->
-  <div class="space-y-1">
-    <label class="font-ui text-sm text-tinta" for="field-author">
-      Autor <span class="text-oxido">*</span>
-    </label>
-    <input
-      id="field-author"
-      type="text"
-      formControlName="author"
-      placeholder="Ej. Gabriel García Márquez"
-      data-cy="field-author"
-      [class]="inputClass('author')"
-    />
-    @if (fieldError('author'); as err) {
-      <p class="font-ui text-xs text-oxido" data-cy="error-author">{{ err }}</p>
+} @else if (store.isEditMode() && !store.editedBook()) {
+  <!-- Error al cargar el libro en modo edición -->
+  <div class="flex flex-col items-center justify-center py-16 text-center" data-cy="form-load-error">
+    <span class="font-annotation text-4xl text-oxido">✗</span>
+    @if (store.isBookNotFound()) {
+      <p class="font-ui text-[15px] text-tinta mt-3" data-cy="form-load-not-found">Libro no encontrado.</p>
+      <p class="font-ui text-sm text-tinta-suave mt-1">Es posible que haya sido eliminado.</p>
+    } @else {
+      <p class="font-ui text-[15px] text-tinta mt-3">No se pudo cargar el libro.</p>
+      <p class="font-ui text-sm text-tinta-suave mt-1">Verifica que el servidor esté en línea e intenta de nuevo.</p>
     }
+    <button type="button" uiBtn variant="outline" size="md" (click)="store.cancel()" class="mt-4">
+      Volver al detalle
+    </button>
   </div>
+} @else {
 
-  <!-- Género y Año — fila -->
-  <div class="flex gap-4">
+  <!-- Formulario -->
+  <form
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    class="space-y-6"
+    [attr.data-cy]="store.isEditMode() ? 'book-edit-form' : 'book-create-form'"
+    novalidate
+  >
 
-    <!-- Género -->
-    <div class="flex-1 space-y-1">
-      <label class="font-ui text-sm text-tinta" for="field-genre">Género</label>
+    <!-- Título -->
+    <div class="space-y-1">
+      <label class="font-ui text-sm text-tinta" for="field-title">
+        Título <span class="text-oxido">*</span>
+      </label>
       <input
-        id="field-genre"
+        id="field-title"
         type="text"
-        formControlName="genre"
-        placeholder="Ej. Realismo mágico"
-        data-cy="field-genre"
-        [class]="inputClass('genre')"
+        formControlName="title"
+        placeholder="Ej. Cien años de soledad"
+        data-cy="field-title"
+        [class]="inputClass('title')"
       />
-      @if (fieldError('genre'); as err) {
-        <p class="font-ui text-xs text-oxido" data-cy="error-genre">{{ err }}</p>
+      @if (fieldError('title'); as err) {
+        <p class="font-ui text-xs text-oxido" data-cy="error-title">{{ err }}</p>
       }
     </div>
 
-    <!-- Año -->
-    <div class="w-32 space-y-1">
-      <label class="font-ui text-sm text-tinta" for="field-year">Año</label>
+    <!-- Autor -->
+    <div class="space-y-1">
+      <label class="font-ui text-sm text-tinta" for="field-author">
+        Autor <span class="text-oxido">*</span>
+      </label>
       <input
-        id="field-year"
-        type="number"
-        formControlName="publicationYear"
-        placeholder="Ej. 1967"
-        data-cy="field-year"
-        [class]="inputClass('publicationYear')"
+        id="field-author"
+        type="text"
+        formControlName="author"
+        placeholder="Ej. Gabriel García Márquez"
+        data-cy="field-author"
+        [class]="inputClass('author')"
       />
-      @if (fieldError('publicationYear'); as err) {
-        <p class="font-ui text-xs text-oxido" data-cy="error-year">{{ err }}</p>
+      @if (fieldError('author'); as err) {
+        <p class="font-ui text-xs text-oxido" data-cy="error-author">{{ err }}</p>
       }
     </div>
 
-  </div>
+    <!-- Género y Año — fila -->
+    <div class="flex gap-4">
 
-  <!-- Sinopsis -->
-  <div class="space-y-1">
-    <label class="font-ui text-sm text-tinta" for="field-synopsis">Sinopsis</label>
-    <textarea
-      id="field-synopsis"
-      formControlName="synopsis"
-      placeholder="Breve descripción del libro…"
-      rows="4"
-      data-cy="field-synopsis"
-      class="block w-full font-ui text-[15px] text-tinta bg-papel-claro placeholder:text-tinta-muted focus:outline-none transition-colors border-[1.5px] border-tinta-suave/70 focus:border-tinta rounded-lg px-3 py-2 resize-none"
-    ></textarea>
-  </div>
+      <!-- Género -->
+      <div class="flex-1 space-y-1">
+        <label class="font-ui text-sm text-tinta" for="field-genre">Género</label>
+        <input
+          id="field-genre"
+          type="text"
+          formControlName="genre"
+          placeholder="Ej. Realismo mágico"
+          data-cy="field-genre"
+          [class]="inputClass('genre')"
+        />
+        @if (fieldError('genre'); as err) {
+          <p class="font-ui text-xs text-oxido" data-cy="error-genre">{{ err }}</p>
+        }
+      </div>
 
-  <!-- Error general de servidor -->
-  @if (store.submitError(); as err) {
-    <div class="border border-oxido/40 bg-oxido/5 rounded-lg px-4 py-3" data-cy="submit-error">
-      <p class="font-ui text-sm text-oxido">{{ err }}</p>
+      <!-- Año -->
+      <div class="w-32 space-y-1">
+        <label class="font-ui text-sm text-tinta" for="field-year">Año</label>
+        <input
+          id="field-year"
+          type="number"
+          formControlName="publicationYear"
+          placeholder="Ej. 1967"
+          data-cy="field-year"
+          [class]="inputClass('publicationYear')"
+        />
+        @if (fieldError('publicationYear'); as err) {
+          <p class="font-ui text-xs text-oxido" data-cy="error-year">{{ err }}</p>
+        }
+      </div>
+
     </div>
-  }
 
-  <!-- Acciones -->
-  <div class="flex gap-3 pt-2">
-    <button
-      type="submit"
-      uiBtn
-      variant="primary"
-      [disabled]="store.isSubmitting()"
-      data-cy="btn-submit"
-    >
-      {{ store.isSubmitting() ? 'Guardando…' : 'Guardar libro' }}
-    </button>
-    <button
-      type="button"
-      uiBtn
-      variant="outline"
-      (click)="store.cancel()"
-      data-cy="btn-cancel"
-    >
-      Cancelar
-    </button>
-  </div>
+    <!-- Sinopsis -->
+    <div class="space-y-1">
+      <label class="font-ui text-sm text-tinta" for="field-synopsis">Sinopsis</label>
+      <textarea
+        id="field-synopsis"
+        formControlName="synopsis"
+        placeholder="Breve descripción del libro…"
+        rows="4"
+        data-cy="field-synopsis"
+        class="block w-full font-ui text-[15px] text-tinta bg-papel-claro placeholder:text-tinta-muted focus:outline-none transition-colors border-[1.5px] border-tinta-suave/70 focus:border-tinta rounded-lg px-3 py-2 resize-none"
+      ></textarea>
+    </div>
 
-</form>
+    <!-- Error general de servidor -->
+    @if (store.submitError(); as err) {
+      <div class="border border-oxido/40 bg-oxido/5 rounded-lg px-4 py-3" data-cy="submit-error">
+        <p class="font-ui text-sm text-oxido">{{ err }}</p>
+      </div>
+    }
+
+    <!-- Acciones -->
+    <div class="flex gap-3 pt-2">
+      <button
+        type="submit"
+        uiBtn
+        variant="primary"
+        [disabled]="store.isSubmitting()"
+        data-cy="btn-submit"
+      >
+        @if (store.isSubmitting()) {
+          Guardando…
+        } @else if (store.isEditMode()) {
+          Guardar cambios
+        } @else {
+          Guardar libro
+        }
+      </button>
+      <button
+        type="button"
+        uiBtn
+        variant="outline"
+        (click)="store.cancel()"
+        data-cy="btn-cancel"
+      >
+        Cancelar
+      </button>
+    </div>
+
+  </form>
+}

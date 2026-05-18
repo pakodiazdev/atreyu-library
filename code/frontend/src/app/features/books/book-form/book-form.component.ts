@@ -1,6 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, Input, effect, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import { UiBtnDirective } from '../../../shared/ui';
 import { BookFormStore } from './book-form.store';
 
@@ -14,9 +13,6 @@ import { BookFormStore } from './book-form.store';
 export class BookFormComponent {
   protected readonly store = inject(BookFormStore);
   private  readonly fb    = inject(FormBuilder);
-  private  readonly route = inject(ActivatedRoute);
-
-  protected readonly isEditMode = !!this.route.snapshot.paramMap.get('bookSlug');
 
   readonly form = this.fb.group({
     title:           ['', [Validators.required, Validators.maxLength(255)]],
@@ -26,8 +22,26 @@ export class BookFormComponent {
     synopsis:        [''],
   });
 
+  @Input() set bookCode(value: string | null | undefined) {
+    this.store.setBookCode(value ?? null);
+  }
+
+  constructor() {
+    effect(() => {
+      const book = this.store.editedBook();
+      if (book) {
+        this.form.patchValue({
+          title:           book.title,
+          author:          book.author,
+          genre:           book.genre ?? '',
+          publicationYear: book.publicationYear,
+          synopsis:        book.synopsis ?? '',
+        });
+      }
+    });
+  }
+
   protected submit(): void {
-    if (this.isEditMode) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

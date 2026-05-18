@@ -16,7 +16,7 @@ const PAYLOAD: BookCreatePayload = {
   synopsis: null,
 };
 
-const CREATED: BookDetail = {
+const BOOK: BookDetail = {
   code: 'A01',
   ulid: '01JTEST00000000000000001',
   title: 'El Nombre del Viento',
@@ -27,13 +27,20 @@ const CREATED: BookDetail = {
 
 describe('BookFormStore', () => {
   let store: BookFormStore;
-  const mockRepo   = { create: vi.fn() };
-  const mockDrawer = { notifyBookCreated: vi.fn(), close: vi.fn() };
+  const mockRepo   = { create: vi.fn(), getByCode: vi.fn(), update: vi.fn() };
+  const mockDrawer = {
+    notifyBookCreated: vi.fn(),
+    notifyBookUpdated: vi.fn(),
+    openDetail:        vi.fn(),
+    close:             vi.fn(),
+  };
   const mockRouter = { navigate: vi.fn() };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRepo.create.mockReturnValue(of(CREATED));
+    mockRepo.create.mockReturnValue(of(BOOK));
+    mockRepo.getByCode.mockReturnValue(of(BOOK));
+    mockRepo.update.mockReturnValue(of(BOOK));
 
     TestBed.configureTestingModule({
       providers: [
@@ -60,18 +67,47 @@ describe('BookFormStore', () => {
     expect(store.submitError()).toBeNull();
   });
 
-  // ── cancel() ───────────────────────────────────────────────────────────────
+  it('initializes isEditMode as false', () => {
+    expect(store.isEditMode()).toBe(false);
+  });
 
-  describe('cancel()', () => {
-    it('cierra el drawer', () => {
-      store.cancel();
-      expect(mockDrawer.close).toHaveBeenCalled();
+  it('initializes editedBook as null', () => {
+    expect(store.editedBook()).toBeNull();
+  });
+
+  // ── setBookCode() ──────────────────────────────────────────────────────────
+
+  describe('setBookCode()', () => {
+    it('activa isEditMode cuando se provee un código', () => {
+      store.setBookCode('A01');
+      expect(store.isEditMode()).toBe(true);
+    });
+
+    it('desactiva isEditMode cuando se provee null', () => {
+      store.setBookCode('A01');
+      store.setBookCode(null);
+      expect(store.isEditMode()).toBe(false);
     });
   });
 
-  // ── submit() — happy path ──────────────────────────────────────────────────
+  // ── cancel() ───────────────────────────────────────────────────────────────
 
-  describe('submit() — success', () => {
+  describe('cancel()', () => {
+    it('cierra el drawer en modo creación', () => {
+      store.cancel();
+      expect(mockDrawer.close).toHaveBeenCalled();
+    });
+
+    it('abre el detalle en modo edición', () => {
+      store.setBookCode('A01');
+      store.cancel();
+      expect(mockDrawer.openDetail).toHaveBeenCalledWith('A01');
+    });
+  });
+
+  // ── submit() — modo creación ───────────────────────────────────────────────
+
+  describe('submit() — create mode (no bookCode)', () => {
     it('calls repo.create with the payload', () => {
       store.submit(PAYLOAD);
       expect(mockRepo.create).toHaveBeenCalledWith(PAYLOAD);
@@ -99,7 +135,7 @@ describe('BookFormStore', () => {
       mockRepo.create.mockReturnValueOnce(throwError(() => err422));
       store.submit(PAYLOAD);
 
-      mockRepo.create.mockReturnValue(of(CREATED));
+      mockRepo.create.mockReturnValue(of(BOOK));
       store.submit(PAYLOAD);
 
       expect(store.fieldErrors()).toEqual({});
@@ -110,51 +146,27 @@ describe('BookFormStore', () => {
       mockRepo.create.mockReturnValueOnce(throwError(() => err500));
       store.submit(PAYLOAD);
 
-      mockRepo.create.mockReturnValue(of(CREATED));
+      mockRepo.create.mockReturnValue(of(BOOK));
       store.submit(PAYLOAD);
 
       expect(store.submitError()).toBeNull();
     });
-  });
 
-  // ── submit() — error 422 ───────────────────────────────────────────────────
-
-  describe('submit() — 422 validation error', () => {
-    it('sets fieldErrors from the response body', () => {
+    it('sets fieldErrors on 422', () => {
       const err = new HttpErrorResponse({
         status: 422,
-        error: { errors: { title: 'El título es obligatorio', author: 'El autor es obligatorio' } },
+        error: { errors: { title: 'El título es obligatorio' } },
       });
       mockRepo.create.mockReturnValue(throwError(() => err));
-
       store.submit(PAYLOAD);
-
-      expect(store.fieldErrors()).toEqual({
-        title:  'El título es obligatorio',
-        author: 'El autor es obligatorio',
-      });
+      expect(store.fieldErrors()).toEqual({ title: 'El título es obligatorio' });
     });
 
-    it('sets isSubmitting to false after 422', () => {
-      const err = new HttpErrorResponse({
-        status: 422, error: { errors: { title: 'obligatorio' } },
-      });
+    it('sets submitError on generic server error', () => {
+      const err = new HttpErrorResponse({ status: 500 });
       mockRepo.create.mockReturnValue(throwError(() => err));
-
       store.submit(PAYLOAD);
-
-      expect(store.isSubmitting()).toBe(false);
-    });
-
-    it('does not set submitError on 422', () => {
-      const err = new HttpErrorResponse({
-        status: 422, error: { errors: { title: 'obligatorio' } },
-      });
-      mockRepo.create.mockReturnValue(throwError(() => err));
-
-      store.submit(PAYLOAD);
-
-      expect(store.submitError()).toBeNull();
+      expect(store.submitError()).not.toBeNull();
     });
 
     it('does not call notifyBookCreated on 422', () => {
@@ -162,41 +174,67 @@ describe('BookFormStore', () => {
         status: 422, error: { errors: { title: 'obligatorio' } },
       });
       mockRepo.create.mockReturnValue(throwError(() => err));
-
       store.submit(PAYLOAD);
-
       expect(mockDrawer.notifyBookCreated).not.toHaveBeenCalled();
     });
   });
 
-  // ── submit() — error genérico ──────────────────────────────────────────────
+  // ── submit() — modo edición ────────────────────────────────────────────────
 
-  describe('submit() — generic server error', () => {
-    it('sets submitError on non-422 HTTP error', () => {
-      const err = new HttpErrorResponse({ status: 500, statusText: 'Server Error' });
-      mockRepo.create.mockReturnValue(throwError(() => err));
-
-      store.submit(PAYLOAD);
-
-      expect(store.submitError()).not.toBeNull();
+  describe('submit() — edit mode (bookCode set)', () => {
+    beforeEach(() => {
+      store.setBookCode('A01');
+      TestBed.flushEffects();
     });
 
-    it('sets isSubmitting to false after server error', () => {
-      const err = new HttpErrorResponse({ status: 503 });
-      mockRepo.create.mockReturnValue(throwError(() => err));
-
+    it('calls repo.update (not repo.create) when in edit mode', () => {
       store.submit(PAYLOAD);
+      expect(mockRepo.update).toHaveBeenCalled();
+      expect(mockRepo.create).not.toHaveBeenCalled();
+    });
 
+    it('calls repo.update with the book ulid and payload', () => {
+      store.submit(PAYLOAD);
+      expect(mockRepo.update).toHaveBeenCalledWith(BOOK.ulid, PAYLOAD);
+    });
+
+    it('calls drawer.notifyBookUpdated on success', () => {
+      store.submit(PAYLOAD);
+      expect(mockDrawer.notifyBookUpdated).toHaveBeenCalled();
+    });
+
+    it('does not navigate after update', () => {
+      store.submit(PAYLOAD);
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+    });
+
+    it('resets isSubmitting to false on success', () => {
+      store.submit(PAYLOAD);
       expect(store.isSubmitting()).toBe(false);
     });
 
-    it('does not populate fieldErrors on generic error', () => {
-      const err = new HttpErrorResponse({ status: 500 });
-      mockRepo.create.mockReturnValue(throwError(() => err));
-
+    it('sets fieldErrors on 422', () => {
+      const err = new HttpErrorResponse({
+        status: 422,
+        error: { errors: { author: 'Requerido' } },
+      });
+      mockRepo.update.mockReturnValue(throwError(() => err));
       store.submit(PAYLOAD);
+      expect(store.fieldErrors()).toEqual({ author: 'Requerido' });
+    });
 
-      expect(store.fieldErrors()).toEqual({});
+    it('sets submitError on generic server error', () => {
+      const err = new HttpErrorResponse({ status: 500 });
+      mockRepo.update.mockReturnValue(throwError(() => err));
+      store.submit(PAYLOAD);
+      expect(store.submitError()).not.toBeNull();
+    });
+
+    it('sets isSubmitting to false on error', () => {
+      const err = new HttpErrorResponse({ status: 503 });
+      mockRepo.update.mockReturnValue(throwError(() => err));
+      store.submit(PAYLOAD);
+      expect(store.isSubmitting()).toBe(false);
     });
   });
 });

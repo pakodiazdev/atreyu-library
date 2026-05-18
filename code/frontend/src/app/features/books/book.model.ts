@@ -26,3 +26,5 @@ export interface BookCreatePayload {
   publicationYear: number | null;
   synopsis: string | null;
 }
+
+export type BookUpdatePayload = BookCreatePayload;
