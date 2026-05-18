@@ -34,8 +34,7 @@ describe('BookDeleteFormComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [BookDeleteFormComponent],
-      providers: [{ provide: BookDeleteFormStore, useValue: store }],
-    }).overrideComponent(BookDeleteFormComponent, { set: { providers: [] } });
+    }).overrideProvider(BookDeleteFormStore, { useValue: store });
 
     const fixture = TestBed.createComponent(BookDeleteFormComponent);
     fixture.detectChanges();
@@ -109,6 +108,32 @@ describe('BookDeleteFormComponent', () => {
       const fixture = configure();
       const errEl = fixture.debugElement.query(By.css('[data-cy="submit-error"]'));
       expect(errEl).toBeNull();
+    });
+
+    it('shows code error message when codeError is set', () => {
+      const fixture = configure();
+      (store.codeError as ReturnType<typeof signal<string | null>>).set('Código incorrecto');
+      fixture.detectChanges();
+      const errEl = fixture.debugElement.query(By.css('[data-cy="error-confirm-code"]'));
+      expect(errEl).not.toBeNull();
+      expect(errEl.nativeElement.textContent.trim()).toBe('Código incorrecto');
+    });
+
+    it('shows submit error when submitError is set', () => {
+      const fixture = configure();
+      (store.submitError as ReturnType<typeof signal<string | null>>).set('Error del servidor');
+      fixture.detectChanges();
+      const errEl = fixture.debugElement.query(By.css('[data-cy="submit-error"]'));
+      expect(errEl).not.toBeNull();
+      expect(errEl.nativeElement.textContent).toContain('Error del servidor');
+    });
+
+    it('shows Eliminando… when isSubmitting is true', () => {
+      const fixture = configure();
+      (store.isSubmitting as ReturnType<typeof signal<boolean>>).set(true);
+      fixture.detectChanges();
+      const btn = fixture.debugElement.query(By.css('[data-cy="btn-confirm-delete"]'));
+      expect(btn.nativeElement.textContent.trim()).toBe('Eliminando…');
     });
   });
 });

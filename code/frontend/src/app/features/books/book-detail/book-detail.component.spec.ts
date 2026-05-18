@@ -44,12 +44,11 @@ describe('BookDetailComponent', () => {
     TestBed.configureTestingModule({
       imports: [BookDetailComponent],
       providers: [
-        { provide: BookDetailStore, useValue: store },
         { provide: ActivatedRoute,   useValue: mockRoute },
         { provide: Router,           useValue: { navigate: vi.fn() } },
         { provide: DrawerService,    useValue: mockDrawer },
       ],
-    }).overrideComponent(BookDetailComponent, { set: { providers: [] } });
+    }).overrideProvider(BookDetailStore, { useValue: store });
 
     const fixture = TestBed.createComponent(BookDetailComponent);
     fixture.detectChanges();
@@ -147,12 +146,11 @@ describe('BookDetailComponent', () => {
       TestBed.configureTestingModule({
         imports: [BookDetailComponent],
         providers: [
-          { provide: BookDetailStore, useValue: s },
           { provide: ActivatedRoute,   useValue: mockRoute },
           { provide: Router,           useValue: { navigate: vi.fn() } },
           { provide: DrawerService,    useValue: drawer },
         ],
-      }).overrideComponent(BookDetailComponent, { set: { providers: [] } });
+      }).overrideProvider(BookDetailStore, { useValue: s });
 
       const fixture = TestBed.createComponent(BookDetailComponent);
       fixture.detectChanges();
@@ -269,6 +267,84 @@ describe('BookDetailComponent', () => {
       const component = configureAndCreate('');
       component.openEdit(MOCK_BOOK);
       expect(mockDrawer.openEdit).toHaveBeenCalledWith('A01');
+    });
+  });
+
+  // ── template states ────────────────────────────────────────────────────────
+
+  describe('template states', () => {
+    afterEach(() => TestBed.resetTestingModule());
+
+    function createWithState(state: Partial<{
+      isLoading: boolean;
+      notFound: boolean;
+      error: string | null;
+      book: BookDetail | null;
+    }> = {}) {
+      const s = {
+        code:          signal(''),
+        book:          signal(state.book ?? null),
+        isLoading:     signal(state.isLoading ?? false),
+        error:         signal(state.error ?? null),
+        notFound:      signal(state.notFound ?? false),
+        setCode:       vi.fn(),
+        goBack:        vi.fn(),
+        reload:        vi.fn(),
+        requestDelete: vi.fn(),
+      } as unknown as BookDetailStore;
+
+      const drawer = { openEdit: vi.fn(), updateCount: signal(0) };
+      const route  = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } };
+
+      TestBed.configureTestingModule({
+        imports: [BookDetailComponent],
+        providers: [
+          { provide: ActivatedRoute, useValue: route },
+          { provide: Router,         useValue: { navigate: vi.fn() } },
+          { provide: DrawerService,  useValue: drawer },
+        ],
+      }).overrideProvider(BookDetailStore, { useValue: s });
+
+      const fixture = TestBed.createComponent(BookDetailComponent);
+      fixture.detectChanges();
+      return fixture;
+    }
+
+    it('renders loading state', () => {
+      const f = createWithState({ isLoading: true });
+      expect(f.nativeElement.querySelector('[data-cy="loading-state"]')).toBeTruthy();
+    });
+
+    it('renders not-found state', () => {
+      const f = createWithState({ notFound: true });
+      expect(f.nativeElement.querySelector('[data-cy="not-found-state"]')).toBeTruthy();
+    });
+
+    it('renders error state', () => {
+      const f = createWithState({ error: 'Failed to load' });
+      expect(f.nativeElement.querySelector('[data-cy="error-state"]')).toBeTruthy();
+    });
+
+    it('renders book detail with synopsis and dates', () => {
+      const book: BookDetail = {
+        ...MOCK_BOOK,
+        synopsis: 'Una novela sobre el tiempo',
+        createdAt: '2026-01-15T10:00:00Z',
+        updatedAt: '2026-02-01T10:00:00Z',
+      };
+      const f = createWithState({ book });
+      expect(f.nativeElement.querySelector('[data-cy="book-detail"]')).toBeTruthy();
+      expect(f.nativeElement.querySelector('[data-cy="book-synopsis"]')).toBeTruthy();
+      expect(f.nativeElement.querySelector('[data-cy="book-created-at"]')).toBeTruthy();
+      expect(f.nativeElement.querySelector('[data-cy="book-updated-at"]')).toBeTruthy();
+    });
+
+    it('renders book without optional fields', () => {
+      const book: BookDetail = { ...MOCK_BOOK, genre: null, publicationYear: null };
+      const f = createWithState({ book });
+      expect(f.nativeElement.querySelector('[data-cy="book-detail"]')).toBeTruthy();
+      expect(f.nativeElement.querySelector('[data-cy="book-genre"]')).toBeNull();
+      expect(f.nativeElement.querySelector('[data-cy="book-year"]')).toBeNull();
     });
   });
 });

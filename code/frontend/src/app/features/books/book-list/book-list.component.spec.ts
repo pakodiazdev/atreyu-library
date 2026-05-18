@@ -6,6 +6,8 @@ import { vi } from 'vitest';
 import { BookListComponent } from './book-list.component';
 import { BookListStore } from './book-list.store';
 import { DrawerService } from '../../../shared/ui/drawer.service';
+import { DialogService } from '../../../shared/ui/dialog.service';
+import { Book } from '../book.model';
 
 function makeStore(): BookListStore {
   return {
@@ -148,6 +150,98 @@ describe('BookListComponent', () => {
       configureAndCreate(null);
       // Effect ya corrió en detectChanges() con bookCreated = 0 = initialCreated → sin reload
       expect(store.reload).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── template rendering ─────────────────────────────────────────────────────
+
+  describe('template rendering', () => {
+    afterEach(() => TestBed.resetTestingModule());
+
+    function createWithState(state: {
+      isLoading?: boolean;
+      error?: string | null;
+      books?: Book[];
+      hasActiveFilters?: boolean;
+    } = {}): ComponentFixture<BookListComponent> {
+      const s: BookListStore = {
+        filterTitle:      signal(''),
+        filterAuthor:     signal(''),
+        filterGenre:      signal(''),
+        hasActiveFilters: computed(() => state.hasActiveFilters ?? false),
+        books:            signal(state.books ?? []),
+        isLoading:        signal(state.isLoading ?? false),
+        error:            signal(state.error ?? null),
+        clearFilters:     vi.fn(),
+        reload:           vi.fn(),
+      } as unknown as BookListStore;
+
+      TestBed.configureTestingModule({
+        imports: [BookListComponent],
+        providers: [
+          { provide: DrawerService,  useValue: makeDrawer() },
+          { provide: DialogService,  useValue: { bookDeleted: signal(0) } },
+          { provide: Location,       useValue: { replaceState: vi.fn() } },
+          { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } } },
+        ],
+      }).overrideProvider(BookListStore, { useValue: s });
+
+      const f = TestBed.createComponent(BookListComponent);
+      f.detectChanges();
+      return f;
+    }
+
+    it('renders loading skeleton', () => {
+      const f = createWithState({ isLoading: true });
+      expect(f.nativeElement.querySelector('table')).toBeTruthy();
+      expect(f.nativeElement.querySelector('[data-cy="error-state"]')).toBeNull();
+    });
+
+    it('renders error state', () => {
+      const f = createWithState({ error: 'Server error' });
+      expect(f.nativeElement.querySelector('[data-cy="error-state"]')).toBeTruthy();
+    });
+
+    it('renders empty state without active filters', () => {
+      const f = createWithState({ books: [] });
+      expect(f.nativeElement.querySelector('[data-cy="empty-state"]')).toBeTruthy();
+      expect(f.nativeElement.querySelector('[data-cy="clear-filters"]')).toBeNull();
+    });
+
+    it('renders empty state with active filters and limpiar button', () => {
+      const f = createWithState({ books: [], hasActiveFilters: true });
+      const emptyState = f.nativeElement.querySelector('[data-cy="empty-state"]');
+      expect(emptyState).toBeTruthy();
+      expect(emptyState.textContent).toContain('Ningún título');
+      expect(f.nativeElement.querySelector('[data-cy="clear-filters"]')).toBeTruthy();
+    });
+
+    it('renders books table with rows', () => {
+      const books: Book[] = [{
+        ulid: '1', code: 'A01', title: 'Cien años de soledad',
+        author: 'García Márquez', publicationYear: 1967, genre: 'Realismo mágico',
+      }];
+      const f = createWithState({ books });
+      expect(f.nativeElement.querySelector('[data-cy="books-table"]')).toBeTruthy();
+      expect(f.nativeElement.querySelectorAll('[data-cy="book-row"]')).toHaveLength(1);
+    });
+
+    it('renders dash for book without genre', () => {
+      const books: Book[] = [{
+        ulid: '1', code: 'A01', title: 'Test', author: 'Author',
+        publicationYear: null, genre: null,
+      }];
+      const f = createWithState({ books });
+      const row = f.nativeElement.querySelector('[data-cy="book-row"]');
+      expect(row.textContent).toContain('—');
+    });
+
+    it('shows clear-filters button when hasActiveFilters is true with books', () => {
+      const books: Book[] = [{
+        ulid: '1', code: 'A01', title: 'T', author: 'A', publicationYear: 2020, genre: 'Fantasía',
+      }];
+      const f = createWithState({ books, hasActiveFilters: true });
+      expect(f.nativeElement.querySelector('[data-cy="clear-filters"]')).toBeTruthy();
     });
   });
 });
