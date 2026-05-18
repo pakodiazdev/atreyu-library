@@ -122,7 +122,7 @@
             "coverage": false,
             "runnerConfig": "vitest.config.ts",
             "coverageReporters": ["lcov", "text-summary"],
-            "coverageExclude": ["**/*.spec.ts", "src/environments/**"]
+            "coverageExclude": ["**/*.spec.ts", "src/environments/**", "src/main.ts"]
           },
           "configurations": {
             "ci": {
