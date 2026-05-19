@@ -1,5 +1,6 @@
 import { Location } from '@angular/common';
-import { Component, OnInit, effect, inject, untracked } from '@angular/core';
+import { Component, DestroyRef, OnInit, effect, inject, untracked } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { BookListStore } from './book-list.store';
 import {
@@ -37,6 +38,7 @@ export class BookListComponent implements OnInit {
   private  readonly dialog  = inject(DialogService);
   private  readonly location = inject(Location);
   private  readonly route    = inject(ActivatedRoute);
+  private  readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     const initialCreated = this.drawer.bookCreated();
@@ -61,10 +63,14 @@ export class BookListComponent implements OnInit {
       this.drawer.openDetail(code);
     }
 
-    const titleFilter = this.route.snapshot.queryParamMap.get('title');
-    if (titleFilter) {
-      this.store.filterTitle.set(titleFilter);
-    }
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        const title = params.get('title');
+        if (title) {
+          this.store.filterTitle.set(title);
+        }
+      });
   }
 
   protected openDetail(book: Book): void {

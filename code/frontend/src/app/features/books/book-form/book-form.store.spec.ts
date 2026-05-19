@@ -121,11 +121,15 @@ describe('BookFormStore', () => {
       expect(mockDrawer.notifyBookCreated).toHaveBeenCalled();
     });
 
-    it('navega a /catalogo con queryParam title tras la creación exitosa', () => {
+    it('navega a /catalogo con queryParam title, limpia nuevo-libro y usa replaceUrl tras la creación exitosa', () => {
       store.submit(PAYLOAD);
       expect(mockRouter.navigate).toHaveBeenCalledWith(
         ['/catalogo'],
-        { queryParams: { title: BOOK.title } },
+        {
+          queryParams: { title: BOOK.title, 'nuevo-libro': null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        },
       );
     });
 
