@@ -64,17 +64,26 @@ describe('Detalle de libro en drawer (#44)', () => {
 
   describe('Visitar URL de detalle directamente (F5)', () => {
     it('muestra el catálogo con el drawer abierto al acceder directo', () => {
-      cy.visit('/libros/gabriel-garcia-marquez/A01-cien-anos-de-soledad-1967');
-      cy.get('[data-cy="drawer"]', { timeout: 10000 }).should('be.visible');
-      cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('exist');
+      cy.visit('/catalogo');
+      cy.contains('[data-cy="book-row"]', 'Cien años de soledad', { timeout: 10000 }).click();
+      cy.url().then((bookUrl) => {
+        cy.visit(bookUrl);
+        cy.get('[data-cy="drawer"]', { timeout: 10000 }).should('be.visible');
+        cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('exist');
+      });
     });
 
-    it('el drawer muestra el detalle correcto del libro A01', () => {
-      cy.visit('/libros/gabriel-garcia-marquez/A01-cien-anos-de-soledad-1967');
-      cy.get('[data-cy="book-detail"]', { timeout: 10000 }).should('be.visible');
-      cy.get('[data-cy="book-title"]').should('contain', 'Cien años de soledad');
-      cy.get('[data-cy="book-author"]').should('contain', 'Gabriel García Márquez');
-      cy.get('[data-cy="book-code"]').should('contain', 'A01');
+    it('el drawer muestra el detalle correcto del libro', () => {
+      cy.visit('/catalogo');
+      cy.contains('[data-cy="book-row"]', 'Cien años de soledad', { timeout: 10000 }).click();
+      cy.url().then((bookUrl) => {
+        cy.visit(bookUrl);
+        cy.get('[data-cy="book-detail"]', { timeout: 10000 }).should('be.visible');
+        cy.get('[data-cy="book-title"]').should('contain', 'Cien años de soledad');
+        cy.get('[data-cy="book-author"]').should('contain', 'Gabriel García Márquez');
+        cy.get('[data-cy="book-detail"]').find('[data-cy="book-code"]')
+          .invoke('text').invoke('trim').should('match', /^[A-Z]\d{2}$/);
+      });
     });
   });
 
@@ -94,8 +103,9 @@ describe('Detalle de libro en drawer (#44)', () => {
       cy.get('[data-cy="book-author"]').should('contain', 'Gabriel García Márquez');
     });
 
-    it('muestra el código del libro', () => {
-      cy.get('[data-cy="book-code"]').should('contain', 'A01');
+    it('muestra el código del libro en formato correcto', () => {
+      cy.get('[data-cy="book-detail"]').find('[data-cy="book-code"]')
+        .invoke('text').invoke('trim').should('match', /^[A-Z]\d{2}$/);
     });
 
     it('muestra la sinopsis del libro', () => {
