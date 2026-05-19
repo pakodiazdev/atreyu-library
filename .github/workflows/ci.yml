@@ -13,6 +13,9 @@ jobs:
   backend:
     name: Backend — lint + test + sonar
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
@@ -41,6 +44,15 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
           SONAR_HOST_URL: https://sonarcloud.io
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publicar reporte de tests backend
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: 'code/backend/target/surefire-reports/TEST-*.xml'
+          check_name: 'Backend — Resultados de tests'
+          detailed_summary: true
+          include_passed: true
 
   # ── Frontend ───────────────────────────────────────────────────────────────
   frontend:

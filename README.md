@@ -7,10 +7,14 @@
 
 ![CI](https://github.com/pakodiazdev/atreyu-library/actions/workflows/ci.yml/badge.svg)
 ![CD](https://github.com/pakodiazdev/atreyu-library/actions/workflows/cd.yml/badge.svg)
-[![Quality Gate — BE](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-backend&metric=alert_status)](https://sonarcloud.io/project/overview?id=atreyu-library-backend)
-[![Coverage — BE](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-backend&metric=coverage)](https://sonarcloud.io/project/overview?id=atreyu-library-backend)
-[![Quality Gate — FE](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-frontend&metric=alert_status)](https://sonarcloud.io/project/overview?id=atreyu-library-frontend)
-[![Coverage — FE](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-frontend&metric=coverage)](https://sonarcloud.io/project/overview?id=atreyu-library-frontend)
+
+**Backend (Spring Boot)** &nbsp;
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-backend&metric=alert_status)](https://sonarcloud.io/project/overview?id=atreyu-library-backend)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-backend&metric=coverage)](https://sonarcloud.io/project/overview?id=atreyu-library-backend)
+
+**Frontend (Angular)** &nbsp;
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-frontend&metric=alert_status)](https://sonarcloud.io/project/overview?id=atreyu-library-frontend)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-frontend&metric=coverage)](https://sonarcloud.io/project/overview?id=atreyu-library-frontend)
 
 ---
 
