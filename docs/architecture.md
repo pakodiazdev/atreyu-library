@@ -107,8 +107,7 @@ code/backend/
     ├── dto/
     │   ├── BookRequest.java
     │   └── BookResponse.java
-    └── util/
-        └── BookCodeGenerator.java
+    └── BookCodePool.java
 ```
 
 ### API REST
