@@ -7,13 +7,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.atreyulibrary.book.dto.BookResponse;
+import com.atreyulibrary.config.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(GetBookByCodeController.class)
+@Import(GlobalExceptionHandler.class)
 class GetBookByCodeControllerTest {
 
     @Autowired
@@ -45,7 +48,8 @@ class GetBookByCodeControllerTest {
                 .thenThrow(new BookNotFoundException("Z99"));
 
         mockMvc.perform(get("/api/v1/books/Z99"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Libro no encontrado: Z99"));
     }
 
     @Test

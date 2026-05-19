@@ -65,7 +65,8 @@ class UpdateBookControllerTest {
         mockMvc.perform(put("/api/v1/books/" + ULID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Libro no encontrado: " + ULID));
     }
 
     @Test

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,8 @@ class DeleteBookControllerTest {
         doThrow(new BookNotFoundException(ULID)).when(service).deleteByUlid(ULID);
 
         mockMvc.perform(delete("/api/v1/books/" + ULID))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Libro no encontrado: " + ULID));
     }
 
     @Test
