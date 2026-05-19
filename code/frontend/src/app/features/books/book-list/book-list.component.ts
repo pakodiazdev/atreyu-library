@@ -60,6 +60,11 @@ export class BookListComponent implements OnInit {
     if (code) {
       this.drawer.openDetail(code);
     }
+
+    const titleFilter = this.route.snapshot.queryParamMap.get('title');
+    if (titleFilter) {
+      this.store.filterTitle.set(titleFilter);
+    }
   }
 
   protected openDetail(book: Book): void {
