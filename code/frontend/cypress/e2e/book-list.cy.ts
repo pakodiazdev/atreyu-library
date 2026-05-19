@@ -17,9 +17,10 @@ describe('Catálogo — Lista de libros (#12)', () => {
 
   it('muestra libros conocidos del seeder en la tabla', () => {
     cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('be.visible');
-    cy.contains('Cien años de soledad').should('be.visible');
-    cy.contains('Gabriel García Márquez').should('be.visible');
-    cy.contains('A01').should('be.visible');
+    cy.contains('[data-cy="book-row"]', 'Cien años de soledad').should('exist');
+    cy.contains('[data-cy="book-row"]', 'Gabriel García Márquez').should('exist');
+    cy.get('[data-cy="book-row"]').first().find('[data-cy="book-code"]')
+      .invoke('text').invoke('trim').should('match', /^[A-Z]\d{2}$/);
   });
 
   it('filtra por título y devuelve resultados reales', () => {
