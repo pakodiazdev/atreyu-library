@@ -38,16 +38,21 @@ function makeDrawer() {
 
 describe('BookListComponent', () => {
   let mockLocation: { replaceState: ReturnType<typeof vi.fn> };
-  let mockRoute: { snapshot: { paramMap: { get: ReturnType<typeof vi.fn> } } };
+  let mockRoute: { snapshot: { paramMap: { get: ReturnType<typeof vi.fn> }; queryParamMap: { get: ReturnType<typeof vi.fn> } } };
   let store: BookListStore;
   let drawer: ReturnType<typeof makeDrawer>;
   let fixture: ComponentFixture<BookListComponent>;
 
-  function configureAndCreate(bookSlug: string | null): BookListComponent {
+  function configureAndCreate(bookSlug: string | null, titleQueryParam: string | null = null): BookListComponent {
     store  = makeStore();
     drawer = makeDrawer();
     mockLocation = { replaceState: vi.fn() };
-    mockRoute    = { snapshot: { paramMap: { get: vi.fn().mockReturnValue(bookSlug) } } };
+    mockRoute    = {
+      snapshot: {
+        paramMap:      { get: vi.fn().mockReturnValue(bookSlug) },
+        queryParamMap: { get: vi.fn().mockReturnValue(titleQueryParam) },
+      },
+    };
 
     TestBed.configureTestingModule({
       imports: [BookListComponent],
@@ -82,6 +87,16 @@ describe('BookListComponent', () => {
     it('no abre el drawer cuando bookSlug no tiene código válido', () => {
       configureAndCreate('slug-sin-codigo');
       expect(drawer.openDetail).not.toHaveBeenCalled();
+    });
+
+    it('aplica filterTitle desde el queryParam title al inicializar', () => {
+      configureAndCreate(null, 'El Nombre del Viento');
+      expect(store.filterTitle()).toBe('El Nombre del Viento');
+    });
+
+    it('no modifica filterTitle cuando no hay queryParam title', () => {
+      configureAndCreate(null, null);
+      expect(store.filterTitle()).toBe('');
     });
   });
 
@@ -182,7 +197,7 @@ describe('BookListComponent', () => {
           { provide: DrawerService,  useValue: makeDrawer() },
           { provide: DialogService,  useValue: { bookDeleted: signal(0) } },
           { provide: Location,       useValue: { replaceState: vi.fn() } },
-          { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) } } } },
+          { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) }, queryParamMap: { get: vi.fn().mockReturnValue(null) } } } },
         ],
       }).overrideProvider(BookListStore, { useValue: s });
 

@@ -7,6 +7,7 @@ import { BookFormStore } from './book-form.store';
 import { BookRepository } from '../book.repository';
 import { BookCreatePayload, BookDetail } from '../book.model';
 import { DrawerService } from '../../../shared/ui/drawer.service';
+import { ToastService } from '../../../shared/ui/toast.service';
 
 const PAYLOAD: BookCreatePayload = {
   title: 'El Nombre del Viento',
@@ -35,6 +36,7 @@ describe('BookFormStore', () => {
     close:             vi.fn(),
   };
   const mockRouter = { navigate: vi.fn() };
+  const mockToast  = { show: vi.fn() };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -48,6 +50,7 @@ describe('BookFormStore', () => {
         { provide: BookRepository, useValue: mockRepo },
         { provide: DrawerService,  useValue: mockDrawer },
         { provide: Router,         useValue: mockRouter },
+        { provide: ToastService,   useValue: mockToast },
       ],
     });
     store = TestBed.inject(BookFormStore);
@@ -118,9 +121,21 @@ describe('BookFormStore', () => {
       expect(mockDrawer.notifyBookCreated).toHaveBeenCalled();
     });
 
-    it('navega a /catalogo tras la creación exitosa', () => {
+    it('navega a /catalogo con queryParam title tras la creación exitosa', () => {
       store.submit(PAYLOAD);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/catalogo']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(
+        ['/catalogo'],
+        { queryParams: { title: BOOK.title } },
+      );
+    });
+
+    it('muestra toast con el título del libro creado', () => {
+      store.submit(PAYLOAD);
+      expect(mockToast.show).toHaveBeenCalledWith(
+        `"${BOOK.title}" añadido al catálogo`,
+        'success',
+        400,
+      );
     });
 
     it('resets isSubmitting to false on success', () => {

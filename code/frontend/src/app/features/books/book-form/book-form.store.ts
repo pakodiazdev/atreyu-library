@@ -57,11 +57,11 @@ export class BookFormStore {
     this.submitError.set(null);
 
     this.repo.create(payload).subscribe({
-      next: () => {
+      next: (book) => {
         this.isSubmitting.set(false);
-        this.toast.show('Libro añadido al catálogo');
+        this.toast.show(`"${book.title}" añadido al catálogo`, 'success', 400);
         this.drawer.notifyBookCreated();
-        this.router.navigate(['/catalogo']);
+        this.router.navigate(['/catalogo'], { queryParams: { title: book.title } });
       },
       error: (err: HttpErrorResponse) => {
         this.isSubmitting.set(false);
