@@ -1,7 +1,8 @@
 import { Location } from '@angular/common';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { computed, signal, WritableSignal } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { vi } from 'vitest';
 import { BookListComponent } from './book-list.component';
 import { BookListStore } from './book-list.store';
@@ -38,7 +39,7 @@ function makeDrawer() {
 
 describe('BookListComponent', () => {
   let mockLocation: { replaceState: ReturnType<typeof vi.fn> };
-  let mockRoute: { snapshot: { paramMap: { get: ReturnType<typeof vi.fn> }; queryParamMap: { get: ReturnType<typeof vi.fn> } } };
+  let queryParamMap$: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let store: BookListStore;
   let drawer: ReturnType<typeof makeDrawer>;
   let fixture: ComponentFixture<BookListComponent>;
@@ -46,12 +47,15 @@ describe('BookListComponent', () => {
   function configureAndCreate(bookSlug: string | null, titleQueryParam: string | null = null): BookListComponent {
     store  = makeStore();
     drawer = makeDrawer();
-    mockLocation = { replaceState: vi.fn() };
-    mockRoute    = {
+    mockLocation  = { replaceState: vi.fn() };
+    queryParamMap$ = new BehaviorSubject(convertToParamMap(titleQueryParam ? { title: titleQueryParam } : {}));
+
+    const mockRoute = {
       snapshot: {
         paramMap:      { get: vi.fn().mockReturnValue(bookSlug) },
         queryParamMap: { get: vi.fn().mockReturnValue(titleQueryParam) },
       },
+      queryParamMap: queryParamMap$.asObservable(),
     };
 
     TestBed.configureTestingModule({
@@ -97,6 +101,19 @@ describe('BookListComponent', () => {
     it('no modifica filterTitle cuando no hay queryParam title', () => {
       configureAndCreate(null, null);
       expect(store.filterTitle()).toBe('');
+    });
+
+    it('actualiza filterTitle cuando queryParamMap emite un nuevo title estando ya montado', () => {
+      configureAndCreate(null, null);
+      queryParamMap$.next(convertToParamMap({ title: 'Don Quijote' }));
+      expect(store.filterTitle()).toBe('Don Quijote');
+    });
+
+    it('no limpia filterTitle cuando queryParamMap emite sin title (el usuario puede haberlo escrito manualmente)', () => {
+      configureAndCreate(null, 'Previo');
+      (store.filterTitle as WritableSignal<string>).set('Escrito a mano');
+      queryParamMap$.next(convertToParamMap({}));
+      expect(store.filterTitle()).toBe('Escrito a mano');
     });
   });
 
@@ -197,7 +214,7 @@ describe('BookListComponent', () => {
           { provide: DrawerService,  useValue: makeDrawer() },
           { provide: DialogService,  useValue: { bookDeleted: signal(0) } },
           { provide: Location,       useValue: { replaceState: vi.fn() } },
-          { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) }, queryParamMap: { get: vi.fn().mockReturnValue(null) } } } },
+          { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) }, queryParamMap: { get: vi.fn().mockReturnValue(null) } }, queryParamMap: new BehaviorSubject(convertToParamMap({})).asObservable() } },
         ],
       }).overrideProvider(BookListStore, { useValue: s });
 
