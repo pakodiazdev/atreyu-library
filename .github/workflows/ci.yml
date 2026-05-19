@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       checks: write
-      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
@@ -51,8 +50,8 @@ jobs:
         with:
           report_paths: 'code/backend/target/surefire-reports/TEST-*.xml'
           check_name: 'Backend — Resultados de tests'
-          detailed_summary: true
-          include_passed: true
+          detailed_summary: false
+          include_passed: false
 
   # ── Frontend ───────────────────────────────────────────────────────────────
   frontend:

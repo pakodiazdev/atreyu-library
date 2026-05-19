@@ -29,3 +29,4 @@
 | [TD-18](technical-decisions/td-18-single-action-controller.md) | Single Action Controller como patrón para los endpoints REST | Backend |
 | [TD-19](technical-decisions/td-19-rebase-and-merge-como-estrategia-de-merge.md) | Rebase and merge como estrategia de merge en PRs | Git |
 | [TD-20](technical-decisions/td-20-sentry-monitoreo-de-errores.md) | Sentry como plataforma de monitoreo de errores | Observabilidad |
+| [TD-21](technical-decisions/td-21-book-code-pool-select-for-update-skip-locked.md) | Pool de códigos de libros con `SELECT FOR UPDATE SKIP LOCKED` | Base de datos |
