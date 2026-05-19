@@ -18,6 +18,8 @@
 |----------|-----|--------|
 | Producción | [atreyu-library.pakodiaz.dev](https://atreyu-library.pakodiaz.dev) | Público |
 | QA | [qa01.atreyu-library.pakodiaz.dev](https://qa01.atreyu-library.pakodiaz.dev) | Usuario: `qa` / Contraseña: `preview` ¹ |
+| **API Docs — Prod (Swagger)** | [atreyu-library.pakodiaz.dev/swagger-ui.html](https://atreyu-library.pakodiaz.dev/swagger-ui.html) | Público |
+| **API Docs — QA (Swagger)** | [qa01.atreyu-library.pakodiaz.dev/swagger-ui.html](https://qa01.atreyu-library.pakodiaz.dev/swagger-ui.html) | Usuario: `qa` / Contraseña: `preview` ¹ |
 
 > ¹ **Nota para el revisor del demo:** las credenciales se publican intencionalmente para
 > facilitar la verificación del requisito RNF-15. En un proyecto real se gestionarían a
