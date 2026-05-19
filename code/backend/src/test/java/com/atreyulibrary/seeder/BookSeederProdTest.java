@@ -1,15 +1,18 @@
 package com.atreyulibrary.seeder;
 
-import com.atreyulibrary.book.BookCodeGenerator;
+import com.atreyulibrary.book.BookCodePoolEmptyException;
+import com.atreyulibrary.book.BookCodePoolRepository;
 import com.atreyulibrary.book.BookRepository;
 import com.atreyulibrary.seeder.base.SeederLog;
 import com.atreyulibrary.seeder.base.SeederLogRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -28,7 +31,7 @@ class BookSeederProdTest {
     private BookRepository bookRepository;
 
     @Mock
-    private BookCodeGenerator codeGenerator;
+    private BookCodePoolRepository codePoolRepository;
 
     @InjectMocks
     private BookSeederProd seeder;
@@ -36,29 +39,19 @@ class BookSeederProdTest {
     @Test
     void savesAllBooksOnFirstRun() {
         when(seederLogRepository.existsBySeederClass(anyString())).thenReturn(false);
-        when(codeGenerator.generate(bookRepository))
-            .thenReturn("A01", "B02", "C03", "D04", "E05", "F06", "G07", "H08",
-                        "I09", "J10", "K11", "L12", "M13", "N14", "O15");
+        when(codePoolRepository.lockAndPickCode())
+            .thenReturn(Optional.of("A01"), Optional.of("B02"), Optional.of("C03"),
+                        Optional.of("D04"), Optional.of("E05"), Optional.of("F06"),
+                        Optional.of("G07"), Optional.of("H08"), Optional.of("I09"),
+                        Optional.of("J10"), Optional.of("K11"), Optional.of("L12"),
+                        Optional.of("M13"), Optional.of("N14"), Optional.of("O15"));
 
         seeder.run();
 
         verify(bookRepository).saveAll(anyList());
-        verify(codeGenerator, atLeast(15)).generate(bookRepository);
+        verify(codePoolRepository, atLeast(15)).lockAndPickCode();
+        verify(codePoolRepository, atLeast(15)).deleteById(anyString());
         verify(seederLogRepository).save(any(SeederLog.class));
-    }
-
-    @Test
-    void retriesWhenGeneratorReturnsDuplicateWithinBatch() {
-        when(seederLogRepository.existsBySeederClass(anyString())).thenReturn(false);
-        // A01 se repite en la segunda llamada; el do-while lo descarta y pide otro
-        when(codeGenerator.generate(bookRepository))
-            .thenReturn("A01", "A01", "B02", "C03", "D04", "E05", "F06", "G07", "H08",
-                        "I09", "J10", "K11", "L12", "M13", "N14", "O15");
-
-        seeder.run();
-
-        verify(bookRepository).saveAll(anyList());
-        verify(codeGenerator, atLeast(16)).generate(bookRepository);
     }
 
     @Test
@@ -69,5 +62,13 @@ class BookSeederProdTest {
 
         verify(bookRepository, never()).saveAll(anyList());
         verify(seederLogRepository, never()).save(any());
+    }
+
+    @Test
+    void throwsWhenPoolIsEmpty() {
+        when(seederLogRepository.existsBySeederClass(anyString())).thenReturn(false);
+        when(codePoolRepository.lockAndPickCode()).thenReturn(Optional.empty());
+
+        assertThrows(BookCodePoolEmptyException.class, () -> seeder.run());
     }
 }

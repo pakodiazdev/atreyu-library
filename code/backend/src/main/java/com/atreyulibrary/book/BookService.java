@@ -12,15 +12,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class BookService {
 
     private final BookRepository repository;
-    private final BookCodeGenerator codeGenerator;
+    private final BookCodePoolRepository codePoolRepository;
 
     /** Inyección por constructor. */
     public BookService(
             final BookRepository repository,
-            final BookCodeGenerator codeGenerator
+            final BookCodePoolRepository codePoolRepository
     ) {
         this.repository = repository;
-        this.codeGenerator = codeGenerator;
+        this.codePoolRepository = codePoolRepository;
     }
 
     /**
@@ -68,7 +68,9 @@ public class BookService {
      */
     @Transactional
     public BookResponse create(final BookRequest request) {
-        final String code = codeGenerator.generate(repository);
+        final String code = codePoolRepository.lockAndPickCode()
+                .orElseThrow(BookCodePoolEmptyException::new);
+        codePoolRepository.deleteById(code);
         final Book book = Book.builder()
                 .code(code)
                 .title(request.title())

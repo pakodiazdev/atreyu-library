@@ -27,7 +27,7 @@ class BookServiceTest {
     private BookRepository repository;
 
     @Mock
-    private BookCodeGenerator codeGenerator;
+    private BookCodePoolRepository codePoolRepository;
 
     @InjectMocks
     private BookService service;
@@ -330,7 +330,7 @@ class BookServiceTest {
 
     @Test
     void createReturnsSavedBookAsResponse() {
-        when(codeGenerator.generate(repository)).thenReturn("A01");
+        when(codePoolRepository.lockAndPickCode()).thenReturn(Optional.of("A01"));
         when(repository.save(any(Book.class))).thenAnswer(inv -> {
             final Book book = inv.getArgument(0);
             book.setCode("A01");
@@ -350,19 +350,20 @@ class BookServiceTest {
     }
 
     @Test
-    void createDelegatesToCodeGenerator() {
-        when(codeGenerator.generate(repository)).thenReturn("B07");
+    void createDelegatesToCodePool() {
+        when(codePoolRepository.lockAndPickCode()).thenReturn(Optional.of("B07"));
         when(repository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
 
         final BookRequest request = new BookRequest("1984", "George Orwell", null, null, null);
         service.create(request);
 
-        verify(codeGenerator).generate(repository);
+        verify(codePoolRepository).lockAndPickCode();
+        verify(codePoolRepository).deleteById("B07");
     }
 
     @Test
     void createSavesBookWithCorrectFields() {
-        when(codeGenerator.generate(repository)).thenReturn("C03");
+        when(codePoolRepository.lockAndPickCode()).thenReturn(Optional.of("C03"));
         when(repository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
 
         final BookRequest request = new BookRequest(
@@ -377,8 +378,17 @@ class BookServiceTest {
     }
 
     @Test
+    void createThrowsWhenPoolIsEmpty() {
+        when(codePoolRepository.lockAndPickCode()).thenReturn(Optional.empty());
+
+        final BookRequest request = new BookRequest("Hamlet", "Shakespeare", null, null, null);
+
+        assertThrows(BookCodePoolEmptyException.class, () -> service.create(request));
+    }
+
+    @Test
     void createDoesNotExposeInternalId() {
-        when(codeGenerator.generate(repository)).thenReturn("A01");
+        when(codePoolRepository.lockAndPickCode()).thenReturn(Optional.of("A01"));
         when(repository.save(any(Book.class))).thenAnswer(inv -> {
             final Book book = inv.getArgument(0);
             book.setCode("A01");
