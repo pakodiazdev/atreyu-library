@@ -45,7 +45,7 @@ export class BookListComponent implements OnInit {
     const initialDeleted = this.dialog.bookDeleted();
     effect(() => {
       if (this.drawer.bookCreated() > initialCreated) this.store.reload();
-      if (this.dialog.bookDeleted() > initialDeleted)  this.store.reload();
+      if (this.dialog.bookDeleted() > initialDeleted)  this.store.clearFilters();
     });
 
     const initialUpdated = this.drawer.updateCount();
