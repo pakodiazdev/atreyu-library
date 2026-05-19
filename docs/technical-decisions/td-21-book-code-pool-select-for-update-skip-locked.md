@@ -24,7 +24,7 @@ CREATE TABLE book_code_pool (
 );
 ```
 
-Inicializado por la migración Flyway V8 con los 2 600 códigos (A00–Z99):
+Inicializado por la migración Flyway V1 (esquema inicial consolidado) con los 2 600 códigos (A00–Z99):
 
 ```sql
 INSERT INTO book_code_pool (code)
@@ -101,12 +101,11 @@ ON CONFLICT DO NOTHING;
 
 - `BookCodeGenerator` eliminado.
 - `BookService.create()` usa `BookCodePoolRepository.lockAndPickCode()` + `deleteById()`.
-- `BookSeederProd` usa el mismo pool; `OnceSeeder.run()` es `@Transactional` para que las
-  operaciones del pool y el guardado de libros sean atómicas.
-- La migración V8 es irreversible (DDL aplicado); nuevas capacidades requieren V9+.
+- `BookSeederProd` usa el mismo pool; cada llamada a `book()` invoca `lockAndPickCode()` + `deleteById()` de forma secuencial y single-threaded.
+- La migración V1 (esquema consolidado) es el único punto de entrada DDL; nuevas capacidades requieren una migración incremental posterior.
 
 ## Referencia
 
 - Issue: #056
 - Implementado en: `BookCodePool`, `BookCodePoolRepository`, `BookCodePoolEmptyException`
-- Migración: `V8__create_book_code_pool_table.sql`
+- Migración: `V1__initial_schema.sql`

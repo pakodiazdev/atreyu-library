@@ -57,7 +57,7 @@
 |-----------|-------------|
 | [Requerimientos](docs/requirements.md) | Requerimientos funcionales y no funcionales |
 | [Arquitectura](docs/architecture.md) | Arquitectura de solución y componentes |
-| [Decisiones técnicas](docs/technical-decisions.md) | Resumen de las 20 decisiones de diseño — detalle en [`docs/technical-decisions/`](docs/technical-decisions/) |
+| [Decisiones técnicas](docs/technical-decisions.md) | Resumen de las 21 decisiones de diseño — detalle en [`docs/technical-decisions/`](docs/technical-decisions/) |
 | [Alcance del MVP](docs/mvp-scope.md) | Qué está dentro y fuera del alcance |
 | [CI/CD](docs/ci-cd.md) | Estrategia de integración y entrega continua |
 | [Despliegue](docs/deployment-strategy.md) | Estrategia y configuración de ambientes |
@@ -140,7 +140,7 @@ atreyu-library/
 ├── docs/                     # Documentación del proyecto
 │   ├── conventions/          # Convenciones de Git y tareas
 │   ├── diagrams/             # Diagramas UML de secuencia
-│   ├── technical-decisions/  # 20 decisiones técnicas individuales (TD-01 … TD-20)
+│   ├── technical-decisions/  # 21 decisiones técnicas individuales (TD-01 … TD-21)
 │   ├── prototyping/          # Wireframes interactivos
 │   ├── api-components.md
 │   ├── architecture.md
