@@ -13,7 +13,8 @@ import com.atreyulibrary.book.BookNotFoundException;
 /**
  * Manejador global de excepciones.
  * Convierte errores de validación de Bean Validation en 422 Unprocessable Entity
- * con un cuerpo estructurado por campo.
+ * con un cuerpo estructurado por campo, y excepciones de recurso no encontrado
+ * en 404 con body {@code { "error": "..." }}.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
