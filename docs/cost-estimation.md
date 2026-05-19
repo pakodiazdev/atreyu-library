@@ -20,6 +20,17 @@ Modelo de cobro por uso — se paga únicamente cuando hay tráfico activo.
 
 > Con scale-to-zero activo, el costo en periodos de inactividad es **$0**.
 
+> ⚠️ Con `scale-to-zero` activo, la primera request tras un período de inactividad (cold start) puede tardar **1–3 segundos**. Para demos donde la latencia importa, se puede configurar `min-instances=1`:
+
+**Opción sin cold start (min-instances=1):**
+
+| Recurso | Cálculo | Costo adicional/mes |
+|---------|---------|-------------------|
+| BE siempre activo | 730h × 0.5 vCPU × $0.000024/s × 3600 | ~$32 |
+| FE siempre activo | 730h × 0.25 vCPU × $0.000024/s × 3600 | ~$16 |
+
+> Estos valores asumen CPU siempre activa (tasa de solicitudes: $0.000024/vCPU-s). En instancias min=1 con tráfico esporádico, el costo real es significativamente menor gracias a la tarifa de CPU idle ($0.0000025/vCPU-s, ~10× más barata).
+
 ---
 
 ### Supabase (PostgreSQL)
@@ -28,6 +39,8 @@ Modelo de cobro por uso — se paga únicamente cuando hay tráfico activo.
 |------|-------|---------|
 | Free | $0 / mes | 500MB DB, 2 proyectos, 2GB bandwidth |
 | Pro | $25 / mes | 8GB DB, backups diarios, sin límite de proyectos |
+
+> ⚠️ El plan Free pausa la base de datos tras 7 días de inactividad. Para demos con acceso esporádico se recomienda configurar un ping periódico o upgradear a Pro ($25/mes) para garantizar disponibilidad continua.
 
 ---
 
@@ -63,6 +76,19 @@ dentro del free tier.
 
 ---
 
+### Sentry
+
+Monitoreo de errores en producción — integrado en Sprint 5 (TD-20).
+
+| Plan | Costo | Límite |
+|------|-------|--------|
+| Free | $0 | 5,000 errores/mes |
+| Team | $26 / mes | 50,000 errores/mes |
+
+> El plan Free es suficiente para el demo y MVPs con bajo volumen de errores.
+
+---
+
 ### Dominio
 
 | Dominio | Costo anual (USD) | Costo mensual equivalente (USD) |
@@ -82,11 +108,13 @@ Tráfico estimado: < 1,000 requests/día — dentro del free tier de todos los s
 
 | Componente | Costo mensual |
 |------------|--------------|
-| Cloud Run (BE + FE) | $0 |
+| Cloud Run Producción (BE + FE) | $0 |
+| Cloud Run QA (BE + FE) | $0 *(dentro del free tier)* |
 | Supabase | $0 |
 | Artifact Registry | $0 |
 | GitHub Actions | $0 |
 | SonarCloud | $0 |
+| Sentry | $0 |
 | **Total** | **$0 / mes** |
 
 ---
@@ -149,7 +177,7 @@ Tráfico estimado: ~100,000 requests/día + base de datos con mayor volumen.
 ### Tabla de proyección
 
 | Usuarios concurrentes | Requests/mes (BE) | Cloud Run BE | Cloud Run FE | Supabase | Dominio | **Total/mes (USD)** |
-|-----------------------|-------------------|-------------|-------------|----------|--------------|
+|-----------------------|-------------------|-------------|-------------|----------|---------|---------------------|
 | 10 | ~100K | $0 | $0 | $0 | ~$1 | **~$1** |
 | 50 | ~500K | $0 | $0 | $0 | ~$1 | **~$1** |
 | 100 | ~1M | $0 | $0 | $0 | ~$1 | **~$1** |
