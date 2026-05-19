@@ -40,13 +40,15 @@ function makeDrawer() {
 describe('BookListComponent', () => {
   let mockLocation: { replaceState: ReturnType<typeof vi.fn> };
   let queryParamMap$: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
+  let mockDialog: { bookDeleted: WritableSignal<number> };
   let store: BookListStore;
   let drawer: ReturnType<typeof makeDrawer>;
   let fixture: ComponentFixture<BookListComponent>;
 
   function configureAndCreate(bookSlug: string | null, titleQueryParam: string | null = null): BookListComponent {
-    store  = makeStore();
-    drawer = makeDrawer();
+    store      = makeStore();
+    drawer     = makeDrawer();
+    mockDialog = { bookDeleted: signal(0) };
     mockLocation  = { replaceState: vi.fn() };
     queryParamMap$ = new BehaviorSubject(convertToParamMap(titleQueryParam ? { title: titleQueryParam } : {}));
 
@@ -63,6 +65,7 @@ describe('BookListComponent', () => {
       providers: [
         { provide: BookListStore,  useValue: store },
         { provide: DrawerService,   useValue: drawer },
+        { provide: DialogService,   useValue: mockDialog },
         { provide: Location,        useValue: mockLocation },
         { provide: ActivatedRoute,  useValue: mockRoute },
       ],
@@ -182,6 +185,22 @@ describe('BookListComponent', () => {
       configureAndCreate(null);
       // Effect ya corrió en detectChanges() con bookCreated = 0 = initialCreated → sin reload
       expect(store.reload).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── bookDeleted → clearFilters ──────────────────────────────────────────────
+
+  describe('bookDeleted → store.clearFilters()', () => {
+    it('llama a store.clearFilters() cuando bookDeleted se incrementa después del montaje', () => {
+      configureAndCreate(null);
+      mockDialog.bookDeleted.set(1);
+      fixture.detectChanges();
+      expect(store.clearFilters).toHaveBeenCalled();
+    });
+
+    it('no llama a store.clearFilters() al montar con bookDeleted inicial en 0', () => {
+      configureAndCreate(null);
+      expect(store.clearFilters).not.toHaveBeenCalled();
     });
   });
 
