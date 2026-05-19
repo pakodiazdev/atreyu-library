@@ -35,8 +35,10 @@ EXCEPT
 SELECT code FROM books;
 ```
 
-El `EXCEPT SELECT code FROM books` excluye los códigos ya asignados. Esto hace la migración
-segura tanto para bases de datos vacías como para entornos existentes con libros previos.
+El `EXCEPT SELECT code FROM books` excluye los códigos ya asignados. Esto hace la sentencia
+segura para bases de datos vacías y para escenarios de reset con datos previos (dev/qa/e2e).
+En la práctica, `V1__initial_schema.sql` es una migración de esquema inicial que requiere
+un reset previo de la base de datos — no está diseñada para aplicarse sobre una BD ya migrada.
 
 ### Flujo de creación de libro
 

@@ -73,9 +73,9 @@ El identificador visible `code` (A-Z + 00-99) tiene 2,600 combinaciones posibles
 Esta limitación es de **negocio**, no técnica. La arquitectura la absorbe sin impacto:
 
 - La PK real es el ULID — sin límite práctico de registros
-- Si el cliente decide ampliar el algoritmo (ej. dos letras + tres dígitos),
-  el único cambio es en `BookCodeGenerator.java` — sin migraciones, sin cambios
-  en endpoints, sin cambios en el frontend
+- Si el cliente decide ampliar el espacio (ej. dos letras + tres dígitos),
+  el único cambio es una nueva migración Flyway que añada los nuevos códigos al pool
+  con `ON CONFLICT DO NOTHING` — sin cambios en endpoints, sin cambios en el frontend
 
 ---
 
