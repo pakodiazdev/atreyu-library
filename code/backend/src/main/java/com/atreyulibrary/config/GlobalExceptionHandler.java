@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.atreyulibrary.book.BookNotFoundException;
 
 /**
  * Manejador global de excepciones.
@@ -33,5 +34,11 @@ public class GlobalExceptionHandler {
         final Map<String, Object> body = new LinkedHashMap<>();
         body.put("errors", errors);
         return body;
+    }
+
+    @ExceptionHandler(BookNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, Object> handleNotFound(final BookNotFoundException ex) {
+        return Map.of("error", ex.getMessage());
     }
 }
