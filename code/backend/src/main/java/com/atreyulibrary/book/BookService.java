@@ -110,7 +110,7 @@ public class BookService {
     }
 
     /**
-     * Elimina el libro con el ULID dado.
+     * Elimina el libro con el ULID dado y devuelve su código al pool.
      *
      * @param ulid identificador externo del libro
      * @throws BookNotFoundException si no existe un libro con ese ULID
@@ -120,5 +120,6 @@ public class BookService {
         final Book book = repository.findByUlid(ulid)
                 .orElseThrow(() -> new BookNotFoundException(ulid));
         repository.delete(book);
+        codePoolRepository.save(new BookCodePool(book.getCode()));
     }
 }
