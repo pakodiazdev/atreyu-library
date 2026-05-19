@@ -154,4 +154,22 @@ class CreateBookControllerTest {
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors").isMap());
     }
+
+    // ── pool de códigos agotado — 503 ────────────────────────────────────────
+
+    @Test
+    void returns503WhenCodePoolIsEmpty() throws Exception {
+        when(service.create(any(BookRequest.class))).thenThrow(new BookCodePoolEmptyException());
+
+        mockMvc.perform(post("/api/v1/books")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "title": "El quijote",
+                              "author": "Cervantes"
+                            }
+                            """))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.error").exists());
+    }
 }

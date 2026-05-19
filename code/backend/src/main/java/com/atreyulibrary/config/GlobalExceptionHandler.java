@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.atreyulibrary.book.BookCodePoolEmptyException;
 import com.atreyulibrary.book.BookNotFoundException;
 
 /**
@@ -40,6 +41,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BookNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, Object> handleNotFound(final BookNotFoundException ex) {
+        return Map.of("error", ex.getMessage());
+    }
+
+    @ExceptionHandler(BookCodePoolEmptyException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public Map<String, Object> handlePoolEmpty(final BookCodePoolEmptyException ex) {
         return Map.of("error", ex.getMessage());
     }
 }
