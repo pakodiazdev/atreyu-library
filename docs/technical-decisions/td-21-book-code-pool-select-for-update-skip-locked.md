@@ -30,14 +30,19 @@ Inicializado por la migración Flyway V8 con los 2 600 códigos (A00–Z99):
 INSERT INTO book_code_pool (code)
 SELECT chr(letter_code) || LPAD(num::text, 2, '0')
 FROM generate_series(ascii('A'), ascii('Z')) AS letter_code
-CROSS JOIN generate_series(0, 99) AS num;
+CROSS JOIN generate_series(0, 99) AS num
+EXCEPT
+SELECT code FROM books;
 ```
+
+El `EXCEPT SELECT code FROM books` excluye los códigos ya asignados. Esto hace la migración
+segura tanto para bases de datos vacías como para entornos existentes con libros previos.
 
 ### Flujo de creación de libro
 
 Dentro de una única transacción (`@Transactional` en `BookService.create`):
 
-1. `SELECT code FROM book_code_pool LIMIT 1 FOR UPDATE SKIP LOCKED`
+1. `SELECT code FROM book_code_pool ORDER BY code LIMIT 1 FOR UPDATE SKIP LOCKED`
 2. `DELETE FROM book_code_pool WHERE code = :selectedCode`
 3. `INSERT INTO books ...`
 4. Commit
@@ -45,6 +50,20 @@ Dentro de una única transacción (`@Transactional` en `BookService.create`):
 `FOR UPDATE` garantiza que la fila queda bloqueada para la transacción actual.
 `SKIP LOCKED` evita que dos transacciones concurrentes esperen la misma fila: simplemente omite
 las filas ya bloqueadas y elige otra. Así dos requests simultáneas nunca obtienen el mismo código.
+`ORDER BY code` garantiza selección determinista — sin él, PostgreSQL puede devolver cualquier
+fila según el plan de ejecución.
+
+### Flujo de eliminación de libro
+
+Dentro de `@Transactional` en `BookService.deleteByUlid`:
+
+1. Buscar libro por ULID
+2. `DELETE FROM books WHERE id = :id`
+3. `INSERT INTO book_code_pool (code) VALUES (:freedCode)`
+4. Commit
+
+El código queda disponible inmediatamente para nuevas creaciones, evitando que el pool se agote
+con ciclos de creación/eliminación.
 
 ### Pool agotado
 

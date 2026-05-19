@@ -16,6 +16,10 @@ public class BookCodePool {
 
     protected BookCodePool() { }
 
+    BookCodePool(final String code) {
+        this.code = code;
+    }
+
     public String getCode() {
         return code;
     }

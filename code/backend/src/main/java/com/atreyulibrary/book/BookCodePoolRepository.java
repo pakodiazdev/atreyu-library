@@ -18,7 +18,7 @@ public interface BookCodePoolRepository extends JpaRepository<BookCodePool, Stri
      * @return código disponible, o vacío si el pool está agotado
      */
     @Transactional
-    @Query(value = "SELECT code FROM book_code_pool LIMIT 1 FOR UPDATE SKIP LOCKED",
+    @Query(value = "SELECT code FROM book_code_pool ORDER BY code LIMIT 1 FOR UPDATE SKIP LOCKED",
            nativeQuery = true)
     Optional<String> lockAndPickCode();
 }

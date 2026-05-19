@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -303,6 +304,15 @@ class BookServiceTest {
         service.deleteByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
 
         verify(repository).delete(sampleBook);
+    }
+
+    @Test
+    void deleteByUlidReturnsCodeToPool() {
+        when(repository.findByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK")).thenReturn(Optional.of(sampleBook));
+
+        service.deleteByUlid("01HW5XMTSC9AZAZ5YR0DR7B7GK");
+
+        verify(codePoolRepository).save(argThat(entry -> "A01".equals(entry.getCode())));
     }
 
     @Test
