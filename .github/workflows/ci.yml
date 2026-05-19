@@ -112,6 +112,10 @@ jobs:
       - name: Levantar stack E2E completo (postgres + backend + frontend)
         run: docker compose --env-file .env.e2e -f docker-compose.e2e.yml up -d --build
 
+      - name: Logs backend (solo si el stack falló al levantar)
+        if: failure()
+        run: docker compose --env-file .env.e2e -f docker-compose.e2e.yml logs backend_e2e
+
       - name: Esperar stack E2E listo
         run: |
           BPORT=${E2E_BACKEND_PORT:-8081}

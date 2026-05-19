@@ -3,7 +3,6 @@ package com.atreyulibrary.seeder.base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 public abstract class OnceSeeder implements CommandLineRunner {
 
@@ -15,7 +14,6 @@ public abstract class OnceSeeder implements CommandLineRunner {
         this.seederLogRepository = seederLogRepository;
     }
 
-    @Transactional
     @Override
     public final void run(final String... args) {
         final String className = getClass().getName();

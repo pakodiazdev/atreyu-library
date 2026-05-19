@@ -1,4 +1,0 @@
--- V1: Baseline
--- Empty initial schema. Business tables are created in subsequent migrations.
--- Convention: one migration per entity or schema change.
--- Next: V2__create_books_table.sql
