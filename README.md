@@ -7,8 +7,10 @@
 
 ![CI](https://github.com/pakodiazdev/atreyu-library/actions/workflows/ci.yml/badge.svg)
 ![CD](https://github.com/pakodiazdev/atreyu-library/actions/workflows/cd.yml/badge.svg)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library&metric=alert_status)](https://sonarcloud.io/project/overview?id=atreyu-library)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library&metric=coverage)](https://sonarcloud.io/project/overview?id=atreyu-library)
+[![Quality Gate — BE](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-backend&metric=alert_status)](https://sonarcloud.io/project/overview?id=atreyu-library-backend)
+[![Coverage — BE](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-backend&metric=coverage)](https://sonarcloud.io/project/overview?id=atreyu-library-backend)
+[![Quality Gate — FE](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-frontend&metric=alert_status)](https://sonarcloud.io/project/overview?id=atreyu-library-frontend)
+[![Coverage — FE](https://sonarcloud.io/api/project_badges/measure?project=atreyu-library-frontend&metric=coverage)](https://sonarcloud.io/project/overview?id=atreyu-library-frontend)
 
 ---
 
@@ -18,8 +20,8 @@
 |----------|-----|--------|
 | Producción | [atreyu-library.pakodiaz.dev](https://atreyu-library.pakodiaz.dev) | Público |
 | QA | [qa01.atreyu-library.pakodiaz.dev](https://qa01.atreyu-library.pakodiaz.dev) | Usuario: `qa` / Contraseña: `preview` ¹ |
-| **API Docs — Prod (Swagger)** | [atreyu-library.pakodiaz.dev/swagger-ui.html](https://atreyu-library.pakodiaz.dev/swagger-ui.html) | Público |
-| **API Docs — QA (Swagger)** | [qa01.atreyu-library.pakodiaz.dev/swagger-ui.html](https://qa01.atreyu-library.pakodiaz.dev/swagger-ui.html) | Usuario: `qa` / Contraseña: `preview` ¹ |
+| **API Docs — Prod (Swagger)** | [api.atreyu-library.pakodiaz.dev/swagger-ui.html](https://api.atreyu-library.pakodiaz.dev/swagger-ui.html) | Público |
+| **API Docs — QA (Swagger)** | [api-qa01.atreyu-library.pakodiaz.dev/swagger-ui.html](https://api-qa01.atreyu-library.pakodiaz.dev/swagger-ui.html) | Público |
 
 > ¹ **Nota para el revisor del demo:** las credenciales se publican intencionalmente para
 > facilitar la verificación del requisito RNF-15. En un proyecto real se gestionarían a
@@ -51,12 +53,14 @@
 |-----------|-------------|
 | [Requerimientos](docs/requirements.md) | Requerimientos funcionales y no funcionales |
 | [Arquitectura](docs/architecture.md) | Arquitectura de solución y componentes |
-| [Decisiones técnicas](docs/technical-decisions.md) | Justificación de decisiones de diseño |
+| [Decisiones técnicas](docs/technical-decisions.md) | Resumen de las 20 decisiones de diseño — detalle en [`docs/technical-decisions/`](docs/technical-decisions/) |
 | [Alcance del MVP](docs/mvp-scope.md) | Qué está dentro y fuera del alcance |
 | [CI/CD](docs/ci-cd.md) | Estrategia de integración y entrega continua |
 | [Despliegue](docs/deployment-strategy.md) | Estrategia y configuración de ambientes |
 | [Escalabilidad](docs/scalability.md) | Estrategia de crecimiento y proyección |
 | [Costos](docs/cost-estimation.md) | Estimación de costos por escenario |
+| [Estrategia de testing](docs/testing-strategy.md) | Qué se testea, en qué capa y por qué |
+| [Pruebas E2E](docs/testing-e2e.md) | Configuración y ejecución de pruebas con Cypress |
 | [Convenciones Git](docs/conventions/git.md) | Branches, commits y Pull Requests |
 | [API — Componentes (E/S)](docs/api-components.md) | Contrato de endpoints, request y response |
 | [Prototipado](docs/prototyping/wireframes.html) | Wireframes interactivos de la UI |
@@ -100,6 +104,7 @@ docker compose up
 | Frontend (Angular dev server) | `4200` |
 | Backend (Spring Boot) | `8080` |
 | PostgreSQL | `5432` |
+| pgAdmin 4 | `5050` |
 
 Los puertos son configurables desde `.env` para permitir múltiples instancias
 simultáneas en el mismo equipo.
@@ -107,9 +112,11 @@ simultáneas en el mismo equipo.
 ### API Docs
 
 Con el ambiente local levantado:
-```
-http://localhost:8080/swagger-ui.html
-```
+
+| Herramienta | URL local |
+|-------------|-----------|
+| Swagger UI | `http://localhost:8080/swagger-ui.html` |
+| pgAdmin 4 | `http://localhost:5050` |
 
 ---
 
@@ -129,6 +136,9 @@ atreyu-library/
 ├── docs/                     # Documentación del proyecto
 │   ├── conventions/          # Convenciones de Git y tareas
 │   ├── diagrams/             # Diagramas UML de secuencia
+│   ├── technical-decisions/  # 20 decisiones técnicas individuales (TD-01 … TD-20)
+│   ├── prototyping/          # Wireframes interactivos
+│   ├── api-components.md
 │   ├── architecture.md
 │   ├── ci-cd.md
 │   ├── cost-estimation.md
@@ -136,7 +146,9 @@ atreyu-library/
 │   ├── mvp-scope.md
 │   ├── requirements.md
 │   ├── scalability.md
-│   └── technical-decisions.md
+│   ├── technical-decisions.md
+│   ├── testing-e2e.md
+│   └── testing-strategy.md
 ├── .github/
 │   ├── workflows/            # GitHub Actions (CI, CD, QA deploy)
 │   └── ISSUE_TEMPLATE/       # Template de issues
@@ -161,3 +173,4 @@ El backlog priorizado y el estado del proyecto están disponibles en el
 | Sprint 3 | Actualización de libros |
 | Sprint 4 | Creación de libros |
 | Sprint 5 | Eliminación de libros |
+| Sprint 6 | Pulido post-MVP |
