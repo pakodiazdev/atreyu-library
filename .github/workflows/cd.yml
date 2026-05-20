@@ -304,7 +304,7 @@ jobs:
           OLD=$(echo "$IMAGES" | jq -r '
             ( [.[] | select(.tags != null and (any(.tags[]; startswith("qa-")) | not))] | .[1:][] | .version ),
             ( .[] | select(.tags == null or (.tags | length == 0)) | .version )
-          ')
+          ' | sort -u)
           if [ -n "$OLD" ]; then
             while IFS= read -r digest; do
               gcloud artifacts docker images delete \
@@ -326,7 +326,7 @@ jobs:
           OLD=$(echo "$IMAGES" | jq -r '
             ( [.[] | select(.tags != null and (any(.tags[]; startswith("qa-")) | not))] | .[1:][] | .version ),
             ( .[] | select(.tags == null or (.tags | length == 0)) | .version )
-          ')
+          ' | sort -u)
           if [ -n "$OLD" ]; then
             while IFS= read -r digest; do
               gcloud artifacts docker images delete \
