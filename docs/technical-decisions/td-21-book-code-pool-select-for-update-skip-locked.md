@@ -44,7 +44,7 @@ un reset previo de la base de datos — no está diseñada para aplicarse sobre 
 
 Dentro de una única transacción (`@Transactional` en `BookService.create`):
 
-1. `SELECT code FROM book_code_pool ORDER BY code LIMIT 1 FOR UPDATE SKIP LOCKED`
+1. `SELECT code FROM book_code_pool ORDER BY random() LIMIT 1 FOR UPDATE SKIP LOCKED`
 2. `DELETE FROM book_code_pool WHERE code = :selectedCode`
 3. `INSERT INTO books ...`
 4. Commit
@@ -52,8 +52,13 @@ Dentro de una única transacción (`@Transactional` en `BookService.create`):
 `FOR UPDATE` garantiza que la fila queda bloqueada para la transacción actual.
 `SKIP LOCKED` evita que dos transacciones concurrentes esperen la misma fila: simplemente omite
 las filas ya bloqueadas y elige otra. Así dos requests simultáneas nunca obtienen el mismo código.
-`ORDER BY code` garantiza selección determinista — sin él, PostgreSQL puede devolver cualquier
-fila según el plan de ejecución.
+`ORDER BY random()` preserva la aleatoriedad requerida por RF-04. El pool tiene máximo 2,600 filas —
+un volumen pequeño que PostgreSQL ordena en sub-milisegundos — no representa degradación perceptible.
+
+`ORDER BY random()` es compatible con `SKIP LOCKED`: cada transacción evalúa `random()` de forma
+independiente. Si dos concurrentes coinciden en el primer candidato, `SKIP LOCKED` hace que la
+segunda tome el siguiente en su propia secuencia aleatoria, garantizando unicidad sin sacrificar
+aleatoriedad.
 
 ### Flujo de eliminación de libro
 
@@ -88,16 +93,36 @@ ON CONFLICT DO NOTHING;
 | UUID como código | Pierde legibilidad en UI; rompe el contrato de negocio |
 | Secuencia PostgreSQL | No genera formato `A00–Z99` de forma natural |
 | Redis/cache externa | Dependencia adicional innecesaria |
+| `ORDER BY code` | Asignación secuencial — viola RF-04 (aleatoriedad requerida) |
+| `sort_key` aleatorio pre-asignado | Orden determinista post-inserción: con el mismo estado de la tabla siempre se obtiene el mismo código. Predecible y con implicaciones de seguridad — un observador puede inferir el orden de los códigos restantes |
+| `OFFSET` aleatorio + `LIMIT 1` | Requiere subquery COUNT o dos queries; bajo `SKIP LOCKED` el OFFSET se cuenta solo sobre filas no bloqueadas, produciendo distribución irregular. El único problema mitigable (resultado vacío cuando el offset cae fuera de rango) requeriría un retry adicional sin aportar ventaja real sobre `ORDER BY random()` para 2,600 filas |
 
-## Comparativa
+## Comparativa de estrategias de selección aleatoria
 
-| Aspecto | Random + retry | Pool con SKIP LOCKED |
+| Aspecto | `ORDER BY random()` | `sort_key` + índice | `OFFSET` aleatorio |
+|---|---|---|---|
+| Aleatoriedad real en runtime | ✅ | ❌ determinista post-inserción | ✅ |
+| Predecible / explotable | No | Sí | No |
+| Usa índice | ❌ | ✅ | ❌ (OFFSET es O(n)) |
+| Queries por create | 1 | 1 | 1 (subquery) o 2 |
+| Resultado vacío posible | Solo si pool agotado | Solo si pool agotado | Pool agotado **o** offset fuera de rango |
+| Retry extra requerido | No | No | Sí (offset fuera de rango) |
+| Escala a 100K+ filas | No | Sí | Mejor que `ORDER BY random()` |
+| Complejidad de implementación | Mínima | Migración + lógica extra | Manejo del caso vacío adicional |
+
+> Para 2,600 filas (~8KB) el costo de `ORDER BY random()` es sub-milisegundo. Las alternativas más
+> eficientes solo aportarían valor a partir de cientos de miles de filas — escenario fuera del
+> alcance de este proyecto.
+
+## Comparativa general
+
+| Aspecto | Random + retry | Pool con `ORDER BY random()` |
 |---|---|---|
 | Colisiones | Posibles | Imposibles |
 | Reintentos | Sí (hasta 100) | No |
-| Complejidad runtime | O(n) degradado | O(1) |
+| Complejidad runtime | O(n) degradado | O(n log n) trivial — 2,600 filas |
 | Concurrencia | Race condition posible | Seguro |
-| Determinismo | No | Sí |
+| Aleatoriedad | Sí | Sí |
 
 ## Consecuencias
 
@@ -108,6 +133,6 @@ ON CONFLICT DO NOTHING;
 
 ## Referencia
 
-- Issue: #056
+- Issue: #056 (pool inicial) — #074 (restaurar aleatoriedad con `ORDER BY random()`)
 - Implementado en: `BookCodePool`, `BookCodePoolRepository`, `BookCodePoolEmptyException`
 - Migración: `V1__initial_schema.sql`
