@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -12,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import com.atreyulibrary.book.dto.BookRequest;
 import com.atreyulibrary.book.dto.BookResponse;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -410,5 +413,84 @@ class BookServiceTest {
 
         // BookResponse expone code y ulid como identificadores públicos; la PK interna (id) no se incluye
         assertNotNull(response.code());
+    }
+
+    // ── createAll ─────────────────────────────────────────────────────────────
+
+    @Test
+    void createAllReservesBulkCodesAndSavesAllBooks() {
+        final List<BookRequest> requests = List.of(
+            new BookRequest("Libro 1", "Autor A", null, null, null),
+            new BookRequest("Libro 2", "Autor B", "Ficción", 2000, null),
+            new BookRequest("Libro 3", "Autor C", null, 1990, "Sinopsis")
+        );
+        when(codePoolRepository.lockAndPickCodes(3)).thenReturn(List.of("M34", "B07", "Z91"));
+
+        service.createAll(requests);
+
+        verify(codePoolRepository).lockAndPickCodes(3);
+        verify(codePoolRepository).deleteAllByCodes(List.of("M34", "B07", "Z91"));
+        verify(repository).saveAll(argThat((List<Book> books) ->
+            books.size() == 3
+            && books.get(0).getCode().equals("M34")
+            && books.get(1).getCode().equals("B07")
+            && books.get(2).getCode().equals("Z91")
+        ));
+    }
+
+    @Test
+    void createAllThrowsWhenPoolHasFewerCodesThanRequested() {
+        final List<BookRequest> requests = List.of(
+            new BookRequest("L1", "A1", null, null, null),
+            new BookRequest("L2", "A2", null, null, null)
+        );
+        when(codePoolRepository.lockAndPickCodes(2)).thenReturn(List.of("A01")); // solo 1 código
+
+        assertThrows(BookCodePoolEmptyException.class, () -> service.createAll(requests));
+
+        verify(repository, never()).saveAll(anyList());
+    }
+
+    @Test
+    void createAllDoesNothingForEmptyList() {
+        service.createAll(List.of());
+
+        verify(codePoolRepository, never()).lockAndPickCodes(anyInt());
+        verify(repository, never()).saveAll(anyList());
+    }
+
+    @Test
+    void createAllWithTimestampsSetsCreatedAndUpdatedAt() {
+        final OffsetDateTime ts0 = OffsetDateTime.now().minusDays(100);
+        final OffsetDateTime ts1 = OffsetDateTime.now().minusDays(50);
+        final List<BookRequest> requests = List.of(
+            new BookRequest("Libro 1", "Autor A", null, null, null),
+            new BookRequest("Libro 2", "Autor B", null, null, null)
+        );
+        when(codePoolRepository.lockAndPickCodes(2)).thenReturn(List.of("A01", "B02"));
+
+        service.createAll(requests, List.of(ts0, ts1));
+
+        verify(repository).saveAll(argThat((List<Book> books) ->
+            books.size() == 2
+            && ts0.equals(books.get(0).getCreatedAt())
+            && ts0.equals(books.get(0).getUpdatedAt())
+            && ts1.equals(books.get(1).getCreatedAt())
+            && ts1.equals(books.get(1).getUpdatedAt())
+        ));
+    }
+
+    @Test
+    void createAllThrowsWhenCreatedAtsSizeMismatch() {
+        final List<BookRequest> requests = List.of(
+            new BookRequest("L1", "A1", null, null, null),
+            new BookRequest("L2", "A2", null, null, null)
+        );
+        final List<OffsetDateTime> timestamps = List.of(OffsetDateTime.now()); // solo 1, se necesitan 2
+
+        assertThrows(IllegalArgumentException.class,
+            () -> service.createAll(requests, timestamps));
+
+        verify(repository, never()).saveAll(anyList());
     }
 }

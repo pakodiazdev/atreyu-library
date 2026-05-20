@@ -1,5 +1,6 @@
 package com.atreyulibrary;
 
+import com.atreyulibrary.seeder.BookSeederCsv;
 import com.atreyulibrary.seeder.BookSeederProd;
 import com.atreyulibrary.seeder.DeployCheckSeeder;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,9 @@ class AtreyuLibraryApplicationTests {
 
     @MockitoBean
     BookSeederProd bookSeederProd;
+
+    @MockitoBean
+    BookSeederCsv bookSeederCsv;
 
     @Test
     void contextLoads() {

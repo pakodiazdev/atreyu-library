@@ -59,15 +59,19 @@ public class Book {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    /** Genera el ULID y establece createdAt/updatedAt al momento de la inserción. */
+    /** Genera el ULID y establece createdAt/updatedAt al momento de la inserción si no fueron pre-seteados. */
     @PrePersist
     public void prePersist() {
         if (this.ulid == null) {
             this.ulid = UlidCreator.getUlid().toString();
         }
         final OffsetDateTime now = OffsetDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        if (this.updatedAt == null) {
+            this.updatedAt = now;
+        }
     }
 
     /** Actualiza updatedAt en cada modificación. */
