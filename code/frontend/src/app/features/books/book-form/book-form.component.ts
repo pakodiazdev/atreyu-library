@@ -24,6 +24,7 @@ export class BookFormComponent {
 
   @Input() set bookCode(value: string | null | undefined) {
     this.store.setBookCode(value ?? null);
+    if (!value) this.form.reset();
   }
 
   constructor() {
