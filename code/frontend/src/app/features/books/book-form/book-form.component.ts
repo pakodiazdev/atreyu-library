@@ -23,8 +23,9 @@ export class BookFormComponent {
   });
 
   @Input() set bookCode(value: string | null | undefined) {
-    this.store.setBookCode(value ?? null);
-    if (!value) this.form.reset();
+    const code = value || null;
+    this.store.setBookCode(code);
+    if (code === null) this.form.reset();
   }
 
   constructor() {
