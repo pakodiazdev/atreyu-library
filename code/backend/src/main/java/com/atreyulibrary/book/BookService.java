@@ -2,6 +2,8 @@ package com.atreyulibrary.book;
 
 import com.atreyulibrary.book.dto.BookRequest;
 import com.atreyulibrary.book.dto.BookResponse;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,6 +89,63 @@ public class BookService {
             return null;
         }
         return value;
+    }
+
+    /**
+     * Crea múltiples libros en una sola transacción.
+     * Reserva todos los códigos de golpe con una query bulk, luego hace un saveAll.
+     *
+     * @param requests lista de datos de los libros a crear
+     * @throws BookCodePoolEmptyException si el pool no tiene suficientes códigos
+     */
+    @Transactional
+    public void createAll(final List<BookRequest> requests) {
+        doCreateAll(requests, null);
+    }
+
+    /**
+     * Crea múltiples libros en una sola transacción con timestamps opcionales.
+     * Si {@code createdAts} es null, {@code @PrePersist} aplica {@code OffsetDateTime.now()}.
+     * Usado por seeders que necesitan distribuir fechas de alta en el pasado.
+     *
+     * @param requests   datos de los libros
+     * @param createdAts lista de fechas de creación (mismo tamaño que requests), o null
+     */
+    @Transactional
+    public void createAll(final List<BookRequest> requests, final List<OffsetDateTime> createdAts) {
+        doCreateAll(requests, createdAts);
+    }
+
+    private void doCreateAll(final List<BookRequest> requests, final List<OffsetDateTime> createdAts) {
+        if (requests.isEmpty()) {
+            return;
+        }
+        final int count = requests.size();
+        if (createdAts != null && createdAts.size() != count) {
+            throw new IllegalArgumentException(
+                "createdAts.size() (" + createdAts.size() + ") != requests.size() (" + count + ")");
+        }
+        final List<String> codes = codePoolRepository.lockAndPickCodes(count);
+        if (codes.size() < count) {
+            throw new BookCodePoolEmptyException();
+        }
+        codePoolRepository.deleteAllByCodes(codes);
+        final List<Book> books = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            final BookRequest req = requests.get(i);
+            final OffsetDateTime ts = (createdAts != null) ? createdAts.get(i) : null;
+            books.add(Book.builder()
+                    .code(codes.get(i))
+                    .title(req.title())
+                    .author(req.author())
+                    .genre(req.genre())
+                    .publicationYear(req.publicationYear())
+                    .synopsis(req.synopsis())
+                    .createdAt(ts)
+                    .updatedAt(ts)
+                    .build());
+        }
+        repository.saveAll(books);
     }
 
     /**
