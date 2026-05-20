@@ -23,6 +23,7 @@ function makeStore() {
     isEditMode:    signal(false),
     editedBook:    signal<BookDetail | null>(null),
     isLoadingBook: signal(false),
+    isBookNotFound: signal(false),
     submit:        vi.fn(),
     cancel:        vi.fn(),
     setBookCode:   vi.fn(),
@@ -233,6 +234,74 @@ describe('BookFormComponent', () => {
     it('does not call store.setBookCode when no bookCode input is provided', () => {
       configure(null);
       expect(store.setBookCode).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── effect: patch / reset form ─────────────────────────────────────────────
+
+  describe('effect — form patch and reset', () => {
+    it('patches the form when editedBook emits a book', () => {
+      const fixture = configure();
+      const book: BookDetail = {
+        code: 'A01', ulid: '01JTEST', title: 'Dune', author: 'Herbert',
+        genre: 'Sci-Fi', publicationYear: 1965,
+      };
+
+      (store.editedBook as WritableSignal<BookDetail | null>).set(book);
+      fixture.detectChanges();
+      TestBed.flushEffects();
+
+      expect(component.form.value.title).toBe('Dune');
+      expect(component.form.value.author).toBe('Herbert');
+      expect(component.form.value.genre).toBe('Sci-Fi');
+      expect(component.form.value.publicationYear).toBe(1965);
+    });
+
+    it('resets the form when switching from edit mode to create mode', () => {
+      const fixture = configure();
+      const book: BookDetail = {
+        code: 'A01', ulid: '01JTEST', title: 'Dune', author: 'Herbert',
+        genre: 'Sci-Fi', publicationYear: 1965,
+      };
+
+      // Simular modo edición con datos cargados
+      (store.isEditMode as WritableSignal<boolean>).set(true);
+      (store.editedBook as WritableSignal<BookDetail | null>).set(book);
+      fixture.detectChanges();
+      TestBed.flushEffects();
+      expect(component.form.value.title).toBe('Dune');
+
+      // Simular cambio a modo creación
+      (store.isEditMode as WritableSignal<boolean>).set(false);
+      (store.editedBook as WritableSignal<BookDetail | null>).set(null);
+      fixture.detectChanges();
+      TestBed.flushEffects();
+
+      expect(component.form.value.title).toBeNull();
+      expect(component.form.value.author).toBeNull();
+      expect(component.form.value.genre).toBeNull();
+      expect(component.form.value.publicationYear).toBeNull();
+    });
+
+    it('does not reset the form while still in edit mode (book loading)', () => {
+      const fixture = configure('A01');
+      const book: BookDetail = {
+        code: 'A01', ulid: '01JTEST', title: 'Dune', author: 'Herbert',
+        genre: null, publicationYear: null,
+      };
+
+      (store.isEditMode as WritableSignal<boolean>).set(true);
+      (store.editedBook as WritableSignal<BookDetail | null>).set(book);
+      fixture.detectChanges();
+      TestBed.flushEffects();
+
+      // Simular libro en carga (editedBook null) pero aún en edit mode
+      (store.editedBook as WritableSignal<BookDetail | null>).set(null);
+      fixture.detectChanges();
+      TestBed.flushEffects();
+
+      // El formulario NO debe resetearse porque isEditMode sigue siendo true
+      expect(component.form.value.title).toBe('Dune');
     });
   });
 });

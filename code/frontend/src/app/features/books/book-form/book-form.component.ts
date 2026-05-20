@@ -37,6 +37,8 @@ export class BookFormComponent {
           publicationYear: book.publicationYear,
           synopsis:        book.synopsis ?? '',
         });
+      } else if (!this.store.isEditMode()) {
+        this.form.reset();
       }
     });
   }
