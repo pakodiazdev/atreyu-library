@@ -235,6 +235,21 @@ describe('BookFormComponent', () => {
       configure(null);
       expect(store.setBookCode).not.toHaveBeenCalled();
     });
+
+    it('resets the form when bookCode is set to null while form has data', () => {
+      const fixture = configure();
+      component.form.setValue({
+        title: 'Libro anterior', author: 'Autor', genre: 'Drama',
+        publicationYear: 2020, synopsis: 'Sinopsis',
+      });
+      expect(component.form.value.title).toBe('Libro anterior');
+
+      fixture.componentRef.setInput('bookCode', null);
+      fixture.detectChanges();
+
+      expect(component.form.value.title).toBeNull();
+      expect(component.form.value.author).toBeNull();
+    });
   });
 
   // ── effect: patch / reset form ─────────────────────────────────────────────
