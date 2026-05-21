@@ -102,7 +102,7 @@ public class BookService {
 
     /**
      * Crea múltiples libros en una sola transacción.
-     * Reserva todos los códigos de golpe con una query bulk, luego hace un saveAll.
+     * Reserva todos los códigos de golpe con una query bulk y los inserta vía JdbcTemplate batch.
      *
      * @param requests lista de datos de los libros a crear
      * @throws BookCodePoolEmptyException si el pool no tiene suficientes códigos
@@ -114,7 +114,7 @@ public class BookService {
 
     /**
      * Crea múltiples libros en una sola transacción con timestamps opcionales.
-     * Si {@code createdAts} es null, {@code @PrePersist} aplica {@code OffsetDateTime.now()}.
+     * Si {@code createdAts} es null o contiene elementos null, se usa {@code OffsetDateTime.now()}.
      * Usado por seeders que necesitan distribuir fechas de alta en el pasado.
      *
      * @param requests   datos de los libros
@@ -143,7 +143,8 @@ public class BookService {
         final List<Object[]> params = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             final BookRequest req = requests.get(i);
-            final OffsetDateTime ts = createdAts != null ? createdAts.get(i) : fallbackNow;
+            final OffsetDateTime ts = (createdAts != null && createdAts.get(i) != null)
+                ? createdAts.get(i) : fallbackNow;
             params.add(new Object[]{
                 UlidCreator.getUlid().toString(),
                 codes.get(i),
