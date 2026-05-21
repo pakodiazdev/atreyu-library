@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile({"dev", "qa", "e2e", "prod"})
-@Order(2)
+@Order(3)
 public class BookSeederProd extends OnceSeeder {
 
     private static final String NOVELA = "Novela";

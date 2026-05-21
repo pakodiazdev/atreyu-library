@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile({"dev", "qa", "prod"})
-@Order(3)
+@Order(2)
 public class BookSeederCsv extends OnceSeeder {
 
     private static final String CSV_PATH = "data/libros.csv";
