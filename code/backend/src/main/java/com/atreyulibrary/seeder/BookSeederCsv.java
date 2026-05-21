@@ -36,8 +36,8 @@ public class BookSeederCsv extends OnceSeeder {
 
     private static final int SPREAD_DAYS = 730; // rango [0, SPREAD_DAYS] días → ~2 años hacia atrás
     private static final SecureRandom RANDOM = new SecureRandom();
-    // Lotes pequeños para evitar que una sola transacción supere el statement_timeout de Supabase
-    private static final int BATCH_SIZE = 100;
+    // Lotes pequeños para limitar el tiempo de transacción y no saturar el idle_in_transaction_session_timeout de Supabase
+    private static final int BATCH_SIZE = 10;
 
     @Override
     protected void seed() {
