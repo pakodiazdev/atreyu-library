@@ -5,7 +5,7 @@ import { BookCardComponent } from './book-card/book-card.component';
 /**
  * Carrusel horizontal de los libros añadidos recientemente.
  * Permite scroll con rueda del ratón y navegación con botones de flecha.
- * Se adapta al ancho disponible: si los libros caben, no muestra botones.
+ * Los botones de navegación se muestran al hacer hover sobre el carrusel.
  *
  * @input  books   - lista de libros a mostrar
  * @input  loading - activa los skeletons de carga
@@ -73,13 +73,13 @@ import { BookCardComponent } from './book-card/book-card.component';
   `,
 })
 export class RecentBooksComponent {
-  @ViewChild('carousel') private carouselRef?: ElementRef<HTMLDivElement>;
+  @ViewChild('carousel') private readonly carouselRef?: ElementRef<HTMLDivElement>;
 
   readonly books        = input<Book[]>([]);
   readonly loading      = input(false);
   readonly bookSelected = output<Book>();
 
-  protected readonly skeletons = Array(5);
+  protected readonly skeletons = new Array(5);
 
   protected onWheel(event: WheelEvent): void {
     const el = this.carouselRef?.nativeElement;

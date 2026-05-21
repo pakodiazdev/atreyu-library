@@ -84,17 +84,17 @@ describe('BookListComponent', () => {
   describe('ngOnInit()', () => {
     it('no abre el drawer cuando no hay bookSlug en la ruta', () => {
       configureAndCreate(null);
-      expect(drawer.openDetail).not.toHaveBeenCalled();
+      expect(drawer.openDetailFrom).not.toHaveBeenCalled();
     });
 
     it('abre el drawer de detalle al detectar bookSlug válido en la ruta', () => {
       configureAndCreate('A01-cien-anos-de-soledad-1967');
-      expect(drawer.openDetail).toHaveBeenCalledWith('A01');
+      expect(drawer.openDetailFrom).toHaveBeenCalledWith('A01', '/catalogo');
     });
 
     it('no abre el drawer cuando bookSlug no tiene código válido', () => {
       configureAndCreate('slug-sin-codigo');
-      expect(drawer.openDetail).not.toHaveBeenCalled();
+      expect(drawer.openDetailFrom).not.toHaveBeenCalled();
     });
 
     it('aplica filterTitle desde el queryParam title al inicializar', () => {

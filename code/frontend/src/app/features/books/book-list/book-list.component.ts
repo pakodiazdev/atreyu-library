@@ -60,7 +60,7 @@ export class BookListComponent implements OnInit {
     const bookSlug = this.route.snapshot.paramMap.get('bookSlug') ?? '';
     const code = extractCodeFromSlug(bookSlug);
     if (code) {
-      this.drawer.openDetail(code);
+      this.drawer.openDetailFrom(code, '/catalogo');
     }
 
     this.route.queryParamMap
