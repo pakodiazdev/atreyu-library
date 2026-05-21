@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,8 +27,6 @@ import static org.mockito.Mockito.when;
 class BookSeederCsvTest {
 
     private static final int CSV_BOOK_COUNT = 1500;
-    private static final int BATCH_SIZE = 10;
-    private static final int EXPECTED_BATCHES = (CSV_BOOK_COUNT + BATCH_SIZE - 1) / BATCH_SIZE;
 
     @Mock
     private SeederLogRepository seederLogRepository;
@@ -41,7 +38,7 @@ class BookSeederCsvTest {
     private BookSeederCsv seeder;
 
     @Test
-    void callsCreateAllInBatchesWithAllCsvRowsOnFirstRun() {
+    void callsCreateAllOnceWithAllCsvRowsOnFirstRun() {
         when(seederLogRepository.existsBySeederClass(anyString())).thenReturn(false);
 
         seeder.run();
@@ -50,14 +47,10 @@ class BookSeederCsvTest {
         ArgumentCaptor<List<BookRequest>> reqCaptor = ArgumentCaptor.forClass(List.class);
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<OffsetDateTime>> tsCaptor = ArgumentCaptor.forClass(List.class);
-        verify(bookService, times(EXPECTED_BATCHES)).createAll(reqCaptor.capture(), tsCaptor.capture());
+        verify(bookService).createAll(reqCaptor.capture(), tsCaptor.capture());
 
-        final int totalReqs = reqCaptor.getAllValues().stream().mapToInt(List::size).sum();
-        final int totalTs = tsCaptor.getAllValues().stream().mapToInt(List::size).sum();
-        assertEquals(CSV_BOOK_COUNT, totalReqs);
-        assertEquals(CSV_BOOK_COUNT, totalTs);
-        reqCaptor.getAllValues().forEach(batch ->
-            assertTrue(batch.size() <= BATCH_SIZE, "Ningún lote debe superar BATCH_SIZE"));
+        assertEquals(CSV_BOOK_COUNT, reqCaptor.getValue().size());
+        assertEquals(CSV_BOOK_COUNT, tsCaptor.getValue().size());
         verify(seederLogRepository).save(any(SeederLog.class));
     }
 
@@ -69,9 +62,9 @@ class BookSeederCsvTest {
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<BookRequest>> captor = ArgumentCaptor.forClass(List.class);
-        verify(bookService, times(EXPECTED_BATCHES)).createAll(captor.capture(), anyList());
+        verify(bookService).createAll(captor.capture(), anyList());
 
-        captor.getAllValues().stream().flatMap(List::stream).forEach(r -> {
+        captor.getValue().forEach(r -> {
             assertNotNull(r.title(), "title null en alguna fila");
             assertFalse(r.title().isBlank(), "title vacío en alguna fila");
             assertNotNull(r.author(), "author null en alguna fila");
@@ -87,10 +80,9 @@ class BookSeederCsvTest {
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<BookRequest>> captor = ArgumentCaptor.forClass(List.class);
-        verify(bookService, times(EXPECTED_BATCHES)).createAll(captor.capture(), anyList());
+        verify(bookService).createAll(captor.capture(), anyList());
 
-        final boolean hasEscapedQuote = captor.getAllValues().stream()
-            .flatMap(List::stream)
+        final boolean hasEscapedQuote = captor.getValue().stream()
             .anyMatch(r -> r.title().contains("\"") || (r.synopsis() != null && r.synopsis().contains("\"")));
         assertTrue(hasEscapedQuote, "Debe haber al menos un campo con comillas dobles escapadas");
     }
@@ -103,11 +95,11 @@ class BookSeederCsvTest {
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<OffsetDateTime>> tsCaptor = ArgumentCaptor.forClass(List.class);
-        verify(bookService, times(EXPECTED_BATCHES)).createAll(anyList(), tsCaptor.capture());
+        verify(bookService).createAll(anyList(), tsCaptor.capture());
 
         final OffsetDateTime now = OffsetDateTime.now();
         final OffsetDateTime twoYearsAgo = now.minusDays(731); // +1 de buffer: nextLong incluye 730
-        tsCaptor.getAllValues().stream().flatMap(List::stream).forEach(ts -> {
+        tsCaptor.getValue().forEach(ts -> {
             assertTrue(ts.isBefore(now), "El timestamp no debería ser futuro");
             assertTrue(ts.isAfter(twoYearsAgo), "El timestamp no debería ser anterior a 2 años");
         });
