@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { computed, signal } from '@angular/core';
 import { vi } from 'vitest';
 import { InicioComponent } from './inicio.component';
