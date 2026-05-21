@@ -43,5 +43,5 @@ export class GenreListComponent {
   readonly genres  = input<GenreStats[]>([]);
   readonly loading = input(false);
 
-  protected readonly skeletons = Array(6);
+  protected readonly skeletons = new Array(6);
 }

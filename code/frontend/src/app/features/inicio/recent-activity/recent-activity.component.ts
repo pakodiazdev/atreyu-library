@@ -53,5 +53,5 @@ export class RecentActivityComponent {
   readonly entries = input<ActivityEntry[]>([]);
   readonly loading = input(false);
 
-  protected readonly skeletons = Array(5);
+  protected readonly skeletons = new Array(5);
 }

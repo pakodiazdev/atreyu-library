@@ -17,7 +17,6 @@ import { UiBadgeComponent } from '../../../../shared/ui';
       type="button"
       class="flex flex-col w-[160px] shrink-0 text-left border-[1.6px] border-tinta/20 rounded-lg overflow-hidden bg-papel-claro hover:border-tinta/60 hover:shadow-sm transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-oro/50"
       (click)="selected.emit(book())"
-      (keydown.enter)="selected.emit(book())"
     >
       <!-- Portada placeholder -->
       <div
