@@ -241,3 +241,105 @@ Sin cuerpo de respuesta.
 | `POST` | `/api/v1/books` | Crea un nuevo libro | `201` / `422` |
 | `PUT` | `/api/v1/books/{id}` | Actualiza un libro | `200` / `404` / `422` |
 | `DELETE` | `/api/v1/books/{id}` | Elimina un libro | `204` / `404` |
+| `GET` | `/api/v1/dashboard/stats` | Estadísticas del catálogo | `200` |
+| `GET` | `/api/v1/dashboard/recent-books` | Últimos 10 libros añadidos | `200` |
+| `GET` | `/api/v1/dashboard/recent-activity` | Actividad reciente (crear/editar) | `200` |
+| `GET` | `/api/v1/dashboard/genres` | Géneros con conteo de libros | `200` |
+
+---
+
+## Dashboard — Modelos de respuesta
+
+### DashboardStatsResponse
+
+```json
+{
+  "totalBooks": 42,
+  "distinctGenres": 8,
+  "addedThisMonth": 3
+}
+```
+
+### ActivityEntry
+
+```json
+{
+  "bookCode": "A12",
+  "title": "La metamorfosis",
+  "author": "Franz Kafka",
+  "eventType": "CREATED",
+  "occurredAt": "2026-05-21T10:30:00Z"
+}
+```
+
+> `eventType` puede ser `CREATED` o `UPDATED`. Las eliminaciones no generan entrada (no existe log de borrado).
+
+### GenreStats
+
+```json
+{
+  "genre": "Novela",
+  "count": 5
+}
+```
+
+---
+
+## GET /api/v1/dashboard/stats
+
+Estadísticas generales del catálogo de la biblioteca.
+
+### Respuesta exitosa `200 OK`
+
+```json
+{
+  "totalBooks": 42,
+  "distinctGenres": 8,
+  "addedThisMonth": 3
+}
+```
+
+---
+
+## GET /api/v1/dashboard/recent-books
+
+Los últimos 10 libros añadidos al catálogo, ordenados por fecha de creación descendente.
+
+### Respuesta exitosa `200 OK`
+
+Array de hasta 10 objetos `BookResponse` (ver modelo base).
+
+---
+
+## GET /api/v1/dashboard/recent-activity
+
+Actividad reciente del catálogo: los últimos 15 eventos de creación o edición de libros.
+
+### Respuesta exitosa `200 OK`
+
+```json
+[
+  {
+    "bookCode": "A12",
+    "title": "La metamorfosis",
+    "author": "Franz Kafka",
+    "eventType": "UPDATED",
+    "occurredAt": "2026-05-21T10:30:00Z"
+  }
+]
+```
+
+---
+
+## GET /api/v1/dashboard/genres
+
+Todos los géneros del catálogo con el número de libros de cada uno.
+
+### Respuesta exitosa `200 OK`
+
+```json
+[
+  { "genre": "Novela", "count": 5 },
+  { "genre": "Fantasía", "count": 3 }
+]
+```
