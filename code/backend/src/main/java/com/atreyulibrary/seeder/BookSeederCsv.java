@@ -36,12 +36,17 @@ public class BookSeederCsv extends OnceSeeder {
 
     private static final int SPREAD_DAYS = 730; // rango [0, SPREAD_DAYS] días → ~2 años hacia atrás
     private static final SecureRandom RANDOM = new SecureRandom();
+    // Lotes pequeños para evitar que una sola transacción supere el statement_timeout de Supabase
+    private static final int BATCH_SIZE = 100;
 
     @Override
     protected void seed() {
         final List<BookRequest> requests = loadFromCsv();
         final List<OffsetDateTime> timestamps = randomTimestamps(requests.size());
-        bookService.createAll(requests, timestamps);
+        for (int i = 0; i < requests.size(); i += BATCH_SIZE) {
+            final int end = Math.min(i + BATCH_SIZE, requests.size());
+            bookService.createAll(requests.subList(i, end), timestamps.subList(i, end));
+        }
     }
 
     private List<OffsetDateTime> randomTimestamps(final int count) {
