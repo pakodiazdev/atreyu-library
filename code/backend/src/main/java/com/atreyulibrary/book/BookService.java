@@ -2,9 +2,11 @@ package com.atreyulibrary.book;
 
 import com.atreyulibrary.book.dto.BookRequest;
 import com.atreyulibrary.book.dto.BookResponse;
+import com.github.f4b6a3.ulid.UlidCreator;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,16 +15,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class BookService {
 
+    private static final String INSERT_BOOKS_SQL =
+        "INSERT INTO books (ulid, code, title, author, genre, publication_year, synopsis, created_at, updated_at)"
+        + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
     private final BookRepository repository;
     private final BookCodePoolRepository codePoolRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     /** Inyección por constructor. */
     public BookService(
             final BookRepository repository,
-            final BookCodePoolRepository codePoolRepository
+            final BookCodePoolRepository codePoolRepository,
+            final JdbcTemplate jdbcTemplate
     ) {
         this.repository = repository;
         this.codePoolRepository = codePoolRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     /**
@@ -130,22 +139,24 @@ public class BookService {
             throw new BookCodePoolEmptyException();
         }
         codePoolRepository.deleteAllByCodes(codes);
-        final List<Book> books = new ArrayList<>(count);
+        final OffsetDateTime fallbackNow = OffsetDateTime.now();
+        final List<Object[]> params = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             final BookRequest req = requests.get(i);
-            final OffsetDateTime ts = (createdAts != null) ? createdAts.get(i) : null;
-            books.add(Book.builder()
-                    .code(codes.get(i))
-                    .title(req.title())
-                    .author(req.author())
-                    .genre(req.genre())
-                    .publicationYear(req.publicationYear())
-                    .synopsis(req.synopsis())
-                    .createdAt(ts)
-                    .updatedAt(ts)
-                    .build());
+            final OffsetDateTime ts = createdAts != null ? createdAts.get(i) : fallbackNow;
+            params.add(new Object[]{
+                UlidCreator.getUlid().toString(),
+                codes.get(i),
+                req.title(),
+                req.author(),
+                req.genre(),
+                req.publicationYear(),
+                req.synopsis(),
+                ts,
+                ts
+            });
         }
-        repository.saveAll(books);
+        jdbcTemplate.batchUpdate(INSERT_BOOKS_SQL, params);
     }
 
     /**

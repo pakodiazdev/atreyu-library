@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -20,9 +21,11 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class BookServiceTest {
@@ -32,6 +35,9 @@ class BookServiceTest {
 
     @Mock
     private BookCodePoolRepository codePoolRepository;
+
+    @Mock
+    private JdbcTemplate jdbcTemplate;
 
     @InjectMocks
     private BookService service;
@@ -146,7 +152,6 @@ class BookServiceTest {
 
         final BookResponse response = service.findAll(null, null, null).get(0);
 
-        // BookResponse no expone la PK BIGSERIAL interna; solo code y ulid son identificadores públicos
         assertEquals("A01", response.code());
         assertEquals("01HW5XMTSC9AZAZ5YR0DR7B7GK", response.ulid());
     }
@@ -333,7 +338,6 @@ class BookServiceTest {
         try {
             service.deleteByUlid("NONEXISTENT");
         } catch (final BookNotFoundException ignored) {
-            // excepción esperada
         }
 
         verify(repository, never()).delete(any());
@@ -411,7 +415,6 @@ class BookServiceTest {
         final BookRequest request = new BookRequest("Hamlet", "Shakespeare", null, null, null);
         final BookResponse response = service.create(request);
 
-        // BookResponse expone code y ulid como identificadores públicos; la PK interna (id) no se incluye
         assertNotNull(response.code());
     }
 
@@ -430,12 +433,14 @@ class BookServiceTest {
 
         verify(codePoolRepository).lockAndPickCodes(3);
         verify(codePoolRepository).deleteAllByCodes(List.of("M34", "B07", "Z91"));
-        verify(repository).saveAll(argThat((List<Book> books) ->
-            books.size() == 3
-            && books.get(0).getCode().equals("M34")
-            && books.get(1).getCode().equals("B07")
-            && books.get(2).getCode().equals("Z91")
-        ));
+        @SuppressWarnings("unchecked")
+        final ArgumentCaptor<List<Object[]>> paramsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(jdbcTemplate).batchUpdate(anyString(), paramsCaptor.capture());
+        final List<Object[]> params = paramsCaptor.getValue();
+        assertEquals(3, params.size());
+        assertEquals("M34", params.get(0)[1]);
+        assertEquals("B07", params.get(1)[1]);
+        assertEquals("Z91", params.get(2)[1]);
     }
 
     @Test
@@ -447,16 +452,14 @@ class BookServiceTest {
         when(codePoolRepository.lockAndPickCodes(2)).thenReturn(List.of("A01")); // solo 1 código
 
         assertThrows(BookCodePoolEmptyException.class, () -> service.createAll(requests));
-
-        verify(repository, never()).saveAll(anyList());
+        verify(jdbcTemplate, never()).batchUpdate(anyString(), anyList());
     }
 
     @Test
     void createAllDoesNothingForEmptyList() {
         service.createAll(List.of());
-
         verify(codePoolRepository, never()).lockAndPickCodes(anyInt());
-        verify(repository, never()).saveAll(anyList());
+        verify(jdbcTemplate, never()).batchUpdate(anyString(), anyList());
     }
 
     @Test
@@ -470,14 +473,15 @@ class BookServiceTest {
         when(codePoolRepository.lockAndPickCodes(2)).thenReturn(List.of("A01", "B02"));
 
         service.createAll(requests, List.of(ts0, ts1));
-
-        verify(repository).saveAll(argThat((List<Book> books) ->
-            books.size() == 2
-            && ts0.equals(books.get(0).getCreatedAt())
-            && ts0.equals(books.get(0).getUpdatedAt())
-            && ts1.equals(books.get(1).getCreatedAt())
-            && ts1.equals(books.get(1).getUpdatedAt())
-        ));
+        @SuppressWarnings("unchecked")
+        final ArgumentCaptor<List<Object[]>> paramsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(jdbcTemplate).batchUpdate(anyString(), paramsCaptor.capture());
+        final List<Object[]> params = paramsCaptor.getValue();
+        assertEquals(2, params.size());
+        assertEquals(ts0, params.get(0)[7]); // created_at
+        assertEquals(ts0, params.get(0)[8]); // updated_at
+        assertEquals(ts1, params.get(1)[7]);
+        assertEquals(ts1, params.get(1)[8]);
     }
 
     @Test
@@ -491,6 +495,6 @@ class BookServiceTest {
         assertThrows(IllegalArgumentException.class,
             () -> service.createAll(requests, timestamps));
 
-        verify(repository, never()).saveAll(anyList());
+        verify(jdbcTemplate, never()).batchUpdate(anyString(), anyList());
     }
 }
