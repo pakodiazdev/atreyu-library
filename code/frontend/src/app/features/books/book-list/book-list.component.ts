@@ -74,7 +74,7 @@ export class BookListComponent implements OnInit {
   }
 
   protected openDetail(book: Book): void {
-    this.drawer.openDetail(book.code);
+    this.drawer.openDetailFrom(book.code, '/catalogo');
     this.location.replaceState(toBookUrl(book).join('/'));
   }
 

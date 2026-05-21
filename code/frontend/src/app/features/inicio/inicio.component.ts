@@ -1,4 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { Location } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { InicioStore } from './inicio.store';
 import { DrawerService } from '../../shared/ui/drawer.service';
 import { Book } from '../books/book.model';
@@ -6,6 +8,7 @@ import { StatsSectionComponent } from './stats-section/stats-section.component';
 import { RecentBooksComponent } from './recent-books/recent-books.component';
 import { RecentActivityComponent } from './recent-activity/recent-activity.component';
 import { GenreListComponent } from './genre-list/genre-list.component';
+import { toBookUrl, extractCodeFromSlug } from '../../shared/utils/book-url.util';
 
 @Component({
   standalone: true,
@@ -55,11 +58,23 @@ import { GenreListComponent } from './genre-list/genre-list.component';
     </div>
   `,
 })
-export class InicioComponent {
-  protected readonly store  = inject(InicioStore);
-  private  readonly drawer  = inject(DrawerService);
+export class InicioComponent implements OnInit {
+  protected readonly store   = inject(InicioStore);
+  private  readonly drawer   = inject(DrawerService);
+  private  readonly location = inject(Location);
+  private  readonly route    = inject(ActivatedRoute);
+
+  ngOnInit(): void {
+    const bookSlug = this.route.snapshot.paramMap.get('bookSlug') ?? '';
+    const code = extractCodeFromSlug(bookSlug);
+    if (code) {
+      this.drawer.openDetailFrom(code, '/inicio');
+    }
+  }
 
   protected openDetail(book: Book): void {
-    this.drawer.openDetail(book.code);
+    const [, authorSlug, bookSlug] = toBookUrl(book);
+    this.location.replaceState(`/inicio/libros/${authorSlug}/${bookSlug}`);
+    this.drawer.openDetailFrom(book.code, '/inicio');
   }
 }

@@ -12,6 +12,11 @@ export const routes: Routes = [
       import('./features/inicio/inicio.component').then((m) => m.InicioComponent),
   },
   {
+    path: 'inicio/libros/:authorSlug/:bookSlug',
+    loadComponent: () =>
+      import('./features/inicio/inicio.component').then((m) => m.InicioComponent),
+  },
+  {
     path: 'catalogo',
     loadComponent: () =>
       import('./features/books/book-list/book-list.component').then(

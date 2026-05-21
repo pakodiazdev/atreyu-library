@@ -6,12 +6,14 @@ import { EMPTY } from 'rxjs';
 import { BookRepository } from '../book.repository';
 import { BookDetail } from '../book.model';
 import { DialogService } from '../../../shared/ui/dialog.service';
+import { DrawerService } from '../../../shared/ui/drawer.service';
 
 @Injectable()
 export class BookDetailStore {
   private readonly repo   = inject(BookRepository);
   private readonly router = inject(Router);
   private readonly dialog = inject(DialogService);
+  private readonly drawer = inject(DrawerService);
 
   readonly code = signal('');
 
@@ -45,6 +47,6 @@ export class BookDetailStore {
   }
 
   goBack(): void {
-    this.router.navigate(['/catalogo']);
+    this.router.navigateByUrl(this.drawer.returnUrl());
   }
 }

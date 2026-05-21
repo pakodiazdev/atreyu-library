@@ -76,7 +76,7 @@ export class AppLayoutComponent implements OnInit {
   closeDrawer(): void {
     const mode = this.drawer.mode();
     if (mode === 'detail' || mode === 'edit') {
-      this.router.navigate(['/catalogo'], { replaceUrl: true });
+      this.router.navigateByUrl(this.drawer.returnUrl(), { replaceUrl: true });
     } else if (mode === 'form') {
       this.router.navigate([], {
         queryParams: { 'nuevo-libro': null },
