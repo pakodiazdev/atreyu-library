@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Ensure cleanup always runs on exit, signals or set -e early termination
+# Garantiza que el cleanup siempre se ejecuta al salir, por señales o terminación anticipada de set -e
 cleanup() {
   echo "[dev] Shutting down..."
   kill "$ANGULAR_PID" "$SPRING_PID" 2>/dev/null || true
@@ -30,10 +30,11 @@ ANGULAR_PID=$!
 
 echo "[dev] Starting Spring Boot on :8080..."
 cd /workspace/code/backend
-./mvnw spring-boot:run &
+# target/ está bind-montado desde el host — archivos stale de migración/.class persisten entre reinicios y rompen Flyway.
+./mvnw clean spring-boot:run &
 SPRING_PID=$!
 
-# Disable set -e around wait -n so EXIT_CODE is always captured before trap fires
+# Desactiva set -e alrededor de wait -n para capturar EXIT_CODE antes de que se dispare el trap
 set +e
 wait -n "$ANGULAR_PID" "$SPRING_PID"
 EXIT_CODE=$?
