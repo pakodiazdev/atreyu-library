@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 class BookSeederCsvTest {
 
     private static final int CSV_BOOK_COUNT = 1500;
-    private static final int BATCH_SIZE = 100;
+    private static final int BATCH_SIZE = 10;
     private static final int EXPECTED_BATCHES = (CSV_BOOK_COUNT + BATCH_SIZE - 1) / BATCH_SIZE;
 
     @Mock
