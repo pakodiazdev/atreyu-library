@@ -1,11 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { EMPTY, of, throwError } from 'rxjs';
+import { signal } from '@angular/core';
 import { vi } from 'vitest';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BookDetailStore } from './book-detail.store';
 import { BookRepository } from '../book.repository';
 import { DialogService } from '../../../shared/ui/dialog.service';
+import { DrawerService } from '../../../shared/ui/drawer.service';
 import { BookDetail } from '../book.model';
 
 const MOCK_DETAIL: BookDetail = {
@@ -22,8 +24,9 @@ const MOCK_DETAIL: BookDetail = {
 describe('BookDetailStore', () => {
   let store: BookDetailStore;
   const mockRepo   = { getByCode: vi.fn().mockReturnValue(EMPTY) };
-  const mockRouter = { navigate: vi.fn() };
+  const mockRouter = { navigate: vi.fn(), navigateByUrl: vi.fn() };
   const mockDialog = { openBookDelete: vi.fn() };
+  const mockDrawer = { returnUrl: signal('/catalogo') };
 
   function setup(getByCode = vi.fn().mockReturnValue(EMPTY)) {
     mockRepo.getByCode = getByCode;
@@ -34,6 +37,7 @@ describe('BookDetailStore', () => {
         { provide: BookRepository, useValue: mockRepo },
         { provide: Router,         useValue: mockRouter },
         { provide: DialogService,  useValue: mockDialog },
+        { provide: DrawerService,  useValue: mockDrawer },
       ],
     });
     store = TestBed.inject(BookDetailStore);
@@ -94,7 +98,7 @@ describe('BookDetailStore', () => {
 
   it('goBack navigates to /catalogo', () => {
     store.goBack();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/catalogo']);
+    expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/catalogo');
   });
 
   // ── requestDelete() ────────────────────────────────────────────────────────

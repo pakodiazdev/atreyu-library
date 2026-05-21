@@ -64,7 +64,7 @@ describe('AppLayoutComponent', () => {
       const { component } = setup();
       const drawer = TestBed.inject(DrawerService);
       const router = TestBed.inject(Router);
-      vi.spyOn(router, 'navigate').mockReturnValue(Promise.resolve(true));
+      vi.spyOn(router, 'navigateByUrl').mockReturnValue(Promise.resolve(true));
       drawer.openDetail('A01');
       component.closeDrawer();
       expect(drawer.isOpen()).toBe(false);
@@ -74,10 +74,10 @@ describe('AppLayoutComponent', () => {
       const { component } = setup();
       const drawer = TestBed.inject(DrawerService);
       const router = TestBed.inject(Router);
-      const spy = vi.spyOn(router, 'navigate').mockReturnValue(Promise.resolve(true));
+      const spy = vi.spyOn(router, 'navigateByUrl').mockReturnValue(Promise.resolve(true));
       drawer.openDetail('A01');
       component.closeDrawer();
-      expect(spy).toHaveBeenCalledWith(['/catalogo'], { replaceUrl: true });
+      expect(spy).toHaveBeenCalledWith('/catalogo', { replaceUrl: true });
     });
 
     it('navigates to remove ?nuevo-libro when mode is form', () => {
@@ -122,7 +122,7 @@ describe('AppLayoutComponent', () => {
       const { component } = setup();
       const drawer = TestBed.inject(DrawerService);
       const router = TestBed.inject(Router);
-      vi.spyOn(router, 'navigate').mockReturnValue(Promise.resolve(true));
+      vi.spyOn(router, 'navigateByUrl').mockReturnValue(Promise.resolve(true));
       component.toggleSidebar();
       drawer.openDetail('A01');
       component.onEscape();
