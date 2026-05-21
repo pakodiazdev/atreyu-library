@@ -27,6 +27,7 @@ function makeStore(): BookListStore {
 function makeDrawer() {
   return {
     openDetail:      vi.fn(),
+    openDetailFrom:  vi.fn(),
     openForm:        vi.fn(),
     close:           vi.fn(),
     isOpen:          signal(false),
@@ -123,7 +124,7 @@ describe('BookListComponent', () => {
   // ── openDetail ─────────────────────────────────────────────────────────────
 
   describe('openDetail()', () => {
-    it('llama a drawer.openDetail con el código del libro', () => {
+    it('llama a drawer.openDetailFrom con el código del libro y ruta /catalogo', () => {
       const c = configureAndCreate(null);
       const book = {
         ulid: '1', code: 'B02', title: 'El Quijote',
@@ -131,7 +132,7 @@ describe('BookListComponent', () => {
       };
       (c as unknown as { openDetail(b: typeof book): void }).openDetail(book);
 
-      expect(drawer.openDetail).toHaveBeenCalledWith('B02');
+      expect(drawer.openDetailFrom).toHaveBeenCalledWith('B02', '/catalogo');
     });
 
     it('llama a replaceState con la URL del libro', () => {
