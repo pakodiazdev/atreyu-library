@@ -70,4 +70,29 @@ describe('DrawerService', () => {
       expect(service.mode()).toBe('detail');
     });
   });
+
+  describe('returnUrl', () => {
+    it('defaults to /catalogo', () => {
+      expect(service.returnUrl()).toBe('/catalogo');
+    });
+  });
+
+  describe('openDetailFrom()', () => {
+    it('sets mode to detail and stores book code', () => {
+      service.openDetailFrom('A01', '/inicio');
+      expect(service.mode()).toBe('detail');
+      expect(service.bookCode()).toBe('A01');
+    });
+
+    it('stores the provided returnUrl', () => {
+      service.openDetailFrom('A01', '/inicio');
+      expect(service.returnUrl()).toBe('/inicio');
+    });
+
+    it('overwrites a previous returnUrl', () => {
+      service.openDetailFrom('A01', '/catalogo');
+      service.openDetailFrom('B02', '/inicio');
+      expect(service.returnUrl()).toBe('/inicio');
+    });
+  });
 });
