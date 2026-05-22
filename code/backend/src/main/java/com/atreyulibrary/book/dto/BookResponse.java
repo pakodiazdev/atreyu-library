@@ -1,6 +1,6 @@
 package com.atreyulibrary.book.dto;
 
-import com.atreyulibrary.book.Book;
+import com.atreyulibrary.book.model.Book;
 
 /**
  * Representación pública de un libro.
