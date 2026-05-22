@@ -123,7 +123,7 @@ describe('Detalle de libro en drawer (#44)', () => {
     it('el botón volver en 404 cierra el drawer y navega al catálogo', () => {
       cy.visit('/libros/autor-desconocido/Z99-libro-inexistente');
       cy.get('[data-cy="not-found-state"]', { timeout: 10000 }).should('be.visible');
-      cy.contains('Volver al catálogo').click();
+      cy.contains('Volver').click();
       cy.url().should('include', '/catalogo');
     });
   });
