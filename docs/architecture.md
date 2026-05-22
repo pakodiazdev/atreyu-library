@@ -170,29 +170,57 @@ complementando los tests unitarios y de integración.
 
 ## Base de datos
 
-### Modelo
+### Diagrama ER
 
+```mermaid
+erDiagram
+    books {
+        BIGSERIAL  id              PK  "Clave interna — nunca expuesta en la API"
+        VARCHAR26  ulid            UK  "Identificador externo (PUT/DELETE)"
+        VARCHAR3   code            UK  "Código de negocio visible en UI (A00–Z99)"
+        VARCHAR255 title           "NOT NULL"
+        VARCHAR255 author          "NOT NULL"
+        VARCHAR100 genre
+        SMALLINT   publication_year
+        TEXT       synopsis
+        TIMESTAMPTZ created_at     "NOT NULL DEFAULT NOW()"
+        TIMESTAMPTZ updated_at     "NOT NULL DEFAULT NOW()"
+    }
+
+    book_code_pool {
+        VARCHAR3 code PK "Código disponible del pool (A00–Z99)"
+    }
+
+    seeder_logs {
+        BIGSERIAL    id           PK
+        VARCHAR255   seeder_class UK  "FQCN del seeder ejecutado"
+        TIMESTAMPTZ  executed_at  "NOT NULL DEFAULT NOW()"
+    }
+
+    deploy_checks {
+        SERIAL      id          PK
+        VARCHAR20   environment UK  "Nombre del entorno (dev, qa, prod…)"
+        TIMESTAMPTZ deployed_at "NOT NULL DEFAULT NOW()"
+    }
+
+    books ||--o{ book_code_pool : "libera code al eliminar"
 ```
-┌─────────────────────────┐
-│          books           │
-├─────────────────────────┤
-│ id            ULID (PK) │
-│ code          VARCHAR   │  ← A-Z + 00-99, único, indexado
-│ title         VARCHAR   │
-│ author        VARCHAR   │
-│ genre         VARCHAR   │
-│ publication_year INT    │
-│ created_at    TIMESTAMP │
-│ updated_at    TIMESTAMP │
-└─────────────────────────┘
-```
+
+> **Nota:** `book_code_pool` y `books` no tienen FK a nivel de base de datos por diseño (TD-21):
+> la relación se gestiona a nivel de aplicación mediante `SELECT FOR UPDATE SKIP LOCKED`
+> para garantizar asignación atómica de códigos bajo alta concurrencia.
+> `seeder_logs` y `deploy_checks` son tablas de infraestructura — se eliminarán al
+> completar los sprints CRUD.
 
 ### Decisiones
 
-- `id` (ULID) es la llave primaria técnica — nunca expuesta en UI
-- `code` tiene índice único — es el identificador visible para el usuario
-- Las migraciones se gestionan con **Flyway**
-- El seeder (`CommandLineRunner`) se ejecuta solo en ambientes `local` y `dev`
+- Tres identificadores en `books` con roles distintos (ver [TD-17](technical-decisions/td-17-bigserial-pk-ulid-identificador-externo.md))
+  - `id` (BIGSERIAL): PK interna — nunca sale de la BD
+  - `ulid`: identificador externo para la API REST
+  - `code`: identificador de negocio legible visible en la UI
+- `book_code_pool` pre-genera los 2 600 códigos (A00–Z99) para asignación atómica sin reintentos
+- Las migraciones se gestionan con **Flyway** (`ddl-auto=none`)
+- Los seeders se ejecutan solo en los perfiles `dev`, `qa`, `e2e`, `prod` según corresponda
 
 ---
 
