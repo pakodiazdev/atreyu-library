@@ -24,7 +24,6 @@ export class AppSidebarComponent {
   readonly navItems: NavItem[] = [
     { label: 'Inicio',   path: '/inicio',   icon: '⌂' },
     { label: 'Catálogo', path: '/catalogo', icon: '◫' },
-    { label: 'Buscar',   path: '/buscar',   icon: '◎' },
     { label: 'Géneros',  path: '/generos',  icon: '⊞' },
   ];
 

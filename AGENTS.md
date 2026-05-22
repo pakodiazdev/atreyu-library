@@ -125,6 +125,43 @@ Ver justificación completa en [TD-18](docs/technical-decisions/td-18-single-act
 
 ---
 
+### Organización interna de paquetes (obligatorio)
+
+Dentro de cada paquete de feature (`book/`, `dashboard/`, `health/`, etc.),
+las clases se agrupan en sub-paquetes por **tipo de artefacto**:
+
+```
+com.atreyulibrary.<feature>/
+├── controller/   → clases @RestController (Single Action Controller)
+├── service/      → clases @Service
+├── repository/   → interfaces @Repository
+├── model/        → entidades JPA (@Entity)
+├── exception/    → excepciones de dominio (extends RuntimeException)
+└── dto/          → records de request/response (nunca exponer la Entity)
+```
+
+**Ejemplo para el paquete `book`:**
+
+```
+com.atreyulibrary.book/
+├── controller/   CreateBookController, DeleteBookController, GetBookByCodeController,
+│                 ListBooksController, UpdateBookController
+├── service/      BookService
+├── repository/   BookRepository, BookCodePoolRepository
+├── model/        Book, BookCodePool
+├── exception/    BookNotFoundException, BookCodePoolEmptyException
+└── dto/          BookRequest, BookResponse, PageResponse
+```
+
+**Reglas:**
+- Nunca poner un Controller, Service o Repository directamente en el paquete raíz del feature
+- Si un feature solo tiene un archivo de un tipo, el sub-paquete existe igualmente
+- Las referencias cruzadas entre features (p. ej. `dashboard` usa `Book`) usan import explícito
+  del sub-paquete correspondiente (ej. `import com.atreyulibrary.book.model.Book`)
+- Los tests siguen la misma estructura: `src/test/java/com/atreyulibrary/<feature>/<tipo>/`
+
+---
+
 ### Migraciones de base de datos (Flyway — obligatorio)
 
 `ddl-auto` está fijado en `none`. **Nunca usar `create`, `update` o `create-drop` en desarrollo ni producción.**

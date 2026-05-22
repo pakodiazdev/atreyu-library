@@ -39,11 +39,6 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'buscar',
-    loadComponent: () =>
-      import('./features/buscar/buscar.component').then((m) => m.BuscarComponent),
-  },
-  {
     path: 'generos',
     loadComponent: () =>
       import('./features/generos/generos.component').then((m) => m.GenerosComponent),

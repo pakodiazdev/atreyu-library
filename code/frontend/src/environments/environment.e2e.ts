@@ -3,4 +3,5 @@ export const environment = {
   apiUrl: 'http://localhost:8081/api/v1', // directo al backend E2E, sin pasar por el proxy de ng serve
   sentryDsn: '',
   sentryEnvironment: 'dev',
+  envBadge: '🔵',
 };
