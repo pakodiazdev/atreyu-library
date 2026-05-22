@@ -1,0 +1,44 @@
+/* Overlay — fade-out con 300 ms de delay para que el brand termine su travesía primero */
+.splash-overlay.is-departing {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-out 300ms;
+}
+
+/* Brand — empieza centrado y anima hacia la posición del sidebar (px-4 = 16px, pt-5 = 20px) */
+.splash-brand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: top left;
+  transition:
+    left 350ms ease-in-out,
+    top 350ms ease-in-out,
+    transform 350ms ease-in-out;
+
+  &.is-departing {
+    left: 16px;
+    top: 20px;
+    transform: translate(0, 0) scale(0.55);
+  }
+}
+
+.splash-brand__title {
+  font-size: 40px;
+}
+
+.splash-brand__subtitle {
+  font-size: 30px;
+}
+
+/* Status — centrado debajo del brand */
+.splash-status {
+  position: absolute;
+  top: calc(50% + 70px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  max-width: 90vw;
+  text-align: center;
+}
