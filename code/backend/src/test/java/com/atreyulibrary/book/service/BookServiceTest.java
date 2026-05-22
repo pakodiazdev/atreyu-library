@@ -1,4 +1,4 @@
-package com.atreyulibrary.book;
+package com.atreyulibrary.book.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -22,7 +22,6 @@ import com.atreyulibrary.book.exception.BookNotFoundException;
 import com.atreyulibrary.book.model.Book;
 import com.atreyulibrary.book.repository.BookCodePoolRepository;
 import com.atreyulibrary.book.repository.BookRepository;
-import com.atreyulibrary.book.service.BookService;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;

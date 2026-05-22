@@ -175,40 +175,39 @@ complementando los tests unitarios y de integración.
 ```mermaid
 erDiagram
     books {
-        BIGSERIAL  id              PK  "Clave interna — nunca expuesta en la API"
-        VARCHAR26  ulid            UK  "Identificador externo (PUT/DELETE)"
-        VARCHAR3   code            UK  "Código de negocio visible en UI (A00–Z99)"
-        VARCHAR255 title           "NOT NULL"
-        VARCHAR255 author          "NOT NULL"
-        VARCHAR100 genre
-        SMALLINT   publication_year
-        TEXT       synopsis
-        TIMESTAMPTZ created_at     "NOT NULL DEFAULT NOW()"
-        TIMESTAMPTZ updated_at     "NOT NULL DEFAULT NOW()"
+        BIGSERIAL    id               PK  "Clave interna — nunca expuesta en la API"
+        VARCHAR(26)  ulid             UK  "Identificador externo (PUT/DELETE)"
+        VARCHAR(3)   code             UK  "Código de negocio visible en UI (A00–Z99)"
+        VARCHAR(255) title            "NOT NULL"
+        VARCHAR(255) author           "NOT NULL"
+        VARCHAR(100) genre
+        SMALLINT     publication_year
+        TEXT         synopsis
+        TIMESTAMPTZ  created_at       "NOT NULL DEFAULT NOW()"
+        TIMESTAMPTZ  updated_at       "NOT NULL DEFAULT NOW()"
     }
 
     book_code_pool {
-        VARCHAR3 code PK "Código disponible del pool (A00–Z99)"
+        VARCHAR(3) code PK "Código disponible del pool (A00–Z99)"
     }
 
     seeder_logs {
         BIGSERIAL    id           PK
-        VARCHAR255   seeder_class UK  "FQCN del seeder ejecutado"
+        VARCHAR(255) seeder_class UK  "FQCN del seeder ejecutado"
         TIMESTAMPTZ  executed_at  "NOT NULL DEFAULT NOW()"
     }
 
     deploy_checks {
         SERIAL      id          PK
-        VARCHAR20   environment UK  "Nombre del entorno (dev, qa, prod…)"
+        VARCHAR(20) environment UK  "Nombre del entorno (dev, qa, prod…)"
         TIMESTAMPTZ deployed_at "NOT NULL DEFAULT NOW()"
     }
-
-    books ||--o{ book_code_pool : "libera code al eliminar"
 ```
 
-> **Nota:** `book_code_pool` y `books` no tienen FK a nivel de base de datos por diseño (TD-21):
-> la relación se gestiona a nivel de aplicación mediante `SELECT FOR UPDATE SKIP LOCKED`
-> para garantizar asignación atómica de códigos bajo alta concurrencia.
+> **Nota:** `book_code_pool` y `books` son mutuamente excluyentes por invariante de aplicación:
+> un `code` está en `books` (asignado) **o** en `book_code_pool` (disponible), nunca en ambas.
+> No existe FK entre ellas por diseño (TD-21); la asignación atómica se gestiona con
+> `SELECT FOR UPDATE SKIP LOCKED`. No se modela relación en el ER para no inducir a error.
 > `seeder_logs` y `deploy_checks` son tablas de infraestructura — se eliminarán al
 > completar los sprints CRUD.
 
