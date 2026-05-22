@@ -9,6 +9,8 @@ import com.atreyulibrary.book.dto.BookResponse;
 import com.atreyulibrary.dashboard.dto.ActivityEntry;
 import com.atreyulibrary.dashboard.dto.DashboardStatsResponse;
 import com.atreyulibrary.dashboard.dto.GenreStats;
+import com.atreyulibrary.dashboard.repository.DashboardRepository;
+import com.atreyulibrary.dashboard.service.DashboardService;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
