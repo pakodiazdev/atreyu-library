@@ -11,13 +11,14 @@ describe('Catálogo — Lista de libros (#12)', () => {
   it('muestra el título de la sección y libros del seeder', () => {
     cy.contains('h1', 'Catálogo').should('be.visible');
     cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('be.visible');
-    cy.get('[data-cy="book-row"]').should('have.length.at.least', 15);
+    cy.get('[data-cy="book-row"]').should('have.length.at.least', 10);
     cy.contains(/\d+ títulos/).should('be.visible');
   });
 
   it('muestra libros conocidos del seeder en la tabla', () => {
     cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('be.visible');
-    cy.contains('[data-cy="book-row"]', 'Cien años de soledad').should('exist');
+    cy.get('[data-cy="filter-title"]').type('Cien');
+    cy.contains('[data-cy="book-row"]', 'Cien años de soledad', { timeout: 5000 }).should('exist');
     cy.contains('[data-cy="book-row"]', 'Gabriel García Márquez').should('exist');
     cy.get('[data-cy="book-row"]').first().find('[data-cy="book-code"]')
       .invoke('text').invoke('trim').should('match', /^[A-Z]\d{2}$/);
@@ -54,7 +55,7 @@ describe('Catálogo — Lista de libros (#12)', () => {
     cy.get('[data-cy="book-row"]', { timeout: 5000 }).should('have.length', 1);
 
     cy.get('[data-cy="clear-filters"]').click();
-    cy.get('[data-cy="book-row"]', { timeout: 5000 }).should('have.length.at.least', 15);
+    cy.get('[data-cy="book-row"]', { timeout: 5000 }).should('have.length.at.least', 10);
   });
 
   it('muestra badges de género', () => {

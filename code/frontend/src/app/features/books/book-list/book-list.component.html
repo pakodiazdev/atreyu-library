@@ -6,7 +6,7 @@
       @if (store.isLoading()) {
         Cargando…
       } @else {
-        {{ store.books().length }} títulos
+        {{ store.totalElements() }} títulos
       }
     </p>
   </div>
@@ -17,19 +17,22 @@
 <div class="flex flex-wrap gap-2 mt-5">
   <ui-input
     placeholder="Título…"
-    [(value)]="store.filterTitle"
+    [value]="store.filterTitle()"
+    (valueChange)="onFilterChange('title', $event)"
     testId="filter-title"
     class="flex-1 min-w-[160px]"
   />
   <ui-input
     placeholder="Autor…"
-    [(value)]="store.filterAuthor"
+    [value]="store.filterAuthor()"
+    (valueChange)="onFilterChange('author', $event)"
     testId="filter-author"
     class="flex-1 min-w-[160px]"
   />
   <ui-input
     placeholder="Género…"
-    [(value)]="store.filterGenre"
+    [value]="store.filterGenre()"
+    (valueChange)="onFilterChange('genre', $event)"
     testId="filter-genre"
     class="flex-1 min-w-[160px]"
   />
@@ -146,6 +149,21 @@
         }
       </tbody>
     </table>
+
+    <!-- Paginador -->
+    <div class="border-t border-tinta/20 px-2">
+      <ui-paginator
+        [page]="store.page()"
+        [size]="store.size()"
+        [totalElements]="store.totalElements()"
+        [totalPages]="store.totalPages()"
+        [hasNext]="store.hasNext()"
+        [hasPrevious]="store.hasPrevious()"
+        (pageChange)="store.setPage($event)"
+        (sizeChange)="store.setSize($event)"
+        data-cy="paginator"
+      />
+    </div>
   }
 
 </div>

@@ -65,6 +65,8 @@ describe('Detalle de libro en drawer (#44)', () => {
   describe('Visitar URL de detalle directamente (F5)', () => {
     it('muestra el catálogo con el drawer abierto al acceder directo', () => {
       cy.visit('/catalogo');
+      cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('be.visible');
+      cy.get('[data-cy="filter-title"]').type('Cien');
       cy.contains('[data-cy="book-row"]', 'Cien años de soledad', { timeout: 10000 }).click();
       cy.url().then((bookUrl) => {
         cy.visit(bookUrl);
@@ -75,6 +77,8 @@ describe('Detalle de libro en drawer (#44)', () => {
 
     it('el drawer muestra el detalle correcto del libro', () => {
       cy.visit('/catalogo');
+      cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('be.visible');
+      cy.get('[data-cy="filter-title"]').type('Cien');
       cy.contains('[data-cy="book-row"]', 'Cien años de soledad', { timeout: 10000 }).click();
       cy.url().then((bookUrl) => {
         cy.visit(bookUrl);
@@ -91,7 +95,8 @@ describe('Detalle de libro en drawer (#44)', () => {
     beforeEach(() => {
       cy.visit('/catalogo');
       cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('be.visible');
-      cy.contains('[data-cy="book-row"]', 'Cien años de soledad').click();
+      cy.get('[data-cy="filter-title"]').type('Cien');
+      cy.contains('[data-cy="book-row"]', 'Cien años de soledad', { timeout: 10000 }).click();
       cy.get('[data-cy="book-detail"]', { timeout: 10000 }).should('be.visible');
     });
 

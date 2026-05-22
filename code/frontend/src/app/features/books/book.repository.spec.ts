@@ -2,12 +2,20 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { BookRepository } from './book.repository';
-import { Book, BookCreatePayload, BookDetail } from './book.model';
+import { Book, BookCreatePayload, BookDetail, BookPage } from './book.model';
 
 const MOCK_BOOKS: Book[] = [
   { code: 'A01', ulid: '01', title: 'El Nombre del Viento', author: 'Patrick Rothfuss', genre: 'Fantasía', publicationYear: 2007 },
   { code: 'A02', ulid: '02', title: 'Cien Años de Soledad', author: 'Gabriel García Márquez', genre: 'Realismo mágico', publicationYear: 1967 },
 ];
+
+const emptyPage = (): BookPage => ({
+  content: [], page: 0, size: 10, totalElements: 0, totalPages: 0, hasNext: false, hasPrevious: false,
+});
+
+const pageOf = (...books: Book[]): BookPage => ({
+  content: books, page: 0, size: 10, totalElements: books.length, totalPages: 1, hasNext: false, hasPrevious: false,
+});
 
 describe('BookRepository', () => {
   let repo: BookRepository;
@@ -29,13 +37,35 @@ describe('BookRepository', () => {
     httpMock.verify();
   });
 
-  it('calls GET /books without params when no filters provided', () => {
+  it('always sends page and size params', () => {
     repo.getAll().subscribe();
 
-    const req = httpMock.expectOne('/books');
+    const req = httpMock.expectOne(r => r.url === '/books');
     expect(req.request.method).toBe('GET');
-    expect(req.request.params.keys()).toHaveLength(0);
-    req.flush([]);
+    expect(req.request.params.get('page')).toBe('0');
+    expect(req.request.params.get('size')).toBe('10');
+    req.flush(emptyPage());
+  });
+
+  it('sends default page=0 and size=10 when no filters provided', () => {
+    repo.getAll().subscribe();
+
+    const req = httpMock.expectOne(r => r.url === '/books');
+    expect(req.request.params.has('title')).toBe(false);
+    expect(req.request.params.has('author')).toBe(false);
+    expect(req.request.params.has('genre')).toBe(false);
+    expect(req.request.params.get('page')).toBe('0');
+    expect(req.request.params.get('size')).toBe('10');
+    req.flush(emptyPage());
+  });
+
+  it('sends custom page and size when provided', () => {
+    repo.getAll({ page: 3, size: 50 }).subscribe();
+
+    const req = httpMock.expectOne(r => r.url === '/books');
+    expect(req.request.params.get('page')).toBe('3');
+    expect(req.request.params.get('size')).toBe('50');
+    req.flush(emptyPage());
   });
 
   it('adds title param when title filter is set', () => {
@@ -45,7 +75,7 @@ describe('BookRepository', () => {
     expect(req.request.params.get('title')).toBe('Viento');
     expect(req.request.params.has('author')).toBe(false);
     expect(req.request.params.has('genre')).toBe(false);
-    req.flush([]);
+    req.flush(emptyPage());
   });
 
   it('adds author param when author filter is set', () => {
@@ -54,7 +84,7 @@ describe('BookRepository', () => {
     const req = httpMock.expectOne(r => r.url === '/books');
     expect(req.request.params.get('author')).toBe('Tolkien');
     expect(req.request.params.has('title')).toBe(false);
-    req.flush([]);
+    req.flush(emptyPage());
   });
 
   it('adds genre param when genre filter is set', () => {
@@ -62,7 +92,7 @@ describe('BookRepository', () => {
 
     const req = httpMock.expectOne(r => r.url === '/books');
     expect(req.request.params.get('genre')).toBe('Fantasía');
-    req.flush([]);
+    req.flush(emptyPage());
   });
 
   it('combines multiple filters into query params', () => {
@@ -72,24 +102,27 @@ describe('BookRepository', () => {
     expect(req.request.params.get('title')).toBe('El');
     expect(req.request.params.get('author')).toBe('García');
     expect(req.request.params.get('genre')).toBe('Realismo mágico');
-    req.flush([]);
+    req.flush(emptyPage());
   });
 
-  it('returns the response data from the API', () => {
-    let result: Book[] | undefined;
-    repo.getAll().subscribe(books => (result = books));
+  it('returns the BookPage response from the API', () => {
+    let result: BookPage | undefined;
+    repo.getAll().subscribe(p => (result = p));
 
-    httpMock.expectOne('/books').flush(MOCK_BOOKS);
+    httpMock.expectOne(r => r.url === '/books').flush(pageOf(...MOCK_BOOKS));
 
-    expect(result).toEqual(MOCK_BOOKS);
+    expect(result?.content).toEqual(MOCK_BOOKS);
+    expect(result?.totalElements).toBe(2);
   });
 
-  it('does not add params for undefined filter values', () => {
+  it('does not add filter params for undefined values', () => {
     repo.getAll({ title: undefined, author: undefined, genre: undefined }).subscribe();
 
-    const req = httpMock.expectOne('/books');
-    expect(req.request.params.keys()).toHaveLength(0);
-    req.flush([]);
+    const req = httpMock.expectOne(r => r.url === '/books');
+    expect(req.request.params.has('title')).toBe(false);
+    expect(req.request.params.has('author')).toBe(false);
+    expect(req.request.params.has('genre')).toBe(false);
+    req.flush(emptyPage());
   });
 
   describe('getByCode', () => {

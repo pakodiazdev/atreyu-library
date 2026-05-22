@@ -2,10 +2,13 @@ package com.atreyulibrary.book;
 
 import com.atreyulibrary.book.dto.BookRequest;
 import com.atreyulibrary.book.dto.BookResponse;
+import com.atreyulibrary.book.dto.PageResponse;
 import com.github.f4b6a3.ulid.UlidCreator;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,27 +51,34 @@ public class BookService {
     }
 
     /**
-     * Retorna todos los libros que coincidan con los filtros opcionales.
+     * Retorna una página de libros que coincidan con los filtros opcionales.
      * Los parámetros nulos o en blanco se tratan como "sin filtro".
+     * El orden siempre es {@code code ASC}.
      *
      * @param title  subcadena opcional de título
      * @param author subcadena opcional de autor
      * @param genre  subcadena opcional de género
-     * @return lista de libros como {@link BookResponse}
+     * @param page   número de página (base 0); se fuerza a mínimo 0
+     * @param size   tamaño de página; se fuerza al rango [1, 100]
+     * @return página de libros como {@link PageResponse}
      */
-    public List<BookResponse> findAll(
+    public PageResponse<BookResponse> findAll(
             final String title,
             final String author,
-            final String genre
+            final String genre,
+            final int page,
+            final int size
     ) {
         final String normalizedTitle = blankToNull(title);
         final String normalizedAuthor = blankToNull(author);
         final String normalizedGenre = blankToNull(genre);
-        return repository
-                .findByFilters(normalizedTitle, normalizedAuthor, normalizedGenre)
-                .stream()
-                .map(BookResponse::from)
-                .toList();
+        final int safePage = Math.max(0, page);
+        final int safeSize = Math.min(100, Math.max(1, size));
+        final var pageable = PageRequest.of(safePage, safeSize, Sort.by("code").ascending());
+        return PageResponse.from(
+                repository.findByFilters(normalizedTitle, normalizedAuthor, normalizedGenre, pageable)
+                          .map(BookResponse::from)
+        );
     }
 
     /**

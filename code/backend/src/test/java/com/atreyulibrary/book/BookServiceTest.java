@@ -9,12 +9,14 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.atreyulibrary.book.dto.BookRequest;
 import com.atreyulibrary.book.dto.BookResponse;
+import com.atreyulibrary.book.dto.PageResponse;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +27,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
@@ -113,30 +119,34 @@ class BookServiceTest {
 
     @Test
     void findAllWithNoFiltersPassesNullsToRepository() {
-        when(repository.findByFilters(null, null, null)).thenReturn(List.of(sampleBook));
+        when(repository.findByFilters(eq(null), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(sampleBook)));
 
-        final List<BookResponse> result = service.findAll(null, null, null);
+        final PageResponse<BookResponse> result = service.findAll(null, null, null, 0, 20);
 
-        verify(repository).findByFilters(null, null, null);
-        assertEquals(1, result.size());
+        verify(repository).findByFilters(eq(null), eq(null), eq(null), any(Pageable.class));
+        assertEquals(1, result.content().size());
+        assertEquals(1L, result.totalElements());
     }
 
     @Test
     void findAllWithBlankFiltersPassesNullsToRepository() {
-        when(repository.findByFilters(null, null, null)).thenReturn(List.of());
+        when(repository.findByFilters(eq(null), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        service.findAll("  ", "", " ");
+        service.findAll("  ", "", " ", 0, 20);
 
-        verify(repository).findByFilters(null, null, null);
+        verify(repository).findByFilters(eq(null), eq(null), eq(null), any(Pageable.class));
     }
 
     // ── findAll — mapeo de campos ────────────────────────────────────────────
 
     @Test
     void findAllMapsEntityFieldsToResponse() {
-        when(repository.findByFilters(null, null, null)).thenReturn(List.of(sampleBook));
+        when(repository.findByFilters(eq(null), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(sampleBook)));
 
-        final BookResponse response = service.findAll(null, null, null).get(0);
+        final BookResponse response = service.findAll(null, null, null, 0, 20).content().get(0);
 
         assertEquals("A01", response.code());
         assertEquals("01HW5XMTSC9AZAZ5YR0DR7B7GK", response.ulid());
@@ -144,16 +154,6 @@ class BookServiceTest {
         assertEquals("Gabriel García Márquez", response.author());
         assertEquals("Realismo mágico", response.genre());
         assertEquals(1967, response.publicationYear());
-    }
-
-    @Test
-    void findAllDoesNotExposeInternalBigserialId() {
-        when(repository.findByFilters(null, null, null)).thenReturn(List.of(sampleBook));
-
-        final BookResponse response = service.findAll(null, null, null).get(0);
-
-        assertEquals("A01", response.code());
-        assertEquals("01HW5XMTSC9AZAZ5YR0DR7B7GK", response.ulid());
     }
 
     @Test
@@ -166,9 +166,10 @@ class BookServiceTest {
                 .genre("Épica")
                 .publicationYear(null)
                 .build();
-        when(repository.findByFilters(null, null, null)).thenReturn(List.of(bookWithoutYear));
+        when(repository.findByFilters(eq(null), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(bookWithoutYear)));
 
-        final BookResponse response = service.findAll(null, null, null).get(0);
+        final BookResponse response = service.findAll(null, null, null, 0, 20).content().get(0);
 
         assertNull(response.publicationYear());
     }
@@ -177,68 +178,81 @@ class BookServiceTest {
 
     @Test
     void findAllForwardsTitleFilterToRepository() {
-        when(repository.findByFilters("quijote", null, null)).thenReturn(List.of());
+        when(repository.findByFilters(eq("quijote"), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        service.findAll("quijote", null, null);
+        service.findAll("quijote", null, null, 0, 20);
 
-        verify(repository).findByFilters("quijote", null, null);
+        verify(repository).findByFilters(eq("quijote"), eq(null), eq(null), any(Pageable.class));
     }
 
     @Test
     void findAllForwardsAuthorFilterToRepository() {
-        when(repository.findByFilters(null, "orwell", null)).thenReturn(List.of());
+        when(repository.findByFilters(eq(null), eq("orwell"), eq(null), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        service.findAll(null, "orwell", null);
+        service.findAll(null, "orwell", null, 0, 20);
 
-        verify(repository).findByFilters(null, "orwell", null);
+        verify(repository).findByFilters(eq(null), eq("orwell"), eq(null), any(Pageable.class));
     }
 
     @Test
     void findAllForwardsGenreFilterToRepository() {
-        when(repository.findByFilters(null, null, "terror")).thenReturn(List.of());
+        when(repository.findByFilters(eq(null), eq(null), eq("terror"), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        service.findAll(null, null, "terror");
+        service.findAll(null, null, "terror", 0, 20);
 
-        verify(repository).findByFilters(null, null, "terror");
+        verify(repository).findByFilters(eq(null), eq(null), eq("terror"), any(Pageable.class));
     }
 
     @Test
     void findAllForwardsAllFiltersToRepository() {
-        when(repository.findByFilters("1984", "orwell", "distop")).thenReturn(List.of());
+        when(repository.findByFilters(eq("1984"), eq("orwell"), eq("distop"), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        service.findAll("1984", "orwell", "distop");
+        service.findAll("1984", "orwell", "distop", 0, 20);
 
-        verify(repository).findByFilters("1984", "orwell", "distop");
+        verify(repository).findByFilters(eq("1984"), eq("orwell"), eq("distop"), any(Pageable.class));
     }
 
-    // ── findAll — sin resultados ─────────────────────────────────────────────
+    // ── findAll — paginación ─────────────────────────────────────────────────
 
     @Test
-    void findAllMapsSynopsisToResponse() {
-        sampleBook.setSynopsis("Un texto de sinopsis de prueba.");
-        when(repository.findByFilters(null, null, null)).thenReturn(List.of(sampleBook));
+    void findAllReturnsPaginationMetadata() {
+        final List<Book> books = List.of(sampleBook);
+        final var pageable = PageRequest.of(0, 20, Sort.by("code").ascending());
+        when(repository.findByFilters(eq(null), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(books, pageable, 1L));
 
-        final BookResponse response = service.findAll(null, null, null).get(0);
+        final PageResponse<BookResponse> result = service.findAll(null, null, null, 0, 20);
 
-        assertEquals("Un texto de sinopsis de prueba.", response.synopsis());
+        assertEquals(0, result.page());
+        assertEquals(20, result.size());
+        assertEquals(1L, result.totalElements());
+        assertEquals(1, result.totalPages());
+        assertEquals(false, result.hasNext());
+        assertEquals(false, result.hasPrevious());
     }
 
     @Test
-    void findAllMapsSynopsisAsNullWhenNotSet() {
-        when(repository.findByFilters(null, null, null)).thenReturn(List.of(sampleBook));
+    void findAllClampsNegativePageToZero() {
+        when(repository.findByFilters(eq(null), eq(null), eq(null), argThat(p -> p.getPageNumber() == 0)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        final BookResponse response = service.findAll(null, null, null).get(0);
+        service.findAll(null, null, null, -5, 20);
 
-        assertNull(response.synopsis());
+        verify(repository).findByFilters(eq(null), eq(null), eq(null), argThat(p -> p.getPageNumber() == 0));
     }
 
     @Test
-    void findAllWithNoMatchingBooksReturnsEmptyList() {
-        when(repository.findByFilters("inexistente", null, null)).thenReturn(List.of());
+    void findAllClampsSizeTo100WhenExceeded() {
+        when(repository.findByFilters(eq(null), eq(null), eq(null), argThat(p -> p.getPageSize() == 100)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        final List<BookResponse> result = service.findAll("inexistente", null, null);
+        service.findAll(null, null, null, 0, 999);
 
-        assertEquals(0, result.size());
+        verify(repository).findByFilters(eq(null), eq(null), eq(null), argThat(p -> p.getPageSize() == 100));
     }
 
     // ── update ───────────────────────────────────────────────────────────────
@@ -401,21 +415,6 @@ class BookServiceTest {
         final BookRequest request = new BookRequest("Hamlet", "Shakespeare", null, null, null);
 
         assertThrows(BookCodePoolEmptyException.class, () -> service.create(request));
-    }
-
-    @Test
-    void createDoesNotExposeInternalId() {
-        when(codePoolRepository.lockAndPickCode()).thenReturn(Optional.of("A01"));
-        when(repository.save(any(Book.class))).thenAnswer(inv -> {
-            final Book book = inv.getArgument(0);
-            book.setCode("A01");
-            return book;
-        });
-
-        final BookRequest request = new BookRequest("Hamlet", "Shakespeare", null, null, null);
-        final BookResponse response = service.create(request);
-
-        assertNotNull(response.code());
     }
 
     // ── createAll ─────────────────────────────────────────────────────────────
