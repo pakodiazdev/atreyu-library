@@ -16,7 +16,7 @@ public class BookCodePool {
 
     protected BookCodePool() { }
 
-    BookCodePool(final String code) {
+    public BookCodePool(final String code) {
         this.code = code;
     }
 
