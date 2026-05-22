@@ -15,7 +15,9 @@
     "cy:run": "cypress run",
     "cy:open:e2e": "dotenv -e ../../.env.e2e -- cypress open",
     "cy:run:e2e": "dotenv -e ../../.env.e2e -- cypress run",
-    "cy:run:headed": "dotenv -e ../../.env.e2e -- cypress run --headed --no-exit"
+    "cy:run:headed": "dotenv -e ../../.env.e2e -- cypress run --headed --no-exit",
+    "cy:open:qa": "CYPRESS_BASE_URL=https://qa01.atreyu-library.pakodiaz.dev ENV_BADGE=🟠 cypress open",
+    "cy:run:qa": "CYPRESS_BASE_URL=https://qa01.atreyu-library.pakodiaz.dev ENV_BADGE=🟠 cypress run"
   },
   "private": true,
   "packageManager": "npm@11.6.0",
