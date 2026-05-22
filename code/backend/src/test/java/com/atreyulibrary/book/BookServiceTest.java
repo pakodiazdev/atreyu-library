@@ -20,7 +20,6 @@ import com.atreyulibrary.book.dto.PageResponse;
 import com.atreyulibrary.book.exception.BookCodePoolEmptyException;
 import com.atreyulibrary.book.exception.BookNotFoundException;
 import com.atreyulibrary.book.model.Book;
-import com.atreyulibrary.book.model.BookCodePool;
 import com.atreyulibrary.book.repository.BookCodePoolRepository;
 import com.atreyulibrary.book.repository.BookRepository;
 import com.atreyulibrary.book.service.BookService;
@@ -70,7 +69,6 @@ class BookServiceTest {
     }
 
     // ── getByCode ────────────────────────────────────────────────────────────
-
     @Test
     void getByCodeReturnsBookWhenFound() {
         when(repository.findByCode("A01")).thenReturn(Optional.of(sampleBook));
@@ -123,7 +121,6 @@ class BookServiceTest {
     }
 
     // ── findAll — sin filtros ────────────────────────────────────────────────
-
     @Test
     void findAllWithNoFiltersPassesNullsToRepository() {
         when(repository.findByFilters(eq(null), eq(null), eq(null), any(Pageable.class)))
@@ -147,7 +144,6 @@ class BookServiceTest {
     }
 
     // ── findAll — mapeo de campos ────────────────────────────────────────────
-
     @Test
     void findAllMapsEntityFieldsToResponse() {
         when(repository.findByFilters(eq(null), eq(null), eq(null), any(Pageable.class)))
@@ -182,7 +178,6 @@ class BookServiceTest {
     }
 
     // ── findAll — filtros delegados al repositorio ───────────────────────────
-
     @Test
     void findAllForwardsTitleFilterToRepository() {
         when(repository.findByFilters(eq("quijote"), eq(null), eq(null), any(Pageable.class)))
@@ -224,7 +219,6 @@ class BookServiceTest {
     }
 
     // ── findAll — paginación ─────────────────────────────────────────────────
-
     @Test
     void findAllReturnsPaginationMetadata() {
         final List<Book> books = List.of(sampleBook);
