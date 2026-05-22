@@ -1,1 +1,5 @@
-<app-layout />
+@if (!backendReady()) {
+  <app-splash (done)="onSplashDone()" />
+} @else {
+  <app-layout class="layout-enter" />
+}

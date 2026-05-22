@@ -1,0 +1,8 @@
+.layout-enter {
+  animation: layout-fade-in 0.3s ease-out forwards;
+}
+
+@keyframes layout-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

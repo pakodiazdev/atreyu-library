@@ -1,0 +1,71 @@
+<div
+  class="splash-overlay fixed inset-0 z-50 bg-tinte"
+  [class.is-departing]="departing()"
+  data-cy="splash-screen"
+  role="status"
+  aria-live="polite"
+>
+  <!-- Brand: parte centrado en pantalla y migra al corner del sidebar al resolver -->
+  <div class="splash-brand" [class.is-departing]="departing()">
+    <div class="font-editorial text-tinta leading-none splash-brand__title">
+      Atreyu
+      <span class="block font-annotation text-oro-oscuro splash-brand__subtitle">
+        biblioteca
+      </span>
+    </div>
+  </div>
+
+  <!-- Mensajes de estado — se ocultan durante la animación de salida -->
+  @if (!departing()) {
+    <div class="splash-status">
+      @if (checkState() === 'checking' || checkState() === 'timeout') {
+        <div class="flex items-center justify-center gap-2 text-tinta-suave font-ui text-sm">
+          <svg
+            class="animate-spin h-4 w-4 shrink-0 text-tinta"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            ></path>
+          </svg>
+          <span>
+            @if (checkState() === 'checking') {
+              Iniciando servicio…
+            } @else {
+              El servicio está tardando más de lo esperado. Sigue intentando…
+            }
+          </span>
+        </div>
+      }
+
+      @if (checkState() === 'error') {
+        <div class="flex flex-col items-center gap-3 text-center">
+          <span class="text-tinta-suave font-ui text-sm">
+            No se pudo conectar con el servidor.
+          </span>
+          <button
+            type="button"
+            (click)="retry()"
+            class="px-4 py-2 rounded font-ui text-sm bg-tinta text-papel
+                   hover:bg-tinta/80 transition-colors cursor-pointer"
+          >
+            Reintentar
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>
