@@ -60,7 +60,7 @@ El frontend muestra un círculo de color en el título del navegador para identi
 | Documento | Descripción |
 |-----------|-------------|
 | [Requerimientos](docs/requirements.md) | Requerimientos funcionales y no funcionales |
-| [Arquitectura](docs/architecture.md) | Arquitectura de solución y componentes |
+| [Arquitectura](docs/architecture.md) | Arquitectura de solución, componentes y [diagrama ER](docs/architecture.md#diagrama-er) |
 | [Decisiones técnicas](docs/technical-decisions.md) | Resumen de las 21 decisiones de diseño — detalle en [`docs/technical-decisions/`](docs/technical-decisions/) |
 | [Alcance del MVP](docs/mvp-scope.md) | Qué está dentro y fuera del alcance |
 | [CI/CD](docs/ci-cd.md) | Estrategia de integración y entrega continua |
