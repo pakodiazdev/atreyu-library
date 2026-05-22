@@ -18,6 +18,5 @@ export default defineConfig({
     videosFolder: 'cypress/videos',
     screenshotsFolder: 'cypress/screenshots',
     video: false,
-    allowCypressEnv: false,
   },
 });
