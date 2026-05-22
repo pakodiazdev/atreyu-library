@@ -3,18 +3,26 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { BookListStore } from './book-list.store';
 import { BookRepository } from '../book.repository';
-import { Book } from '../book.model';
+import { Book, BookPage } from '../book.model';
 
 const MOCK_BOOKS: Book[] = [
   { code: 'A01', ulid: '01', title: 'El Nombre del Viento', author: 'Patrick Rothfuss', genre: 'Fantasía', publicationYear: 2007 },
 ];
 
+const emptyPage: BookPage = {
+  content: [], page: 0, size: 10, totalElements: 0, totalPages: 0, hasNext: false, hasPrevious: false,
+};
+
+const pageOfMockBooks: BookPage = {
+  content: MOCK_BOOKS, page: 0, size: 10, totalElements: 1, totalPages: 1, hasNext: false, hasPrevious: false,
+};
+
 describe('BookListStore', () => {
   let store: BookListStore;
-  const mockRepo = { getAll: vi.fn().mockReturnValue(of([])) };
+  const mockRepo = { getAll: vi.fn().mockReturnValue(of(emptyPage)) };
 
   beforeEach(() => {
-    mockRepo.getAll.mockReturnValue(of([]));
+    mockRepo.getAll.mockReturnValue(of(emptyPage));
 
     TestBed.configureTestingModule({
       providers: [
@@ -24,6 +32,8 @@ describe('BookListStore', () => {
     });
     store = TestBed.inject(BookListStore);
   });
+
+  // ── filtros ──────────────────────────────────────────────────────────────
 
   it('initializes all filter signals as empty strings', () => {
     expect(store.filterTitle()).toBe('');
@@ -73,8 +83,42 @@ describe('BookListStore', () => {
     expect(store.hasActiveFilters()).toBe(false);
   });
 
+  it('clearFilters resets page to 0', () => {
+    store.setPage(5);
+    store.clearFilters();
+    expect(store.page()).toBe(0);
+  });
+
+  // ── paginación ───────────────────────────────────────────────────────────
+
+  it('initializes page to 0', () => {
+    expect(store.page()).toBe(0);
+  });
+
+  it('initializes size to 10', () => {
+    expect(store.size()).toBe(10);
+  });
+
+  it('setPage updates the page signal', () => {
+    store.setPage(3);
+    expect(store.page()).toBe(3);
+  });
+
+  it('setSize updates the size signal and resets page to 0', () => {
+    store.setPage(4);
+    store.setSize(50);
+    expect(store.size()).toBe(50);
+    expect(store.page()).toBe(0);
+  });
+
+  // ── estado reactivo ──────────────────────────────────────────────────────
+
   it('books() returns empty array initially', () => {
     expect(store.books()).toEqual([]);
+  });
+
+  it('totalElements() returns 0 initially', () => {
+    expect(store.totalElements()).toBe(0);
   });
 
   it('isLoading is true while the resource is pending', () => {
@@ -82,9 +126,9 @@ describe('BookListStore', () => {
     expect(store.isLoading()).toBe(true);
   });
 
-  it('books() returns data after resource resolves', async () => {
+  it('books() returns content after resource resolves', async () => {
     vi.useFakeTimers();
-    mockRepo.getAll.mockReturnValue(of(MOCK_BOOKS));
+    mockRepo.getAll.mockReturnValue(of(pageOfMockBooks));
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
@@ -102,5 +146,29 @@ describe('BookListStore', () => {
     vi.useRealTimers();
 
     expect(freshStore.books()).toEqual(MOCK_BOOKS);
+  });
+
+  it('totalElements() reflects the value from the API response', async () => {
+    vi.useFakeTimers();
+    const page: BookPage = { ...pageOfMockBooks, totalElements: 42, totalPages: 3, hasNext: true };
+    mockRepo.getAll.mockReturnValue(of(page));
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        BookListStore,
+        { provide: BookRepository, useValue: mockRepo },
+      ],
+    });
+    const freshStore = TestBed.inject(BookListStore);
+
+    vi.runAllTimers();
+    await Promise.resolve();
+    TestBed.flushEffects();
+    vi.useRealTimers();
+
+    expect(freshStore.totalElements()).toBe(42);
+    expect(freshStore.totalPages()).toBe(3);
+    expect(freshStore.hasNext()).toBe(true);
   });
 });

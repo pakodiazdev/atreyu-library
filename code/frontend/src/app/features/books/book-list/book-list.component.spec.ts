@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { computed, signal, WritableSignal } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { vi } from 'vitest';
@@ -19,8 +19,16 @@ function makeStore(): BookListStore {
     books:            signal([]),
     isLoading:        signal(false),
     error:            signal(null),
+    page:             signal(0),
+    size:             signal(10),
+    totalElements:    signal(0),
+    totalPages:       signal(0),
+    hasNext:          signal(false),
+    hasPrevious:      signal(false),
     clearFilters:     vi.fn(),
     reload:           vi.fn(),
+    setPage:          vi.fn(),
+    setSize:          vi.fn(),
   } as unknown as BookListStore;
 }
 
@@ -40,23 +48,28 @@ function makeDrawer() {
 
 describe('BookListComponent', () => {
   let mockLocation: { replaceState: ReturnType<typeof vi.fn> };
+  let mockRouter: { navigate: ReturnType<typeof vi.fn> };
   let queryParamMap$: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let mockDialog: { bookDeleted: WritableSignal<number> };
   let store: BookListStore;
   let drawer: ReturnType<typeof makeDrawer>;
   let fixture: ComponentFixture<BookListComponent>;
 
-  function configureAndCreate(bookSlug: string | null, titleQueryParam: string | null = null): BookListComponent {
+  function configureAndCreate(
+    bookSlug: string | null,
+    queryParams: Record<string, string> = {},
+  ): BookListComponent {
     store      = makeStore();
     drawer     = makeDrawer();
     mockDialog = { bookDeleted: signal(0) };
     mockLocation  = { replaceState: vi.fn() };
-    queryParamMap$ = new BehaviorSubject(convertToParamMap(titleQueryParam ? { title: titleQueryParam } : {}));
+    mockRouter    = { navigate: vi.fn().mockResolvedValue(true) };
+    queryParamMap$ = new BehaviorSubject(convertToParamMap(queryParams));
 
     const mockRoute = {
       snapshot: {
         paramMap:      { get: vi.fn().mockReturnValue(bookSlug) },
-        queryParamMap: { get: vi.fn().mockReturnValue(titleQueryParam) },
+        queryParamMap: { get: vi.fn().mockImplementation((k: string) => queryParams[k] ?? null) },
       },
       queryParamMap: queryParamMap$.asObservable(),
     };
@@ -68,6 +81,7 @@ describe('BookListComponent', () => {
         { provide: DrawerService,   useValue: drawer },
         { provide: DialogService,   useValue: mockDialog },
         { provide: Location,        useValue: mockLocation },
+        { provide: Router,          useValue: mockRouter },
         { provide: ActivatedRoute,  useValue: mockRoute },
       ],
     }).overrideComponent(BookListComponent, { set: { providers: [], imports: [], template: '' } });
@@ -98,23 +112,44 @@ describe('BookListComponent', () => {
     });
 
     it('aplica filterTitle desde el queryParam title al inicializar', () => {
-      configureAndCreate(null, 'El Nombre del Viento');
+      configureAndCreate(null, { title: 'El Nombre del Viento' });
       expect(store.filterTitle()).toBe('El Nombre del Viento');
     });
 
     it('no modifica filterTitle cuando no hay queryParam title', () => {
-      configureAndCreate(null, null);
+      configureAndCreate(null, {});
       expect(store.filterTitle()).toBe('');
     });
 
+    it('aplica page desde el queryParam al inicializar', () => {
+      configureAndCreate(null, { page: '3' });
+      expect(store.page()).toBe(3);
+    });
+
+    it('aplica size desde el queryParam al inicializar cuando es valor válido', () => {
+      configureAndCreate(null, { size: '50' });
+      expect(store.setSize).toHaveBeenCalledWith(50);
+    });
+
+    it('ignora size desde queryParam cuando no es un valor permitido', () => {
+      configureAndCreate(null, { size: '999' });
+      expect(store.setSize).not.toHaveBeenCalled();
+    });
+
     it('actualiza filterTitle cuando queryParamMap emite un nuevo title estando ya montado', () => {
-      configureAndCreate(null, null);
+      configureAndCreate(null, {});
       queryParamMap$.next(convertToParamMap({ title: 'Don Quijote' }));
       expect(store.filterTitle()).toBe('Don Quijote');
     });
 
+    it('actualiza page cuando queryParamMap emite un nuevo page estando ya montado', () => {
+      configureAndCreate(null, {});
+      queryParamMap$.next(convertToParamMap({ page: '5' }));
+      expect(store.page()).toBe(5);
+    });
+
     it('no limpia filterTitle cuando queryParamMap emite sin title (el usuario puede haberlo escrito manualmente)', () => {
-      configureAndCreate(null, 'Previo');
+      configureAndCreate(null, { title: 'Previo' });
       (store.filterTitle as WritableSignal<string>).set('Escrito a mano');
       queryParamMap$.next(convertToParamMap({}));
       expect(store.filterTitle()).toBe('Escrito a mano');
@@ -146,6 +181,43 @@ describe('BookListComponent', () => {
       expect(mockLocation.replaceState).toHaveBeenCalledWith(
         '/libros/cervantes/B02-el-quijote-1605'
       );
+    });
+  });
+
+  // ── onFilterChange ──────────────────────────────────────────────────────────
+
+  describe('onFilterChange()', () => {
+    it('actualiza filterTitle y resetea page a 0', () => {
+      const c = configureAndCreate(null);
+      (store.page as WritableSignal<number>).set(5);
+
+      (c as unknown as { onFilterChange(f: string, v: string): void })
+        .onFilterChange('title', 'Tolkien');
+
+      expect(store.filterTitle()).toBe('Tolkien');
+      expect(store.page()).toBe(0);
+    });
+
+    it('actualiza filterAuthor y resetea page a 0', () => {
+      const c = configureAndCreate(null);
+      (store.page as WritableSignal<number>).set(3);
+
+      (c as unknown as { onFilterChange(f: string, v: string): void })
+        .onFilterChange('author', 'Orwell');
+
+      expect(store.filterAuthor()).toBe('Orwell');
+      expect(store.page()).toBe(0);
+    });
+
+    it('actualiza filterGenre y resetea page a 0', () => {
+      const c = configureAndCreate(null);
+      (store.page as WritableSignal<number>).set(2);
+
+      (c as unknown as { onFilterChange(f: string, v: string): void })
+        .onFilterChange('genre', 'Fantasía');
+
+      expect(store.filterGenre()).toBe('Fantasía');
+      expect(store.page()).toBe(0);
     });
   });
 
@@ -224,9 +296,19 @@ describe('BookListComponent', () => {
         books:            signal(state.books ?? []),
         isLoading:        signal(state.isLoading ?? false),
         error:            signal(state.error ?? null),
+        page:             signal(0),
+        size:             signal(10),
+        totalElements:    signal(state.books?.length ?? 0),
+        totalPages:       signal(state.books?.length ? 1 : 0),
+        hasNext:          signal(false),
+        hasPrevious:      signal(false),
         clearFilters:     vi.fn(),
         reload:           vi.fn(),
+        setPage:          vi.fn(),
+        setSize:          vi.fn(),
       } as unknown as BookListStore;
+
+      const qp$ = new BehaviorSubject(convertToParamMap({}));
 
       TestBed.configureTestingModule({
         imports: [BookListComponent],
@@ -234,7 +316,14 @@ describe('BookListComponent', () => {
           { provide: DrawerService,  useValue: makeDrawer() },
           { provide: DialogService,  useValue: { bookDeleted: signal(0) } },
           { provide: Location,       useValue: { replaceState: vi.fn() } },
-          { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: vi.fn().mockReturnValue(null) }, queryParamMap: { get: vi.fn().mockReturnValue(null) } }, queryParamMap: new BehaviorSubject(convertToParamMap({})).asObservable() } },
+          { provide: Router,         useValue: { navigate: vi.fn().mockResolvedValue(true) } },
+          { provide: ActivatedRoute, useValue: {
+            snapshot: {
+              paramMap: { get: vi.fn().mockReturnValue(null) },
+              queryParamMap: { get: vi.fn().mockReturnValue(null) },
+            },
+            queryParamMap: qp$.asObservable(),
+          }},
         ],
       }).overrideProvider(BookListStore, { useValue: s });
 
@@ -294,6 +383,14 @@ describe('BookListComponent', () => {
       }];
       const f = createWithState({ books, hasActiveFilters: true });
       expect(f.nativeElement.querySelector('[data-cy="clear-filters"]')).toBeTruthy();
+    });
+
+    it('renders paginator when books are present', () => {
+      const books: Book[] = [{
+        ulid: '1', code: 'A01', title: 'T', author: 'A', publicationYear: 2020, genre: 'Fantasía',
+      }];
+      const f = createWithState({ books });
+      expect(f.nativeElement.querySelector('[data-cy="paginator"]')).toBeTruthy();
     });
   });
 });

@@ -17,6 +17,18 @@ export interface BookFilters {
   title?: string;
   author?: string;
   genre?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface BookPage {
+  content: Book[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
 }
 
 export interface BookCreatePayload {

@@ -10,7 +10,8 @@ describe('Edición de libro en drawer (#14)', () => {
   function openBookDetail() {
     cy.visit('/catalogo');
     cy.get('[data-cy="books-table"]', { timeout: 10000 }).should('be.visible');
-    cy.contains('[data-cy="book-row"]', 'Cien años de soledad').click();
+    cy.get('[data-cy="filter-title"]').type('Cien');
+    cy.contains('[data-cy="book-row"]', 'Cien años de soledad', { timeout: 10000 }).click();
     cy.get('[data-cy="book-detail"]', { timeout: 10000 }).should('be.visible');
   }
 

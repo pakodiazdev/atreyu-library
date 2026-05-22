@@ -12,3 +12,4 @@ export { UiDrawerComponent } from './ui-drawer/ui-drawer.component';
 export { UiDialogComponent } from './ui-dialog/ui-dialog.component';
 export { UiToastComponent }  from './ui-toast/ui-toast.component';
 export { ToastService }      from './toast.service';
+export { UiPaginatorComponent } from './ui-paginator/ui-paginator.component';
