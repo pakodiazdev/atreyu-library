@@ -174,7 +174,7 @@ describe('AppLayoutComponent', () => {
       const router = TestBed.inject(Router);
       const drawer = TestBed.inject(DrawerService);
 
-      await router.navigate(['/buscar'], { queryParams: { q: 'angular', 'nuevo-libro': 'true' } });
+      await router.navigate(['/catalogo'], { queryParams: { q: 'angular', 'nuevo-libro': 'true' } });
       expect(drawer.mode()).toBe('form');
 
       component.closeDrawer();

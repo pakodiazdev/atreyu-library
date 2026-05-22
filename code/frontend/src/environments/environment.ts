@@ -5,4 +5,5 @@ export const environment = {
   apiUrl: '/api/v1',
   sentryDsn: '',
   sentryEnvironment: 'dev',
+  envBadge: '🟢',
 };

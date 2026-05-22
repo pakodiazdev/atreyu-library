@@ -1,6 +1,6 @@
 package com.atreyulibrary.seeder;
 
-import com.atreyulibrary.book.BookService;
+import com.atreyulibrary.book.service.BookService;
 import com.atreyulibrary.book.dto.BookRequest;
 import com.atreyulibrary.seeder.base.SeederLog;
 import com.atreyulibrary.seeder.base.SeederLogRepository;

@@ -20,12 +20,16 @@
 
 ## Ambientes
 
-| Ambiente | URL | Acceso |
-|----------|-----|--------|
-| Producción | [atreyu-library.pakodiaz.dev](https://atreyu-library.pakodiaz.dev) | Público |
-| QA | [qa01.atreyu-library.pakodiaz.dev](https://qa01.atreyu-library.pakodiaz.dev) | Usuario: `qa` / Contraseña: `preview` ¹ |
-| **API Docs — Prod (Swagger)** | [api.atreyu-library.pakodiaz.dev/swagger-ui.html](https://api.atreyu-library.pakodiaz.dev/swagger-ui.html) | Público |
-| **API Docs — QA (Swagger)** | [api-qa01.atreyu-library.pakodiaz.dev/swagger-ui.html](https://api-qa01.atreyu-library.pakodiaz.dev/swagger-ui.html) | Público |
+| Ambiente | URL | Acceso | Indicador en título |
+|----------|-----|--------|---------------------|
+| Producción | [atreyu-library.pakodiaz.dev](https://atreyu-library.pakodiaz.dev) | Público | _(ninguno)_ |
+| QA | [qa01.atreyu-library.pakodiaz.dev](https://qa01.atreyu-library.pakodiaz.dev) | Usuario: `qa` / Contraseña: `preview` ¹ | 🟠 |
+| Local (`ng serve`) | `http://localhost:4200` | — | 🟢 |
+| E2E (`ng serve:e2e`) | `http://localhost:4200` | — | 🔵 |
+| **API Docs — Prod (Swagger)** | [api.atreyu-library.pakodiaz.dev/swagger-ui.html](https://api.atreyu-library.pakodiaz.dev/swagger-ui.html) | Público | — |
+| **API Docs — QA (Swagger)** | [api-qa01.atreyu-library.pakodiaz.dev/swagger-ui.html](https://api-qa01.atreyu-library.pakodiaz.dev/swagger-ui.html) | Público | — |
+
+El frontend muestra un círculo de color en el título del navegador para identificar el ambiente activo de un vistazo. En producción no aparece ningún indicador.
 
 > ¹ **Nota para el revisor del demo:** las credenciales se publican intencionalmente para
 > facilitar la verificación del requisito RNF-15. En un proyecto real se gestionarían a

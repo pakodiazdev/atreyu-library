@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.atreyulibrary.book.Book;
+import com.atreyulibrary.book.model.Book;
 import com.atreyulibrary.book.dto.BookResponse;
 import com.atreyulibrary.dashboard.dto.ActivityEntry;
 import com.atreyulibrary.dashboard.dto.DashboardStatsResponse;
