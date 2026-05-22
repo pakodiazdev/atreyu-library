@@ -7,10 +7,12 @@ import { defineConfig } from 'cypress';
 const frontendPort = process.env['E2E_FRONTEND_PORT'] ?? '4200';
 const baseUrl =
   process.env['CYPRESS_BASE_URL'] ?? `http://localhost:${frontendPort}`;
+const envBadge = process.env['ENV_BADGE'] ?? '🟢';
 
 export default defineConfig({
   e2e: {
     baseUrl,
+    env: { envBadge },
     specPattern: 'cypress/e2e/**/*.cy.ts',
     supportFile: 'cypress/support/e2e.ts',
     videosFolder: 'cypress/videos',
