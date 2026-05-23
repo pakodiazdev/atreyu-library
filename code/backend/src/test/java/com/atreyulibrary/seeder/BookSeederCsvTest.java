@@ -6,10 +6,10 @@ import com.atreyulibrary.seeder.base.SeederLog;
 import com.atreyulibrary.seeder.base.SeederLogRepository;
 import java.time.OffsetDateTime;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 class BookSeederCsvTest {
 
     private static final int CSV_BOOK_COUNT = 1500;
+    private static final int QA_LIMIT = 200;
 
     @Mock
     private SeederLogRepository seederLogRepository;
@@ -34,8 +35,14 @@ class BookSeederCsvTest {
     @Mock
     private BookService bookService;
 
-    @InjectMocks
     private BookSeederCsv seeder;
+    private BookSeederCsv seederWithLimit;
+
+    @BeforeEach
+    void setUp() {
+        seeder = new BookSeederCsv(bookService, seederLogRepository, 0);
+        seederWithLimit = new BookSeederCsv(bookService, seederLogRepository, QA_LIMIT);
+    }
 
     @Test
     void callsCreateAllOnceWithAllCsvRowsOnFirstRun() {
@@ -52,6 +59,22 @@ class BookSeederCsvTest {
         assertEquals(CSV_BOOK_COUNT, reqCaptor.getValue().size());
         assertEquals(CSV_BOOK_COUNT, tsCaptor.getValue().size());
         verify(seederLogRepository).save(any(SeederLog.class));
+    }
+
+    @Test
+    void limitsToConfiguredCountWhenLimitIsPositive() {
+        when(seederLogRepository.existsBySeederClass(anyString())).thenReturn(false);
+
+        seederWithLimit.run();
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<BookRequest>> reqCaptor = ArgumentCaptor.forClass(List.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<OffsetDateTime>> tsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(bookService).createAll(reqCaptor.capture(), tsCaptor.capture());
+
+        assertEquals(QA_LIMIT, reqCaptor.getValue().size());
+        assertEquals(QA_LIMIT, tsCaptor.getValue().size());
     }
 
     @Test
@@ -98,7 +121,7 @@ class BookSeederCsvTest {
         verify(bookService).createAll(anyList(), tsCaptor.capture());
 
         final OffsetDateTime now = OffsetDateTime.now();
-        final OffsetDateTime twoYearsAgo = now.minusDays(731); // +1 de buffer: nextLong incluye 730
+        final OffsetDateTime twoYearsAgo = now.minusDays(731);
         tsCaptor.getValue().forEach(ts -> {
             assertTrue(ts.isBefore(now), "El timestamp no debería ser futuro");
             assertTrue(ts.isAfter(twoYearsAgo), "El timestamp no debería ser anterior a 2 años");
