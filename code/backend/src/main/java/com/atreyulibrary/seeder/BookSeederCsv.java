@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
@@ -26,12 +27,15 @@ public class BookSeederCsv extends OnceSeeder {
     private static final String CSV_PATH = "data/libros.csv";
 
     private final BookService bookService;
+    private final int csvBookLimit;
 
     public BookSeederCsv(
             final BookService bookService,
-            final SeederLogRepository seederLogRepository) {
+            final SeederLogRepository seederLogRepository,
+            @Value("${app.seeder.csv-book-limit:0}") final int csvBookLimit) {
         super(seederLogRepository);
         this.bookService = bookService;
+        this.csvBookLimit = csvBookLimit;
     }
 
     private static final int SPREAD_DAYS = 730; // rango [0, SPREAD_DAYS] días → ~2 años hacia atrás
@@ -39,7 +43,10 @@ public class BookSeederCsv extends OnceSeeder {
 
     @Override
     protected void seed() {
-        final List<BookRequest> requests = loadFromCsv();
+        List<BookRequest> requests = loadFromCsv();
+        if (csvBookLimit > 0 && requests.size() > csvBookLimit) {
+            requests = requests.subList(0, csvBookLimit);
+        }
         final List<OffsetDateTime> timestamps = randomTimestamps(requests.size());
         bookService.createAll(requests, timestamps);
     }
