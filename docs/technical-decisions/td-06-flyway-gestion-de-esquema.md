@@ -40,3 +40,48 @@ code/backend/src/main/resources/db/migration/
 - La descripción usa `snake_case` y describe la intención (no la entidad)
 - Cada migración es atómica — si falla, la transacción completa se revierte
 - Las migraciones nunca se editan una vez aplicadas — si hay un error, se crea una nueva migración correctiva
+
+---
+
+## Flyway en Cloud Run — ejecución por deploy, no por cold start
+
+En Cloud Run los contenedores se destruyen al no tener tráfico y se recrean en frío.
+Si Flyway corre en cada arranque de Spring Boot, existe riesgo de contención de locks
+(`flyway_schema_history`) cuando múltiples instancias arrancan en paralelo durante un
+pico de tráfico.
+
+**Solución:** Flyway se ejecuta una sola vez por deploy, en un **Cloud Run Job** dedicado
+que corre antes de desplegar los servicios. Los servicios web reciben
+`SPRING_FLYWAY_ENABLED=false` y no ejecutan migraciones al arrancar.
+
+### Perfiles Spring Boot para los jobs de inicialización
+
+Se usan **Profile Groups** de Spring Boot (disponibles desde 2.4) para que los perfiles
+`qa-init` y `prod-init` hereden toda la configuración del perfil base (`qa` / `prod`)
+sin necesidad de duplicarla:
+
+```properties
+# application.properties
+spring.profiles.group.qa-init=qa
+spring.profiles.group.prod-init=prod
+```
+
+Cada perfil `-init` solo añade las propiedades exclusivas del job:
+
+```properties
+# application-prod-init.properties
+spring.main.web-application-type=none   # Spring arranca, corre CommandLineRunners y sale
+
+# application-qa-init.properties
+spring.flyway.clean-disabled=false      # QA: limpiar BD antes de migrar
+spring.main.web-application-type=none
+```
+
+### Flujo por ambiente
+
+| Ambiente | Quién ejecuta Flyway | Cuándo | `clean` |
+|----------|---------------------|--------|---------|
+| Local (`dev`) | Spring Boot al arrancar | Cada `docker compose up` | No |
+| QA | Cloud Run Job (`qa-init`) | Cada deploy desde GitHub Actions | Sí |
+| Prod | Cloud Run Job (`prod-init`) | Cada deploy desde GitHub Actions | No |
+| Servicio web QA/prod | — | Nunca (`FLYWAY_ENABLED=false`) | — |

@@ -122,11 +122,21 @@ Merge a main
 │  backend:sha         │  │  frontend:sha            │
 └──────────┬───────────┘  └────────────┬─────────────┘
            │                           │
-           ▼                           ▼
+           ▼                     (espera migrate-and-seed)
+┌──────────────────────────────────────────────┐
+│  Migrate + seed BD prod                      │
+│  Cloud Run Job — modo no-web (Spring Boot)   │
+│  SPRING_PROFILES_ACTIVE=prod-init            │
+│  Flyway migrate + seeders → Spring sale solo │
+└──────────┬───────────────────────────────────┘
+           │
+           ├───────────────────────────────────────┐
+           ▼                                       ▼
 ┌──────────────────────┐  ┌──────────────────────────┐
 │  Deploy Cloud Run    │  │  Deploy Cloud Run        │
 │  atreyu-backend      │  │  atreyu-frontend         │
-│  (prod)              │  │  (prod)                  │
+│  (FLYWAY_ENABLED=    │  │  (prod)                  │
+│   false)             │  │                          │
 └──────────┬───────────┘  └────────────┬─────────────┘
            │                           │
            └──────────────┬────────────┘
@@ -142,6 +152,9 @@ Merge a main
 
 > Si el CI gate o el gate E2E falla, **ningún servicio se despliega**. Los tres
 > gates (ci-backend, ci-frontend, e2e) deben pasar para que el deploy proceda.
+> El job `migrate-and-seed` corre **antes** de desplegar los servicios — las
+> migraciones y seeders se ejecutan una sola vez por deploy (no en cada cold start).
+> Los servicios arriban con `SPRING_FLYWAY_ENABLED=false`.
 > Tras el deploy, el job cleanup elimina todas las revisiones anteriores de ambos
 > servicios — solo la revisión activa permanece en Cloud Run.
 
@@ -150,34 +163,55 @@ Merge a main
 ## Flujo QA — Deploy manual por branch
 
 Permite desplegar cualquier branch a un ambiente de pruebas para validar
-antes de abrir el PR a `main`.
+antes de abrir el PR a `main`. Requiere que todos los checks de CI del
+branch seleccionado estén en `success` antes de construir las imágenes.
 
 ```
 Trigger manual
 (branch seleccionado)
         │
-        ├──────────────────────────┐
-        ▼                          ▼
+        ▼
+┌────────────────────────────────────────┐
+│  Verificar CI del branch               │
+│  Todos los checks deben ser SUCCESS    │
+│  (Backend + Frontend + E2E)            │
+└──────────────────┬─────────────────────┘
+                   │ ✅ pasa
+        ┌──────────┴───────────┐
+        ▼                      ▼
 ┌───────────────────┐  ┌───────────────────────┐
 │  Build + Push BE  │  │  Build + Push FE      │
 │  backend:qa-sha   │  │  frontend:qa-sha      │
 └────────┬──────────┘  └──────────┬────────────┘
          │                        │
-         ▼                        ▼
-┌───────────────────┐  ┌───────────────────────┐
-│  Deploy Cloud Run │  │  Deploy Cloud Run QA  │
-│  atreyu-backend   │  │  atreyu-frontend-qa   │
-│  -qa              │  │  qa01.atreyu-library  │
-└────────┬──────────┘  └──────────┬────────────┘
-         │                        │
-         └────────────┬───────────┘
-                      ▼
-          ┌───────────────────────┐
-          │  Cleanup revisiones   │
-          │  e imágenes QA        │
-          │  anteriores           │
-          └───────────────────────┘
+         ▼                  (espera migrate-and-seed)
+┌────────────────────────────────────────────────┐
+│  Migrate + seed BD QA                          │
+│  Cloud Run Job — modo no-web (Spring Boot)     │
+│  SPRING_PROFILES_ACTIVE=qa-init                │
+│  Flyway clean + migrate + seeders → sale solo  │
+└──────────┬─────────────────────────────────────┘
+           │
+           ├───────────────────────────────────────┐
+           ▼                                       ▼
+┌───────────────────────┐  ┌───────────────────────────┐
+│  Deploy Cloud Run QA  │  │  Deploy Cloud Run QA      │
+│  atreyu-backend-qa    │  │  atreyu-frontend-qa       │
+│  (FLYWAY_ENABLED=     │  │  qa01.atreyu-library      │
+│   false)              │  │                           │
+└──────────┬────────────┘  └────────────┬──────────────┘
+           │                            │
+           └─────────────┬──────────────┘
+                         ▼
+             ┌───────────────────────┐
+             │  Cleanup revisiones   │
+             │  e imágenes QA        │
+             │  anteriores           │
+             └───────────────────────┘
 ```
+
+> El job `migrate-and-seed` en QA ejecuta `Flyway clean` antes de migrar —
+> el entorno QA siempre parte de datos limpios en cada deploy.
 
 ---
 
@@ -205,7 +239,7 @@ Trigger manual
 .github/workflows/
 ├── ci.yml          → checks en PR (lint + tests + SonarCloud)
 ├── cd.yml          → deploy automático al mergear a main
-└── deploy-qa.yml   → deploy manual por branch a QA
+└── qa-deploy.yml   → deploy manual por branch a QA
 ```
 
 ---
