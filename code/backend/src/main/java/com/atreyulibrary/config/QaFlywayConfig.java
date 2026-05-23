@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Profile;
  * En producción este bean no existe — clean-disabled=true allí por defecto.
  */
 @Configuration
-@Profile("qa")
+@Profile("qa-init")
 class QaFlywayConfig {
 
     @Bean

@@ -94,6 +94,11 @@ seleccionando el branch a probar.
 | Base de datos | Supabase — instancia compartida con producción (datos de prueba vía seeder) |
 | Dominio | `qa01.atreyu-library.pakodiaz.dev` |
 
+Antes de desplegar los servicios, el workflow ejecuta un **Cloud Run Job** con perfil
+`qa-init` que corre `Flyway clean + migrate + seeders` en modo no-web y luego sale.
+Los servicios se despliegan con `SPRING_FLYWAY_ENABLED=false` — cada deploy QA parte
+de una base de datos limpia con datos de demo frescos.
+
 > El prefijo `qa01` permite escalar a múltiples ambientes simultáneos (`qa02`, `qa03`)
 > si se necesita validar más de un branch en paralelo.
 
@@ -146,6 +151,12 @@ Ambiente principal. Se despliega automáticamente al hacer merge a `main`.
 | Base de datos | Supabase — instancia de producción |
 | Dominio | `atreyu-library.pakodiaz.dev` |
 | Registry | Google Artifact Registry |
+
+Antes de desplegar los servicios, el workflow ejecuta un **Cloud Run Job** con perfil
+`prod-init` que corre `Flyway migrate + seeders` en modo no-web y luego sale.
+Los servicios se despliegan con `SPRING_FLYWAY_ENABLED=false` — las migraciones y
+seeders se ejecutan exactamente una vez por deploy, sin riesgo de contención en
+cold starts paralelos.
 
 **Configuración de nginx (frontend):**
 
