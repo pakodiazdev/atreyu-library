@@ -12,6 +12,7 @@ import { GenreStats } from '../generos.model';
     <div class="relative">
       <div
         class="flex flex-wrap gap-2 overflow-y-auto pr-1"
+        data-cy="genre-chip-bar"
         style="max-height: 9rem;"
       >
         @if (loading()) {
@@ -28,6 +29,8 @@ import { GenreStats } from '../generos.model';
               class="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 border border-tinta/20
                      rounded-full font-ui text-[13px] transition-colors cursor-pointer
                      hover:border-tinta/60 hover:bg-tinta/5"
+              data-cy="genre-chip"
+              [attr.data-genre]="genre.genre"
             >
               <span class="text-tinta-suave" [class.text-papel]="selected().includes(genre.genre)">{{ genre.genre }}</span>
               <span class="font-code text-[11px] text-tinta-muted" [class.text-papel]="selected().includes(genre.genre)" style="opacity:0.75">{{ genre.count }}</span>

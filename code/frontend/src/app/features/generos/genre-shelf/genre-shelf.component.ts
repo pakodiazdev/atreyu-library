@@ -7,10 +7,10 @@ import { BookSpineComponent } from './book-spine/book-spine.component';
   selector: 'app-genre-shelf',
   imports: [BookSpineComponent],
   template: `
-    <section class="mb-8">
+    <section class="mb-8" data-cy="genre-shelf" [attr.data-genre]="genre()">
       <div class="flex items-baseline gap-3 mb-2">
-        <h2 class="font-editorial text-xl text-tinta">{{ genre() }}</h2>
-        <span class="font-code text-xs text-tinta-muted">{{ (totalCount() ?? books().length) }} libros</span>
+        <h2 class="font-editorial text-xl text-tinta" data-cy="genre-shelf-title">{{ genre() }}</h2>
+        <span class="font-code text-xs text-tinta-muted" data-cy="genre-shelf-count">{{ (totalCount() ?? books().length) }} libros</span>
       </div>
 
       <!-- shelf board -->
