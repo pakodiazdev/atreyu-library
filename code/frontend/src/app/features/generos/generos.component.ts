@@ -16,8 +16,8 @@ import { GenreShelfComponent } from './genre-shelf/genre-shelf.component';
   selector: 'app-generos',
   imports: [GenreChipBarComponent, GenreShelfComponent],
   template: `
-    <div class="p-6 max-w-5xl mx-auto">
-      <h1 class="font-editorial text-3xl text-tinta mb-6">Géneros</h1>
+    <div class="p-6 max-w-5xl mx-auto" data-cy="generos-page">
+      <h1 class="font-editorial text-3xl text-tinta mb-6" data-cy="generos-title">Géneros</h1>
 
       <!-- chip bar -->
       <div class="mb-8">

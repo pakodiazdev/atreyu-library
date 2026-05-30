@@ -31,6 +31,8 @@ const SPINE_COLORS = [
                cursor-pointer hover:scale-105 hover:-translate-y-1
                transition-transform duration-150 overflow-hidden group"
         [title]="book().title + ' — ' + book().author"
+        data-cy="book-spine"
+        [attr.data-code]="book().code"
       >
         <span class="absolute inset-0 flex flex-col items-center justify-center p-1
                      writing-vertical font-ui text-[10px] text-tinta/80 leading-tight
