@@ -1,12 +1,13 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { GenreStats } from '../inicio.model';
 
 /**
  * Lista visual de géneros del catálogo con su conteo de libros.
- * Solo visual — sin acciones de navegación en esta versión.
+ * Emite `genreClick` al pulsar un chip — el padre decide la navegación.
  *
- * @input  genres  - lista de géneros con conteo
- * @input  loading - activa los skeletons de carga
+ * @input  genres     - lista de géneros con conteo
+ * @input  loading    - activa los skeletons de carga
+ * @output genreClick - género pulsado
  */
 @Component({
   standalone: true,
@@ -29,10 +30,15 @@ import { GenreStats } from '../inicio.model';
       } @else {
         <div class="flex flex-wrap gap-2">
           @for (genre of genres(); track genre.genre) {
-            <div class="flex items-center gap-1.5 px-3 py-1.5 border border-tinta/20 rounded-full bg-papel-claro">
+            <button
+              (click)="genreClick.emit(genre.genre)"
+              class="flex items-center gap-1.5 px-3 py-1.5 border border-tinta/20 rounded-full
+                     bg-papel-claro cursor-pointer hover:border-tinta/50 hover:bg-tinta/5
+                     transition-colors"
+            >
               <span class="font-ui text-[13px] text-tinta-suave">{{ genre.genre }}</span>
               <span class="font-code text-[11px] text-tinta-muted bg-tinta/8 px-1.5 py-0.5 rounded-full">{{ genre.count }}</span>
-            </div>
+            </button>
           }
         </div>
       }
@@ -42,6 +48,8 @@ import { GenreStats } from '../inicio.model';
 export class GenreListComponent {
   readonly genres  = input<GenreStats[]>([]);
   readonly loading = input(false);
+
+  readonly genreClick = output<string>();
 
   protected readonly skeletons = new Array(6);
 }

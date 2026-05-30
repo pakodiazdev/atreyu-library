@@ -60,12 +60,14 @@ export class BookFormStore {
       next: (book) => {
         this.isSubmitting.set(false);
         this.toast.show(`"${book.title}" añadido al catálogo`, 'success', 400);
-        this.drawer.notifyBookCreated();
-        this.router.navigate(['/catalogo'], {
-          queryParams: { title: book.title, 'nuevo-libro': null },
-          queryParamsHandling: 'merge',
-          replaceUrl: true,
-        });
+        this.drawer.notifyBookCreated(book.code, book.genre);
+        if (!this.router.url.startsWith('/generos')) {
+          this.router.navigate(['/catalogo'], {
+            queryParams: { title: book.title, 'nuevo-libro': null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true,
+          });
+        }
       },
       error: (err: HttpErrorResponse) => {
         this.isSubmitting.set(false);

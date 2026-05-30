@@ -41,9 +41,11 @@ export class BookDeleteFormStore {
       next: () => {
         this.isSubmitting.set(false);
         this.toast.show('Libro eliminado del catálogo', 'success', 400);
+        const returnUrl    = this.drawer.returnUrl();
+        const deletedCode  = expectedCode;
         this.dialog.notifyBookDeleted();
-        this.drawer.close();
-        this.router.navigate(['/catalogo']);
+        this.drawer.notifyBookDeleted(deletedCode);
+        this.router.navigateByUrl(returnUrl, { replaceUrl: true });
       },
       error: (err: HttpErrorResponse) => {
         this.isSubmitting.set(false);

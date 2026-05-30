@@ -54,11 +54,12 @@ describe('DrawerService', () => {
   });
 
   describe('notifyBookCreated()', () => {
-    it('increments bookCreated and closes drawer', () => {
+    it('increments bookCreated, stores created book and closes drawer', () => {
       service.openForm();
-      service.notifyBookCreated();
+      service.notifyBookCreated('A01', 'Ficción');
       expect(service.bookCreated()).toBe(1);
       expect(service.isOpen()).toBe(false);
+      expect(service.createdBook()).toEqual({ code: 'A01', genre: 'Ficción' });
     });
   });
 

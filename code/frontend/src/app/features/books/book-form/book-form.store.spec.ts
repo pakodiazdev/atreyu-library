@@ -35,7 +35,7 @@ describe('BookFormStore', () => {
     openDetail:        vi.fn(),
     close:             vi.fn(),
   };
-  const mockRouter = { navigate: vi.fn() };
+  const mockRouter = { navigate: vi.fn(), url: '/catalogo' };
   const mockToast  = { show: vi.fn() };
 
   beforeEach(() => {
