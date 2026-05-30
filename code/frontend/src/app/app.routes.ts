@@ -44,6 +44,11 @@ export const routes: Routes = [
       import('./features/generos/generos.component').then((m) => m.GenerosComponent),
   },
   {
+    path: 'generos/:genero',
+    loadComponent: () =>
+      import('./features/generos/generos.component').then((m) => m.GenerosComponent),
+  },
+  {
     path: '**',
     redirectTo: 'inicio',
   },

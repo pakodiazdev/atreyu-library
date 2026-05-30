@@ -9,14 +9,20 @@ export class DrawerService {
   private readonly _created     = signal(0);
   private readonly _updateCount = signal(0);
   private readonly _returnUrl   = signal('/catalogo');
+  private readonly _deletedCode  = signal<string | null>(null);
+  private readonly _createdBook  = signal<{ code: string; genre: string | null } | null>(null);
 
-  readonly mode        = this._mode.asReadonly();
-  readonly bookCode    = this._bookCode.asReadonly();
-  readonly isOpen      = computed(() => this._mode() !== null);
-  readonly bookCreated = this._created.asReadonly();
-  readonly updateCount = this._updateCount.asReadonly();
+  readonly mode            = this._mode.asReadonly();
+  readonly bookCode        = this._bookCode.asReadonly();
+  readonly isOpen          = computed(() => this._mode() !== null);
+  readonly bookCreated     = this._created.asReadonly();
+  readonly updateCount     = this._updateCount.asReadonly();
   /** URL a la que navegar al cerrar el panel de detalle o edición. */
-  readonly returnUrl   = this._returnUrl.asReadonly();
+  readonly returnUrl       = this._returnUrl.asReadonly();
+  /** Código del último libro eliminado; null cuando no hay eliminación pendiente. */
+  readonly deletedBookCode = this._deletedCode.asReadonly();
+  /** Último libro creado (code + genre); null hasta la primera creación. */
+  readonly createdBook     = this._createdBook.asReadonly();
 
   openDetail(code: string): void {
     this._bookCode.set(code);
@@ -44,7 +50,8 @@ export class DrawerService {
     this._bookCode.set(null);
   }
 
-  notifyBookCreated(): void {
+  notifyBookCreated(code: string, genre: string | null): void {
+    this._createdBook.set({ code, genre });
     this._created.update(n => n + 1);
     this.close();
   }
@@ -52,5 +59,14 @@ export class DrawerService {
   notifyBookUpdated(): void {
     this._updateCount.update(n => n + 1);
     this._mode.set('detail');
+  }
+
+  notifyBookDeleted(code: string): void {
+    this._deletedCode.set(code);
+    this.close();
+  }
+
+  clearDeletedBookCode(): void {
+    this._deletedCode.set(null);
   }
 }

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Location } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { InicioStore } from './inicio.store';
 import { DrawerService } from '../../shared/ui/drawer.service';
 import { Book } from '../books/book.model';
@@ -52,6 +52,7 @@ import { toBookUrl, extractCodeFromSlug } from '../../shared/utils/book-url.util
         <app-genre-list
           [genres]="store.genres()"
           [loading]="store.genresLoading()"
+          (genreClick)="navigateToGenre($event)"
         />
       </div>
 
@@ -63,6 +64,7 @@ export class InicioComponent implements OnInit {
   private  readonly drawer   = inject(DrawerService);
   private  readonly location = inject(Location);
   private  readonly route    = inject(ActivatedRoute);
+  private  readonly router   = inject(Router);
 
   ngOnInit(): void {
     const bookSlug = this.route.snapshot.paramMap.get('bookSlug') ?? '';
@@ -76,5 +78,9 @@ export class InicioComponent implements OnInit {
     const [, authorSlug, bookSlug] = toBookUrl(book);
     this.location.replaceState(`/inicio/libros/${authorSlug}/${bookSlug}`);
     this.drawer.openDetailFrom(book.code, '/inicio');
+  }
+
+  protected navigateToGenre(genre: string): void {
+    this.router.navigate(['/generos', genre]);
   }
 }

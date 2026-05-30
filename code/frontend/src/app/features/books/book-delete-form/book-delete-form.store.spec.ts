@@ -26,8 +26,11 @@ describe('BookDeleteFormStore', () => {
   let store:      BookDeleteFormStore;
   let mockDialog: ReturnType<typeof makeDialog>;
   const mockRepo   = { delete: vi.fn() };
-  const mockDrawer = { close: vi.fn() };
-  const mockRouter = { navigate: vi.fn() };
+  const mockDrawer = {
+    returnUrl:          vi.fn().mockReturnValue('/catalogo'),
+    notifyBookDeleted:  vi.fn(),
+  };
+  const mockRouter = { navigate: vi.fn(), navigateByUrl: vi.fn() };
   const mockToast  = { show: vi.fn() };
 
   beforeEach(() => {
@@ -111,14 +114,14 @@ describe('BookDeleteFormStore', () => {
       expect(mockDialog.notifyBookDeleted).toHaveBeenCalled();
     });
 
-    it('cierra el drawer tras eliminar', () => {
+    it('notifica al drawer que se eliminó el libro', () => {
       store.submit(BOOK_CODE);
-      expect(mockDrawer.close).toHaveBeenCalled();
+      expect(mockDrawer.notifyBookDeleted).toHaveBeenCalledWith(BOOK_CODE);
     });
 
-    it('navega a /catalogo tras la eliminación exitosa', () => {
+    it('navega a la returnUrl tras la eliminación exitosa', () => {
       store.submit(BOOK_CODE);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/catalogo']);
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/catalogo', { replaceUrl: true });
     });
 
     it('resets isSubmitting to false on success', () => {
@@ -202,7 +205,7 @@ describe('BookDeleteFormStore', () => {
 
       store.submit(BOOK_CODE);
 
-      expect(mockRouter.navigate).not.toHaveBeenCalled();
+      expect(mockRouter.navigateByUrl).not.toHaveBeenCalled();
     });
   });
 

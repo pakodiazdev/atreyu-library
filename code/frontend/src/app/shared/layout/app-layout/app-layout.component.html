@@ -64,9 +64,11 @@
       [class.pointer-events-none]="drawer.mode() !== 'form' && drawer.mode() !== 'edit'"
       data-cy="drawer-panel-form"
     >
-      <app-book-form
-        [bookCode]="drawer.mode() === 'edit' ? drawer.bookCode() : null"
-      />
+      @if (drawer.mode() === 'form' || drawer.mode() === 'edit') {
+        <app-book-form
+          [bookCode]="drawer.mode() === 'edit' ? drawer.bookCode() : null"
+        />
+      }
     </div>
 
   </div>

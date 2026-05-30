@@ -36,8 +36,7 @@ describe('GenreListComponent', () => {
 
   it('renders one chip per genre', () => {
     const { el } = setup(GENRES);
-    // Each chip is a div with border class; the count badge is a span — select only divs
-    const chips = el.querySelectorAll('div.rounded-full');
+    const chips = el.querySelectorAll('button.rounded-full');
     expect(chips.length).toBe(GENRES.length);
   });
 

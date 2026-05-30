@@ -1,7 +1,8 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { switchMap, timer } from 'rxjs';
 import { BookRepository } from '../book.repository';
+import { DialogService } from '../../../shared/ui/dialog.service';
 import { BookFilters, BookPage } from '../book.model';
 
 /**
@@ -10,7 +11,8 @@ import { BookFilters, BookPage } from '../book.model';
  */
 @Injectable()
 export class BookListStore {
-  private readonly repo = inject(BookRepository);
+  private readonly repo   = inject(BookRepository);
+  private readonly dialog = inject(DialogService);
 
   readonly filterTitle  = signal('');
   readonly filterAuthor = signal('');
@@ -41,6 +43,14 @@ export class BookListStore {
         : this.repo.getAll(params);
     },
   });
+
+  private readonly initialDeleted = this.dialog.bookDeleted();
+
+  constructor() {
+    effect(() => {
+      if (this.dialog.bookDeleted() > this.initialDeleted) this.resource.reload();
+    });
+  }
 
   readonly books         = computed(() => this.resource.value()?.content ?? []);
   readonly totalElements = computed(() => this.resource.value()?.totalElements ?? 0);
